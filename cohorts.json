@@ -1,0 +1,66 @@
+{
+  "venue": "Sri Wangsaria Condominium, Bangsar, KL",
+  "currency": "myr",
+  "minSeats": 10,
+  "maxSeats": 30,
+  "basePrice": 1000000,
+  "earlyBirdDiscount": 0.5,
+  "earlyBirdWindow": {
+    "start": "2026-08-08",
+    "end": "2026-08-20"
+  },
+  "seatTiers": [
+    { "min": 20, "max": 30, "discount": 0.20, "label": "20-30 delegates — 20% off" },
+    { "min": 10, "max": 19, "discount": 0.15, "label": "10-19 delegates — 15% off" },
+    { "min": 5, "max": 9, "discount": 0.10, "label": "5-9 delegates — 10% off" },
+    { "min": 2, "max": 4, "discount": 0.05, "label": "2-4 delegates — 5% off" },
+    { "min": 1, "max": 1, "discount": 0, "label": "" }
+  ],
+  "salesRepCommissionRate": 0.10,
+  "bookingProtectionFeeRate": 0.08,
+  "tokenBonusRate": 1.10,
+  "heavilyDiscountedThreshold": 0.5,
+  "standardCancellationWindowHours": 72,
+  "cohorts": [
+    {
+      "id": "masterclass-strategic-1",
+      "programme": "masterclass",
+      "programmeName": "Strategic AI Transformation Masterclass",
+      "track": "saturday",
+      "trackLabel": "Saturdays, 8:30am\u20134:30pm (2hr lunch break)",
+      "label": "29 Aug \u2013 26 Sep 2026",
+      "sessionDates": ["2026-08-29", "2026-09-05", "2026-09-12", "2026-09-19", "2026-09-26"],
+      "startDate": "2026-08-29"
+    },
+    {
+      "id": "masterclass-strategic-2",
+      "programme": "masterclass",
+      "programmeName": "Strategic AI Transformation Masterclass",
+      "track": "saturday",
+      "trackLabel": "Saturdays, 8:30am\u20134:30pm (2hr lunch break)",
+      "label": "3 \u2013 31 Oct 2026",
+      "sessionDates": ["2026-10-03", "2026-10-10", "2026-10-17", "2026-10-24", "2026-10-31"],
+      "startDate": "2026-10-03"
+    },
+    {
+      "id": "masterclass-salesmarketing-1",
+      "programme": "masterclass-sm",
+      "programmeName": "Sales & Marketing AI Transformation Masterclass",
+      "track": "sunday",
+      "trackLabel": "Sundays, 1pm\u20139pm (2hr dinner break)",
+      "label": "30 Aug \u2013 27 Sep 2026",
+      "sessionDates": ["2026-08-30", "2026-09-06", "2026-09-13", "2026-09-20", "2026-09-27"],
+      "startDate": "2026-08-30"
+    },
+    {
+      "id": "masterclass-salesmarketing-2",
+      "programme": "masterclass-sm",
+      "programmeName": "Sales & Marketing AI Transformation Masterclass",
+      "track": "sunday",
+      "trackLabel": "Sundays, 1pm\u20139pm (2hr dinner break)",
+      "label": "4 Oct \u2013 1 Nov 2026",
+      "sessionDates": ["2026-10-04", "2026-10-11", "2026-10-18", "2026-10-25", "2026-11-01"],
+      "startDate": "2026-10-04"
+    }
+  ]
+}

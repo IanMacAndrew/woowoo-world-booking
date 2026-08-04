@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Issue Transfer Credit — Internal</title>
+<style>
+  body{font-family:system-ui,sans-serif; max-width:480px; margin:60px auto; padding:0 20px; color:#1C0333;}
+  h1{font-size:20px; margin-bottom:6px;}
+  p.note{color:#746F82; font-size:13px; margin-bottom:24px;}
+  label{display:block; font-size:12px; text-transform:uppercase; letter-spacing:0.04em; color:#746F82; margin:14px 0 4px;}
+  input{width:100%; padding:10px; border:1px solid #C3C0CC; font-size:14px; box-sizing:border-box;}
+  button{margin-top:20px; width:100%; padding:12px; background:#C79529; color:#1C0333; border:none; font-size:14px; cursor:pointer; text-transform:uppercase; letter-spacing:0.04em;}
+  button:hover{background:#97711F; color:#F4F2F8;}
+  #result{margin-top:20px; padding:14px; background:#E9ECF2; font-family:monospace; font-size:14px; display:none;}
+  #result.error{background:#F3DCE0; color:#9C3B4A;}
+</style>
+</head>
+<body>
+  <h1>Issue Deep Dive → Masterclass transfer credit</h1>
+  <p class="note">Internal tool. Verify the Deep Dive payment in Stripe first — this does not check Stripe itself. Each code is single-use.</p>
+
+  <label for="secret">Admin secret</label>
+  <input type="password" id="secret" autocomplete="off">
+
+  <label for="amount">Credit amount (RM)</label>
+  <input type="number" id="amount" min="1" step="0.01" placeholder="e.g. 875">
+
+  <label for="note">Note (customer name / reference)</label>
+  <input type="text" id="note" placeholder="e.g. Jane Tan, Strategic Deep Dive 15 Aug">
+
+  <button id="issue-btn">Issue code</button>
+
+  <div id="result"></div>
+
+  <script>
+    document.getElementById('issue-btn').addEventListener('click', async () => {
+      const secret = document.getElementById('secret').value;
+      const amountRM = parseFloat(document.getElementById('amount').value);
+      const note = document.getElementById('note').value;
+      const resultEl = document.getElementById('result');
+
+      if (!secret || !amountRM || amountRM <= 0) {
+        resultEl.textContent = 'Enter the admin secret and a valid amount.';
+        resultEl.className = 'error';
+        resultEl.style.display = 'block';
+        return;
+      }
+
+      resultEl.style.display = 'none';
+      try {
+        const res = await fetch('/.netlify/functions/issue-transfer-credit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-admin-secret': secret },
+          body: JSON.stringify({ amountCents: Math.round(amountRM * 100), note })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          resultEl.textContent = data.error || 'Failed — check the admin secret.';
+          resultEl.className = 'error';
+        } else {
+          resultEl.textContent = `Code: ${data.code}  (RM${(data.amountCents/100).toFixed(2)}) — give this to the customer.`;
+          resultEl.className = '';
+        }
+      } catch (e) {
+        resultEl.textContent = 'Network error.';
+        resultEl.className = 'error';
+      }
+      resultEl.style.display = 'block';
+    });
+  </script>
+</body>
+</html>

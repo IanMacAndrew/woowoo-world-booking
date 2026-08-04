@@ -1,0 +1,14 @@
+[build]
+  publish = "public"
+  functions = "netlify/functions"
+  command = "echo 'No build step needed'"
+
+[[redirects]]
+  from = "/booking-confirmed"
+  to = "/booking-confirmed.html"
+  status = 200
+
+[[redirects]]
+  from = "/booking-cancelled"
+  to = "/booking-cancelled.html"
+  status = 200

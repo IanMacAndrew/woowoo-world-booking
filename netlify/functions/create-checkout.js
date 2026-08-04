@@ -1,0 +1,172 @@
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const { getStore } = require('@netlify/blobs');
+const { calculatePricing, cohortsData } = require('./_pricing');
+
+exports.handler = async (event) => {
+  if (event.httpMethod !== 'POST') {
+    return { statusCode: 405, body: 'Method not allowed' };
+  }
+
+  let payload;
+  try {
+    payload = JSON.parse(event.body);
+  } catch (e) {
+    return { statusCode: 400, body: 'Invalid JSON' };
+  }
+
+  const { cohortId, delegates, contactEmail, salesRepCode, bookingProtection, tosAccepted, transferCode } = payload;
+  const repCode = (salesRepCode || 'ISM').trim().toUpperCase().slice(0, 20) || 'ISM';
+  const creditCode = (transferCode || '').trim().toUpperCase();
+
+  if (!tosAccepted) {
+    return { statusCode: 400, body: 'You must accept the Terms of Service and Privacy Policy to continue.' };
+  }
+
+  if (!Array.isArray(delegates) || delegates.length < 1) {
+    return { statusCode: 400, body: 'At least one delegate is required' };
+  }
+  for (const d of delegates) {
+    if (!d.name || !d.company || !d.position) {
+      return { statusCode: 400, body: 'Each delegate needs name, company and position' };
+    }
+  }
+
+  const seatCount = delegates.length;
+  const store = getStore('bookings');
+
+  // Re-check capacity right before checkout so we never oversell
+  const raw = await store.get(`seats-booked:${cohortId}`);
+  const alreadyBooked = raw ? parseInt(raw, 10) : 0;
+  if (alreadyBooked + seatCount > cohortsData.maxSeats) {
+    return {
+      statusCode: 409,
+      body: JSON.stringify({
+        error: `Only ${cohortsData.maxSeats - alreadyBooked} seat(s) left in this cohort.`
+      })
+    };
+  }
+
+  let pricing;
+  try {
+    pricing = calculatePricing({ cohortId, seatCount, bookingProtection: !!bookingProtection });
+  } catch (e) {
+    return { statusCode: 400, body: e.message };
+  }
+
+  // Deep Dive → Masterclass transfer credit (see admin-issue-credit.html).
+  // Applied as a one-time Stripe coupon so it's visible as a clean line item
+  // on the actual payment page, rather than silently baked into the price.
+  let creditStore, creditRecord, creditAmountApplied = 0;
+  if (creditCode) {
+    creditStore = getStore('transfer-credits');
+    creditRecord = await creditStore.get(creditCode, { type: 'json' }).catch(() => null);
+    if (!creditRecord) {
+      return { statusCode: 400, body: 'Transfer credit code not recognised.' };
+    }
+    if (creditRecord.status !== 'unused') {
+      return { statusCode: 400, body: 'This transfer credit code has already been used.' };
+    }
+    creditAmountApplied = Math.min(creditRecord.amountCents, pricing.grandTotal);
+    // Reserve immediately (optimistic — see SETUP.md note on abandoned checkouts).
+    await creditStore.setJSON(creditCode, {
+      ...creditRecord,
+      status: 'redeemed',
+      redeemedAt: new Date().toISOString()
+    });
+  }
+
+  // Store the full delegate roster server-side (Stripe metadata has tight size limits)
+  const bookingId = `bk_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  await store.setJSON(`roster:${bookingId}`, {
+    cohortId,
+    delegates,
+    contactEmail,
+    pricing: {
+      perSeat: pricing.perSeat,
+      total: pricing.total,
+      seatCount,
+      discountTier: pricing.discountTier,
+      bookingProtectionSelected: pricing.bookingProtectionSelected,
+      bookingProtectionFee: pricing.bookingProtectionFee,
+      grandTotal: pricing.grandTotal
+    },
+    salesRepCode: repCode,
+    transferCredit: creditCode ? { code: creditCode, amountApplied: creditAmountApplied } : null,
+    tosAcceptedAt: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+    status: 'pending'
+  });
+
+  const siteUrl = process.env.URL || 'https://woowoo.world';
+
+  try {
+    let discounts;
+    if (creditAmountApplied > 0) {
+      const coupon = await stripe.coupons.create({
+        amount_off: creditAmountApplied,
+        currency: pricing.currency,
+        duration: 'once',
+        name: `Deep Dive transfer credit (${creditCode})`
+      });
+      discounts = [{ coupon: coupon.id }];
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      payment_method_types: ['card', 'fpx', 'grabpay'],
+      customer_email: contactEmail || undefined,
+      client_reference_id: repCode || undefined,
+      ...(discounts ? { discounts } : {}),
+      line_items: [
+        {
+          price_data: {
+            currency: pricing.currency,
+            unit_amount: pricing.perSeat,
+            product_data: {
+              name: `${pricing.cohort.programmeName} — ${pricing.cohort.label}`,
+              description: `${seatCount} delegate seat(s)${pricing.earlyBirdApplied ? ' · Early-bird rate' : ''}${pricing.seatDiscountApplied ? ' · Multi-seat discount' : ''}`
+            }
+          },
+          quantity: seatCount
+        },
+        ...(pricing.bookingProtectionFee > 0 ? [{
+          price_data: {
+            currency: pricing.currency,
+            unit_amount: pricing.bookingProtectionFee,
+            product_data: {
+              name: 'Booking Protection',
+              description: 'Non-refundable. Upgrades this booking\u2019s cancellation terms one tier — see Terms of Service.'
+            }
+          },
+          quantity: 1
+        }] : [])
+      ],
+      metadata: {
+        bookingId,
+        cohortId,
+        seatCount: String(seatCount),
+        discountTier: pricing.discountTier,
+        commissionPerSeat: String(pricing.commissionPerSeat),
+        commissionTotal: String(pricing.commissionTotal),
+        salesRepCode: repCode,
+        bookingProtection: pricing.bookingProtectionSelected ? 'yes' : 'no',
+        transferCreditCode: creditCode || 'none',
+        transferCreditApplied: String(creditAmountApplied)
+      },
+      success_url: `${siteUrl}/booking-confirmed?booking=${bookingId}`,
+      cancel_url: `${siteUrl}/booking-cancelled?booking=${bookingId}`
+    });
+
+    return {
+      statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: session.url, bookingId, pricing })
+    };
+  } catch (err) {
+    // Release the credit back if we reserved one and then failed to check out.
+    if (creditCode && creditStore && creditRecord) {
+      await creditStore.setJSON(creditCode, { ...creditRecord, status: 'unused', redeemedAt: null }).catch(() => {});
+    }
+    return { statusCode: 500, body: 'Could not start checkout — please try again.' };
+  }
+};

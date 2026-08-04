@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strategic AI Transformation — WooWoo World</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1C0333;
+    --paper:#F4F2F8;
+    --paper-dim:#E9ECF2;
+    --brass:#C79529;
+    --brass-dark:#97711F;
+    --line:#D4D6DC;
+    --ok:#2E9E7A;
+    --danger:#9C3B4A;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    line-height:1.5;
+  }
+  h1,h2,h3,.serif{font-family:'Newsreader',serif;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+
+  header{
+    padding:64px 24px 48px;
+    max-width:960px;
+    margin:0 auto;
+    border-bottom:1px solid var(--line);
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--brass-dark);
+    margin-bottom:18px;
+  }
+  h1{
+    font-size:clamp(34px,5vw,52px);
+    font-weight:500;
+    font-style:italic;
+    line-height:1.08;
+    max-width:16ch;
+  }
+  header p{
+    margin-top:20px;
+    max-width:58ch;
+    color:#5C566B;
+    font-size:16px;
+  }
+  .format-nav{
+    display:flex; flex-wrap:wrap; gap:10px;
+    margin-top:28px;
+  }
+  .format-nav a{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    color:var(--ink);
+    text-decoration:none;
+    border:1px solid var(--line);
+    padding:8px 14px;
+    background:var(--paper-dim);
+  }
+  .format-nav a:hover{border-color:var(--brass-dark); color:var(--brass-dark);}
+
+  .rep-bar{
+    max-width:960px; margin:24px auto 0; padding:0 24px;
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  }
+  .rep-bar label{
+    margin:0; text-transform:uppercase; letter-spacing:0.06em; color:#746F82;
+    font-family:'IBM Plex Mono',monospace; font-size:11px;
+  }
+  .rep-bar input{
+    width:120px; padding:8px 10px; border:1px solid #C3C0CC; background:var(--paper-dim);
+    font-family:'IBM Plex Mono',monospace; font-size:13px; text-transform:uppercase; color:var(--ink);
+  }
+  .rep-bar .note{font-size:12px; color:#8F8A9C;}
+
+  .promo-banner{
+    background:var(--ink);
+    color:var(--paper);
+    text-align:center;
+    padding:12px 24px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:0.04em;
+  }
+  .promo-banner strong{color:var(--brass);}
+
+  main{max-width:960px; margin:0 auto; padding:48px 24px 96px;}
+
+  .programme{margin-bottom:72px; scroll-margin-top:24px;}
+  .programme-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:16px;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:12px;
+    margin-bottom:8px;
+    flex-wrap:wrap;
+  }
+  .programme-head h2{font-size:26px; font-weight:500;}
+  .programme-meta{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:#746F82;
+    letter-spacing:0.03em;
+  }
+  .programme-desc{
+    color:#5C566B;
+    max-width:62ch;
+    margin:14px 0 28px;
+    font-size:15px;
+  }
+
+  /* Coming soon card */
+  .coming-soon{
+    border:1px dashed var(--line);
+    background:var(--paper-dim);
+    padding:28px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .coming-soon .label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:#8F8A9C;
+  }
+  .coming-soon p{color:#746F82; font-size:14px; margin-top:6px; max-width:52ch;}
+
+  /* Course block (Deep Dive) */
+  .course-block{margin-bottom:36px; border:1px solid var(--line); background:var(--paper);}
+  .course-block-head{
+    padding:20px 24px;
+    background:var(--paper-dim);
+    display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:10px;
+    border-bottom:1px solid var(--line);
+  }
+  .course-block-head h3{font-size:19px; font-weight:500;}
+  .course-dates{font-family:'IBM Plex Mono',monospace; font-size:12px; color:#746F82;}
+  .eb-banner{
+    padding:10px 24px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    background:var(--brass);
+    color:var(--ink);
+  }
+  .eb-banner.closed{background:transparent; color:#8F8A9C; border-bottom:1px solid var(--line);}
+
+  .tier-table{width:100%; border-collapse:collapse;}
+  .tier-table th{
+    text-align:left;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:#8F8A9C;
+    padding:12px 24px 8px;
+  }
+  .tier-table td{padding:12px 24px; border-top:1px solid var(--line); font-size:14px; vertical-align:middle;}
+  .tier-table .tier-name{font-weight:500;}
+  .tier-table .price{font-family:'IBM Plex Mono',monospace; font-size:15px;}
+  .tier-table .strike{color:#9C97AC; text-decoration:line-through; font-size:12px; margin-right:6px;}
+  .book-btn{
+    display:inline-block;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    text-decoration:none;
+    background:var(--brass);
+    color:var(--ink);
+    padding:9px 16px;
+    white-space:nowrap;
+    border:none;
+    cursor:pointer;
+  }
+  .book-btn:hover{background:var(--brass-dark); color:var(--paper);}
+
+  /* Masterclass cohort list — same interaction model, reused across two tracks */
+  .cohort-list{display:grid; gap:1px; background:var(--line); border:1px solid var(--line); margin-bottom:8px;}
+  .cohort{
+    background:var(--paper);
+    padding:20px 20px;
+    display:grid;
+    grid-template-columns:1fr auto auto;
+    gap:16px;
+    align-items:center;
+    cursor:pointer;
+    transition:background .15s ease;
+  }
+  .cohort:hover{background:var(--paper-dim);}
+  .cohort.selected{background:var(--ink); color:var(--paper);}
+  .cohort.selected .cohort-track, .cohort.selected .seat-count{color:var(--paper); opacity:.8;}
+  .cohort.full{opacity:.45; cursor:not-allowed;}
+  .cohort-id{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--brass-dark);
+    display:block;
+    margin-bottom:4px;
+  }
+  .cohort.selected .cohort-id{color:var(--brass);}
+  .cohort-dates{font-size:17px; font-weight:600;}
+  .cohort-track{font-size:13px; color:#746F82; margin-top:2px;}
+  .seat-count{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    text-align:right;
+    min-width:120px;
+  }
+  .seat-count .num{font-size:16px; font-weight:500;}
+  .earlybird-tag{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    background:var(--brass);
+    color:var(--ink);
+    padding:3px 8px;
+    border-radius:2px;
+    white-space:nowrap;
+  }
+  .closed-tag{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:#8F8A9C;
+    white-space:nowrap;
+  }
+
+  .track-group{margin-bottom:28px;}
+  .track-group h4{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    color:var(--brass-dark);
+    margin-bottom:10px;
+  }
+
+  /* Booking panel (Masterclass) */
+  #booking-panel{
+    margin-top:32px;
+    border:1px solid var(--ink);
+    background:var(--paper-dim);
+    padding:32px;
+    display:none;
+  }
+  #booking-panel.open{display:block;}
+  #booking-panel h3{font-size:22px; margin-bottom:4px;}
+  #booking-panel .sub{color:#746F82; font-size:14px; margin-bottom:28px;}
+
+  .field-row{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;}
+  label{
+    display:block;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:#746F82;
+    margin-bottom:6px;
+  }
+  input[type=text], input[type=email], input[type=number], select{
+    width:100%;
+    padding:10px 12px;
+    border:1px solid #C3C0CC;
+    background:var(--paper);
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    color:var(--ink);
+  }
+  input:focus, select:focus{outline:2px solid var(--brass-dark); outline-offset:1px;}
+
+  .toggle-row{display:flex; align-items:center; gap:10px; margin:20px 0;}
+  .toggle-row input{width:auto;}
+  .toggle-row label{margin:0; font-size:13px; text-transform:none; letter-spacing:0;}
+
+  .delegate-card{
+    border:1px solid var(--line);
+    background:var(--paper);
+    padding:16px;
+    margin-bottom:12px;
+  }
+  .delegate-card .num{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--brass-dark);
+    margin-bottom:10px;
+    display:block;
+  }
+
+  .price-box{
+    margin-top:24px;
+    padding:20px;
+    background:var(--ink);
+    color:var(--paper);
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    flex-wrap:wrap;
+    gap:12px;
+  }
+  .price-box .breakdown{font-size:12px; font-family:'IBM Plex Mono',monospace; color:#D4D0DE; line-height:1.7;}
+  .price-box .total{font-family:'Newsreader',serif; font-size:34px; font-style:italic;}
+
+  button.cta{
+    margin-top:20px;
+    width:100%;
+    padding:16px;
+    background:var(--brass);
+    color:var(--ink);
+    border:none;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    cursor:pointer;
+    transition:background .15s ease;
+  }
+  button.cta:hover{background:var(--brass-dark); color:var(--paper);}
+  button.cta:disabled{background:#D4D0DE; color:#8F8A9C; cursor:not-allowed;}
+  #status-msg{font-size:13px; margin-top:12px;}
+  #status-msg.error{color:var(--danger);}
+  #status-msg.ok{color:var(--ok);}
+
+  .protection-row{
+    display:flex; justify-content:space-between; align-items:flex-start; gap:14px;
+    background:var(--paper); border:1px solid var(--line); padding:16px; margin-top:8px;
+    flex-wrap:wrap;
+  }
+  .protection-label{display:flex; gap:10px; align-items:flex-start; font-size:13px; color:#5C566B; cursor:pointer;}
+  .protection-label input{margin-top:3px; width:auto;}
+  .protection-label a{color:var(--brass-dark);}
+  .discount-tier-tag{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.04em; text-transform:uppercase;
+    padding:4px 10px; white-space:nowrap; align-self:flex-start;
+  }
+  .discount-tier-tag.heavy{background:var(--danger); color:var(--paper);}
+  .discount-tier-tag.standard{background:var(--ok); color:var(--paper);}
+
+  .consent-row{
+    display:flex; gap:10px; align-items:flex-start; margin-top:18px; font-size:13px; color:#5C566B; cursor:pointer;
+  }
+  .consent-row input{margin-top:3px; width:auto;}
+  .consent-row a{color:var(--brass-dark);}
+
+  #consent-modal-overlay{
+    display:none; position:fixed; inset:0; background:rgba(18,24,31,0.55);
+    z-index:1000; align-items:center; justify-content:center; padding:20px;
+  }
+  #consent-modal-overlay.open{display:flex;}
+  #consent-modal{
+    background:var(--paper); max-width:440px; width:100%; padding:32px;
+    border:1px solid var(--ink);
+  }
+  #consent-modal h3{font-size:20px; font-weight:500; margin-bottom:10px; font-family:'Newsreader',serif;}
+  .modal-course-name{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--brass-dark); margin-bottom:4px;}
+  .modal-price{font-size:15px; margin-bottom:18px; color:#5C566B;}
+  .modal-buttons{display:flex; gap:10px; margin-top:20px;}
+  .modal-buttons .cta{margin-top:0; flex:2;}
+  .modal-cancel{
+    flex:1; background:transparent; border:1px solid var(--line); color:var(--ink);
+    font-family:'IBM Plex Mono',monospace; font-size:12px; text-transform:uppercase; cursor:pointer;
+  }
+
+  footer{
+    max-width:960px; margin:0 auto; padding:32px 24px 64px;
+    font-size:12px; color:#8F8A9C; border-top:1px solid var(--line);
+  }
+
+  @media (max-width:640px){
+    .cohort{grid-template-columns:1fr; text-align:left;}
+    .seat-count{text-align:left;}
+    .field-row{grid-template-columns:1fr;}
+    .tier-table thead{display:none;}
+    .tier-table, .tier-table tbody, .tier-table tr, .tier-table td{display:block; width:100%;}
+    .tier-table tr{padding:12px 0; border-top:1px solid var(--line);}
+    .tier-table td{padding:4px 24px; border:none;}
+    .course-block-head{flex-direction:column; align-items:flex-start;}
+  }
+</style>
+</head>
+<body>
+
+<div class="promo-banner">Exclusively for Eng Lian companies right now — <strong>Early Bird: 50% off, ends 10 August 2026</strong></div>
+
+<header>
+  <div class="eyebrow">WooWoo World · AI Strategy &amp; Implementation Practice</div>
+  <h1>Strategic AI Transformation, for the people who have to answer for it.</h1>
+  <p>Four ways in, one shared standard: a short briefing to align a room, a one-day deep dive to build momentum, a paced masterclass for leaders who can't clear a full week, or an intensive bootcamp for teams who can. All HRD Corp claimable, all run at Sri Wangsaria Condominium, Bangsar, KL, with lunch at the restaurant included.</p>
+  <div class="format-nav">
+    <a href="#briefing">Briefing</a>
+    <a href="#deepdive">1-Day Deep Dive</a>
+    <a href="#masterclass">Masterclass</a>
+    <a href="#bootcamp">Bootcamp</a>
+  </div>
+</header>
+
+<div class="rep-bar">
+  <label for="global-rep-code">Sales code</label>
+  <input type="text" id="global-rep-code" placeholder="e.g. JD" value="ISM" maxlength="20">
+  <span class="note">Attributes this booking to whoever sold it, for commission. Leave as ISM if no one sold it.</span>
+</div>
+
+<main>
+
+  <!-- BRIEFING -->
+  <section class="programme" id="briefing">
+    <div class="programme-head">
+      <h2>Briefing</h2>
+      <div class="programme-meta">1–2 hours · Sri Wangsaria Condominium, Bangsar, KL</div>
+    </div>
+    <p class="programme-desc">A short, high-level session for leadership teams who need a shared starting point before committing further — what's changing, what it means for the business, and where to focus first.</p>
+    <div class="coming-soon">
+      <div>
+        <div class="label">Coming soon</div>
+        <p>Dates and booking will open shortly. Get in touch to register interest.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 1-DAY DEEP DIVE -->
+  <section class="programme" id="deepdive">
+    <div class="programme-head">
+      <h2>1-Day Deep Dive</h2>
+      <div class="programme-meta">One day, 9am–5pm · Sri Wangsaria Condominium, Bangsar, KL · Lunch included · HRD Corp Claimable</div>
+    </div>
+    <p class="programme-desc">A full working day to move from awareness to application — practical, hands-on, built around your own business problems.</p>
+
+    <div id="deepdive-courses"></div>
+  </section>
+
+  <!-- MASTERCLASS -->
+  <section class="programme" id="masterclass">
+    <div class="programme-head">
+      <h2>Masterclass</h2>
+      <div class="programme-meta">One day a week, five weeks · Sri Wangsaria Condominium, Bangsar, KL · Lunch included · HRD Corp Claimable</div>
+    </div>
+    <p class="programme-desc">The paced route for leaders who can't clear a full week: one day weekly, same depth as the Deep Dive, spread over five sessions. Strategic AI runs Saturdays, Sales &amp; Marketing AI runs Sundays. Each cohort needs a minimum of 10 delegates to run and is capped at 30.</p>
+
+    <div id="masterclass-eb-banner"></div>
+
+    <div class="track-group">
+      <h4>Strategic AI Transformation Masterclass — Saturdays</h4>
+      <div class="cohort-list" id="list-masterclass"></div>
+    </div>
+    <div class="track-group">
+      <h4>Sales &amp; Marketing AI Transformation Masterclass — Sundays</h4>
+      <div class="cohort-list" id="list-masterclass-sm"></div>
+    </div>
+
+    <!-- BOOKING PANEL -->
+    <div id="booking-panel">
+      <h3 id="panel-title">Register delegates</h3>
+      <div class="sub" id="panel-sub"></div>
+
+      <div class="field-row">
+        <div>
+          <label for="seat-count">Number of delegates</label>
+          <input type="number" id="seat-count" min="1" max="30" value="1">
+        </div>
+        <div>
+          <label for="contact-email">Booking contact email</label>
+          <input type="email" id="contact-email" placeholder="you@company.com">
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div>
+          <label for="transfer-code">Deep Dive transfer code (optional)</label>
+          <input type="text" id="transfer-code" placeholder="e.g. DD-XXXX-XXXX" maxlength="20">
+          <span style="font-size:11px; color:#8F8A9C; display:block; margin-top:4px;">Applied at checkout — the reduced total shows on the Stripe payment page.</span>
+        </div>
+        <div></div>
+      </div>
+
+      <div id="delegate-fields"></div>
+
+      <div class="protection-row" id="protection-row">
+        <label class="protection-label">
+          <input type="checkbox" id="protection-toggle">
+          <span><strong>Add Booking Protection</strong> — 8% of your total, non-refundable. Upgrades your cancellation terms one tier. <a href="/terms-of-service.html#5-booking-protection-optional" target="_blank" rel="noopener">What this covers</a></span>
+        </label>
+        <span class="discount-tier-tag" id="discount-tier-tag"></span>
+      </div>
+
+      <div class="price-box">
+        <div class="breakdown" id="price-breakdown"></div>
+        <div class="total" id="price-total">RM0</div>
+      </div>
+
+      <label class="consent-row">
+        <input type="checkbox" id="tos-checkbox">
+        <span>I have read and agree to the <a href="/terms-of-service.html" target="_blank" rel="noopener">Terms of Service</a> and <a href="/privacy-policy.html" target="_blank" rel="noopener">Privacy Policy</a>, including the cancellation policy above.</span>
+      </label>
+
+      <button class="cta" id="checkout-btn" disabled>Proceed to payment</button>
+      <div id="status-msg"></div>
+    </div>
+  </section>
+
+  <!-- BOOTCAMP -->
+  <section class="programme" id="bootcamp">
+    <div class="programme-head">
+      <h2>Bootcamp</h2>
+      <div class="programme-meta">Five consecutive days · Sri Wangsaria Condominium, Bangsar, KL</div>
+    </div>
+    <p class="programme-desc">The intensive route: one focused week, full immersion, from strategy to action.</p>
+    <div class="coming-soon">
+      <div>
+        <div class="label">Coming soon</div>
+        <p>Cohort dates not yet confirmed. Get in touch to register interest.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  WooWoo World · woowoo.world · woowooworld.co · <a href="mailto:sales@woowoo.world">sales@woowoo.world</a><br>
+  Prices in Malaysian Ringgit. Masterclass: minimum 10, maximum 30 delegates per cohort. HRD Corp claimable.<br>
+  <a href="/terms-of-service.html">Terms of Service</a> · <a href="/privacy-policy.html">Privacy Policy</a>
+</footer>
+
+<!-- CONSENT MODAL (Deep Dive checkout gate) -->
+<div id="consent-modal-overlay">
+  <div id="consent-modal">
+    <h3>Before you continue</h3>
+    <p class="modal-course-name" id="modal-course-name"></p>
+    <p class="modal-price" id="modal-price"></p>
+    <label class="consent-row">
+      <input type="checkbox" id="modal-tos-checkbox">
+      <span>I have read and agree to the <a href="/terms-of-service.html" target="_blank" rel="noopener">Terms of Service</a> and <a href="/privacy-policy.html" target="_blank" rel="noopener">Privacy Policy</a>, including the cancellation policy.</span>
+    </label>
+    <div class="modal-buttons">
+      <button class="cta" id="modal-continue-btn" disabled>Continue to secure payment</button>
+      <button class="modal-cancel" id="modal-cancel-btn">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   1-DAY DEEP DIVE — static Stripe Payment Links
+   ============================================================ */
+const deepDiveCourses = [
+  {
+    name: 'Strategic AI Deep Dive',
+    dates: '15 & 16 August 2026',
+    earlyBirdCutoff: '2026-08-10', // "before 10 Aug 2026" → valid through 9 Aug 23:59 MYT
+    tiers: [
+      { label: 'Single delegate', range: 'single', full: 1750, eb: 875,
+        fullUrl: 'https://buy.stripe.com/fZu4gAaGbdrIdv1d3PcbC1q', ebUrl: 'https://buy.stripe.com/14A6oIcOjevM3Ur3tfcbC1l' },
+      { label: '2–4 delegates', range: '2-4', full: 1662.50, eb: 787.50,
+        fullUrl: 'https://buy.stripe.com/00w28s3dJ87o0IffbXcbC1r', ebUrl: 'https://buy.stripe.com/14A8wQeWr3R8aiPgg1cbC1m' },
+      { label: '5–9 delegates', range: '5-9', full: 1575, eb: 700,
+        fullUrl: 'https://buy.stripe.com/eVq00kcOj9bsez5aVHcbC1s', ebUrl: 'https://buy.stripe.com/7sYcN601x2N40If8NzcbC1n' },
+      { label: '10–19 delegates', range: '10-19', full: 1487.50, eb: 612.50,
+        fullUrl: 'https://buy.stripe.com/dRm28s9C7drI8aH9RDcbC1t', ebUrl: 'https://buy.stripe.com/eVq8wQ7tZafwbmT1l7cbC1o' },
+      { label: '20–30 delegates', range: '20-30', full: 1400, eb: 525,
+        fullUrl: 'https://buy.stripe.com/bJe28s29F1J09eL5BncbC1u', ebUrl: 'https://buy.stripe.com/7sY9AU4hN4VcbmTe7TcbC1p' }
+    ]
+  },
+  {
+    name: 'Sales & Marketing AI Deep Dive',
+    dates: '22 & 23 August 2026',
+    earlyBirdCutoff: '2026-08-12', // "before 12 Aug 2026" → valid through 11 Aug 23:59 MYT
+    tiers: [
+      { label: 'Single delegate', range: 'single', full: 1750, eb: 875,
+        fullUrl: 'https://buy.stripe.com/5kQ28s7tZcnE76De7TcbC1A', ebUrl: 'https://buy.stripe.com/28EbJ23dJgDU1Mj3tfcbC1v' },
+      { label: '2–4 delegates', range: '2-4', full: 1662.50, eb: 787.50,
+        fullUrl: 'https://buy.stripe.com/aFa00kbKfafwgHd0h3cbC1B', ebUrl: 'https://buy.stripe.com/cNi4gAbKfevMgHdd3PcbC1w' },
+      { label: '5–9 delegates', range: '5-9', full: 1575, eb: 700,
+        fullUrl: 'https://buy.stripe.com/28E4gA7tZ73kfD98NzcbC1C', ebUrl: 'https://buy.stripe.com/28EaEYcOj0EWbmT1l7cbC1x' },
+      { label: '10–19 delegates', range: '10-19', full: 1487.50, eb: 612.50,
+        fullUrl: 'https://buy.stripe.com/dRm28seWr1J04Yv4xjcbC1D', ebUrl: 'https://buy.stripe.com/8x2aEY9C773k8aH1l7cbC1y' },
+      { label: '20–30 delegates', range: '20-30', full: 1400, eb: 525,
+        fullUrl: 'https://buy.stripe.com/7sYfZi29FcnEbmTgg1cbC1E', ebUrl: 'https://buy.stripe.com/8x29AUeWr1J09eL1l7cbC1z' }
+    ]
+  }
+];
+
+function isEngLianActive(cutoffDateStr){
+  const cutoff = new Date(cutoffDateStr + 'T00:00:00+08:00'); // exclusive: valid through the day before
+  return new Date() < cutoff;
+}
+
+function fmtRMPlain(n){
+  return 'RM' + n.toLocaleString('en-MY', {minimumFractionDigits: n % 1 === 0 ? 0 : 2, maximumFractionDigits:2});
+}
+
+function renderDeepDive(){
+  const wrap = document.getElementById('deepdive-courses');
+  wrap.innerHTML = '';
+  deepDiveCourses.forEach(course => {
+    const ebActive = isEngLianActive(course.earlyBirdCutoff);
+    const block = document.createElement('div');
+    block.className = 'course-block';
+
+    // Build the "last valid day" from the cutoff's calendar date directly (not the
+    // instant), then format in a fixed UTC context — avoids the display date
+    // silently shifting a day depending on the visitor's own browser timezone.
+    const [cy, cm, cd] = course.earlyBirdCutoff.split('-').map(Number);
+    const cutoffPretty = new Date(Date.UTC(cy, cm - 1, cd - 1));
+    const cutoffLabel = cutoffPretty.toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric', timeZone:'UTC' });
+
+    let rows = '';
+    course.tiers.forEach(t => {
+      let url = ebActive ? t.ebUrl : t.fullUrl;
+      const repCode = (document.getElementById('global-rep-code').value || '').trim().toUpperCase();
+      if (repCode) {
+        url += (url.includes('?') ? '&' : '?') + 'client_reference_id=' + encodeURIComponent(repCode);
+      }
+      rows += `
+        <tr>
+          <td class="tier-name">${t.label}</td>
+          <td class="price">${ebActive ? `<span class="strike">${fmtRMPlain(t.full)}</span>${fmtRMPlain(t.eb)}` : fmtRMPlain(t.full)}</td>
+          <td><button type="button" class="book-btn" data-url="${url}" data-course="${course.name}" data-price="${ebActive ? fmtRMPlain(t.eb) : fmtRMPlain(t.full)} per delegate (${t.label})">Book now</button></td>
+        </tr>`;
+    });
+
+    block.innerHTML = `
+      <div class="course-block-head">
+        <h3>${course.name}</h3>
+        <div class="course-dates">${course.dates}</div>
+      </div>
+      ${ebActive
+        ? `<div class="eb-banner">Eng Lian early-bird — 50% off, until ${cutoffLabel}</div>`
+        : `<div class="eb-banner closed">Early-bird window closed — full price now applies</div>`}
+      <table class="tier-table">
+        <thead><tr><th>Group size</th><th>Per delegate</th><th></th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+    wrap.appendChild(block);
+  });
+}
+
+/* ============================================================
+   MASTERCLASS — dynamic Netlify Function checkout
+   ============================================================ */
+const state = { cohorts: [], seats: {}, selectedCohortId: null, rules: null };
+
+async function loadCohorts() {
+  const res = await fetch('/cohorts.json');
+  const data = await res.json();
+  state.cohorts = data.cohorts;
+  state.rules = data;
+  renderEbBanner();
+  await refreshSeats();
+  renderMasterclass();
+}
+
+async function refreshSeats() {
+  try {
+    const res = await fetch('/.netlify/functions/seats');
+    state.seats = await res.json();
+  } catch (e) {
+    state.seats = {};
+  }
+}
+
+function fmtRM(cents){
+  return 'RM' + (cents/100).toLocaleString('en-MY', {minimumFractionDigits:0, maximumFractionDigits:0});
+}
+
+function masterclassEarlyBirdActive(){
+  const w = state.rules.earlyBirdWindow;
+  if(!w) return false;
+  const start = new Date(w.start + 'T00:00:00+08:00');
+  const end = new Date(w.end + 'T23:59:59+08:00');
+  const now = new Date();
+  return now >= start && now <= end;
+}
+
+function renderEbBanner(){
+  const el = document.getElementById('masterclass-eb-banner');
+  const w = state.rules.earlyBirdWindow;
+  if(!w){ el.innerHTML = ''; return; }
+  const active = masterclassEarlyBirdActive();
+  // Format from the raw Y-M-D digits in a fixed UTC context, same fix as the
+  // Deep Dive cutoff label — avoids the date shifting with visitor timezone.
+  const fmtDatePart = (dateStr, opts) => {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-GB', { ...opts, timeZone: 'UTC' });
+  };
+  const startLabel = fmtDatePart(w.start, {day:'numeric', month:'long'});
+  const endLabel = fmtDatePart(w.end, {day:'numeric', month:'long', year:'numeric'});
+  el.innerHTML = active
+    ? `<div class="eb-banner" style="margin-bottom:20px;">Eng Lian early-bird — 50% off, ${startLabel}–${endLabel}</div>`
+    : `<div class="eb-banner closed" style="margin-bottom:20px; border:1px solid var(--line); padding:10px 16px;">Eng Lian early-bird window: ${startLabel}–${endLabel}</div>`;
+}
+
+function renderMasterclass(){
+  renderCohortList('masterclass', 'list-masterclass');
+  renderCohortList('masterclass-sm', 'list-masterclass-sm');
+}
+
+function renderCohortList(programme, elId){
+  const el = document.getElementById(elId);
+  el.innerHTML = '';
+  state.cohorts.filter(c => c.programme === programme).forEach(c => {
+    const seatInfo = state.seats[c.id] || { remaining: state.rules.maxSeats, full:false };
+    const div = document.createElement('div');
+    div.className = 'cohort' + (c.id === state.selectedCohortId ? ' selected' : '') + (seatInfo.full ? ' full' : '');
+    div.innerHTML = `
+      <div>
+        <span class="cohort-id">${c.id.toUpperCase()}</span>
+        <div class="cohort-dates">${c.label}</div>
+        <div class="cohort-track">${c.trackLabel}</div>
+      </div>
+      <div>${masterclassEarlyBirdActive() ? `<span class="earlybird-tag">Eng Lian active</span>` : ''}</div>
+      <div class="seat-count"><span class="num">${seatInfo.remaining}</span> of ${state.rules.maxSeats} seats left</div>
+    `;
+    if (!seatInfo.full) {
+      div.addEventListener('click', () => selectCohort(c.id));
+    }
+    el.appendChild(div);
+  });
+}
+
+function selectCohort(id){
+  state.selectedCohortId = id;
+  renderMasterclass();
+  const c = state.cohorts.find(x => x.id === id);
+  document.getElementById('panel-title').textContent = `Register delegates — ${c.programmeName}`;
+  document.getElementById('panel-sub').textContent = `${c.label} · ${c.trackLabel}`;
+  document.getElementById('booking-panel').classList.add('open');
+  document.getElementById('booking-panel').scrollIntoView({ behavior:'smooth', block:'start' });
+  document.getElementById('protection-toggle').checked = false;
+  document.getElementById('tos-checkbox').checked = false;
+  document.getElementById('transfer-code').value = '';
+  document.getElementById('checkout-btn').disabled = true;
+  syncDelegateFields();
+  updatePrice();
+}
+
+function syncDelegateFields(){
+  const count = parseInt(document.getElementById('seat-count').value, 10) || 1;
+  const container = document.getElementById('delegate-fields');
+  container.innerHTML = '';
+  for(let i=0; i<count; i++){
+    const card = document.createElement('div');
+    card.className = 'delegate-card';
+    card.innerHTML = `
+      <span class="num">DELEGATE ${String(i+1).padStart(2,'0')}</span>
+      <div class="field-row">
+        <div><label>Full name</label><input type="text" class="d-name" required></div>
+        <div><label>Job title / position</label><input type="text" class="d-position" placeholder="e.g. Chief Operating Officer" required></div>
+      </div>
+      <div class="field-row" style="grid-template-columns:1fr;">
+        <div><label>Company</label><input type="text" class="d-company" required></div>
+      </div>
+    `;
+    container.appendChild(card);
+  }
+}
+
+// Mirrors netlify/functions/_pricing.js exactly — additive discounts, not compounded.
+function updatePrice(){
+  const c = state.cohorts.find(x => x.id === state.selectedCohortId);
+  if(!c) return;
+  const seatCount = parseInt(document.getElementById('seat-count').value, 10) || 1;
+  const protection = document.getElementById('protection-toggle').checked;
+
+  const base = state.rules.basePrice;
+  const earlyBird = masterclassEarlyBirdActive();
+  const tier = state.rules.seatTiers.find(t => seatCount >= t.min && seatCount <= t.max);
+  const seatDiscount = tier ? tier.discount : 0;
+
+  const ebAmount = earlyBird ? Math.round(base * state.rules.earlyBirdDiscount) : 0;
+  const seatAmount = seatDiscount > 0 ? Math.round(base * seatDiscount) : 0;
+  const perSeat = Math.max(0, base - ebAmount - seatAmount);
+  const total = perSeat * seatCount;
+
+  const totalDiscountFraction = base > 0 ? (ebAmount + seatAmount) / base : 0;
+  const discountTier = totalDiscountFraction >= (state.rules.heavilyDiscountedThreshold || 0.5) ? 'heavy' : 'standard';
+
+  const protectionFee = protection ? Math.round(total * (state.rules.bookingProtectionFeeRate || 0)) : 0;
+  const grandTotal = total + protectionFee;
+
+  const tagEl = document.getElementById('discount-tier-tag');
+  tagEl.textContent = discountTier === 'heavy' ? 'Heavily discounted — strict no-return' : 'Standard discount — 72hr cancellation window';
+  tagEl.className = 'discount-tier-tag ' + discountTier;
+
+  const lines = [];
+  lines.push(`${fmtRM(base)} base rate`);
+  if(earlyBird) lines.push(`- ${fmtRM(ebAmount)} Eng Lian early-bird (50%)`);
+  if(seatDiscount > 0) lines.push(`- ${fmtRM(seatAmount)} multi-seat discount (${Math.round(seatDiscount*100)}%, ${seatCount} delegates)`);
+  lines.push(`${fmtRM(perSeat)} per delegate × ${seatCount} = ${fmtRM(total)}`);
+  if(protection) lines.push(`+ ${fmtRM(protectionFee)} Booking Protection (8%, non-refundable)`);
+
+  document.getElementById('price-breakdown').innerHTML = lines.join('<br>');
+  document.getElementById('price-total').textContent = fmtRM(grandTotal);
+}
+
+document.getElementById('seat-count').addEventListener('input', () => { syncDelegateFields(); updatePrice(); });
+document.getElementById('global-rep-code').addEventListener('input', renderDeepDive);
+document.getElementById('protection-toggle').addEventListener('change', updatePrice);
+document.getElementById('tos-checkbox').addEventListener('change', (e) => {
+  document.getElementById('checkout-btn').disabled = !e.target.checked;
+});
+
+document.getElementById('checkout-btn').addEventListener('click', async () => {
+  const statusEl = document.getElementById('status-msg');
+  statusEl.textContent = '';
+  statusEl.className = '';
+
+  const seatCount = parseInt(document.getElementById('seat-count').value, 10) || 1;
+  const names = document.querySelectorAll('.d-name');
+  const positions = document.querySelectorAll('.d-position');
+  const companies = document.querySelectorAll('.d-company');
+  const contactEmail = document.getElementById('contact-email').value;
+
+  const delegates = [];
+  for(let i=0; i<seatCount; i++){
+    const name = names[i].value.trim();
+    const position = positions[i].value.trim();
+    const company = companies[i].value.trim();
+    if(!name || !position || !company){
+      statusEl.textContent = 'Please complete all delegate fields before continuing.';
+      statusEl.className = 'error';
+      return;
+    }
+    delegates.push({ name, position, company });
+  }
+  if(!contactEmail){
+    statusEl.textContent = 'Please enter a booking contact email.';
+    statusEl.className = 'error';
+    return;
+  }
+
+  const btn = document.getElementById('checkout-btn');
+  btn.disabled = true;
+  btn.textContent = 'Preparing checkout…';
+
+  try {
+    const res = await fetch('/.netlify/functions/create-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        cohortId: state.selectedCohortId,
+        delegates,
+        contactEmail,
+        salesRepCode: document.getElementById('global-rep-code').value,
+        bookingProtection: document.getElementById('protection-toggle').checked,
+        tosAccepted: document.getElementById('tos-checkbox').checked,
+        transferCode: document.getElementById('transfer-code').value
+      })
+    });
+    const data = await res.json();
+    if(!res.ok){
+      statusEl.textContent = data.error || 'Something went wrong. Please try again.';
+      statusEl.className = 'error';
+      btn.disabled = false;
+      btn.textContent = 'Proceed to payment';
+      return;
+    }
+    window.location.href = data.url;
+  } catch (e) {
+    statusEl.textContent = 'Network error — please try again.';
+    statusEl.className = 'error';
+    btn.disabled = false;
+    btn.textContent = 'Proceed to payment';
+  }
+});
+
+/* ============================================================
+   CONSENT MODAL — gates Deep Dive Stripe Payment Link clicks
+   ============================================================ */
+let pendingStripeUrl = null;
+
+document.getElementById('deepdive-courses').addEventListener('click', (e) => {
+  const btn = e.target.closest('.book-btn');
+  if (!btn) return;
+  pendingStripeUrl = btn.dataset.url;
+  document.getElementById('modal-course-name').textContent = btn.dataset.course;
+  document.getElementById('modal-price').textContent = btn.dataset.price;
+  document.getElementById('modal-tos-checkbox').checked = false;
+  document.getElementById('modal-continue-btn').disabled = true;
+  document.getElementById('consent-modal-overlay').classList.add('open');
+});
+
+document.getElementById('modal-tos-checkbox').addEventListener('change', (e) => {
+  document.getElementById('modal-continue-btn').disabled = !e.target.checked;
+});
+
+document.getElementById('modal-cancel-btn').addEventListener('click', () => {
+  pendingStripeUrl = null;
+  document.getElementById('consent-modal-overlay').classList.remove('open');
+});
+
+document.getElementById('consent-modal-overlay').addEventListener('click', (e) => {
+  if (e.target.id === 'consent-modal-overlay') {
+    pendingStripeUrl = null;
+    document.getElementById('consent-modal-overlay').classList.remove('open');
+  }
+});
+
+document.getElementById('modal-continue-btn').addEventListener('click', () => {
+  if (pendingStripeUrl) {
+    window.open(pendingStripeUrl, '_blank', 'noopener');
+  }
+  document.getElementById('consent-modal-overlay').classList.remove('open');
+  pendingStripeUrl = null;
+});
+
+renderDeepDive();
+loadCohorts();
+</script>
+
+</body>
+</html>
