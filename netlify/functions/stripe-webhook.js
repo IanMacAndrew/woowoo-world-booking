@@ -1,8 +1,8 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const crypto = require('crypto');
 const { getStore } = require('./_blobs');
 const { getCohort } = require('./_pricing');
-const { generateInvoicePdf } = require('./_invoice');
-const { sendConfirmationEmail, sendOpsNotification } = require('./_email');
+const { sendDelegateFormLinkEmail, sendOpsAwaitingDelegatesNotification } = require('./_email');
 
 exports.handler = async (event) => {
   const sig = event.headers['stripe-signature'];
@@ -23,10 +23,10 @@ exports.handler = async (event) => {
     const { bookingId, cohortId, seatCount } = session.metadata;
     const store = getStore('bookings');
 
-    // Mark roster as paid
+    // Mark roster as paid, awaiting delegate details
     const roster = await store.get(`roster:${bookingId}`, { type: 'json' });
     if (roster) {
-      roster.status = 'paid';
+      roster.status = 'paid_awaiting_delegates';
       roster.stripeSessionId = session.id;
       roster.paidAt = new Date().toISOString();
       await store.setJSON(`roster:${bookingId}`, roster);
@@ -37,37 +37,40 @@ exports.handler = async (event) => {
     const current = raw ? parseInt(raw, 10) : 0;
     await store.set(`seats-booked:${cohortId}`, String(current + parseInt(seatCount, 10)));
 
-    // Generate the HRD Corp claimable invoice and send both emails
+    // Issue a one-time delegate-form token and email the Booking Contact
     if (roster) {
       const cohort = getCohort(cohortId);
       try {
-        const invoicePdfBuffer = await generateInvoicePdf({
+        const token = crypto.randomBytes(24).toString('hex');
+        await store.setJSON(`delegate-form:${token}`, {
           bookingId,
-          cohort,
-          delegates: roster.delegates,
-          pricing: roster.pricing,
-          contactEmail: roster.contactEmail,
-          paidAt: roster.paidAt
+          seatCount: roster.pricing.seatCount,
+          used: false,
+          createdAt: new Date().toISOString()
         });
 
-        await sendConfirmationEmail({
+        const siteUrl = process.env.URL || 'https://woowoo.world';
+        const formUrl = `${siteUrl}/delegate-form?token=${token}`;
+
+        await sendDelegateFormLinkEmail({
           contactEmail: roster.contactEmail,
+          contactName: roster.bookingContact && roster.bookingContact.name,
           cohort,
-          delegates: roster.delegates,
-          pricing: roster.pricing,
-          invoicePdfBuffer,
-          bookingId
+          seatCount: roster.pricing.seatCount,
+          bookingId,
+          formUrl
         });
 
-        await sendOpsNotification({
+        await sendOpsAwaitingDelegatesNotification({
           cohort,
-          delegates: roster.delegates,
+          seatCount: roster.pricing.seatCount,
           pricing: roster.pricing,
+          contactName: roster.bookingContact && roster.bookingContact.name,
           contactEmail: roster.contactEmail,
           bookingId
         });
       } catch (err) {
-        // Payment already succeeded — never let an email/PDF failure block that.
+        // Payment already succeeded — never let an email failure block that.
         // Log it so it surfaces in Netlify's function logs for follow-up.
         console.error('Post-payment notification failed for booking', bookingId, err);
       }

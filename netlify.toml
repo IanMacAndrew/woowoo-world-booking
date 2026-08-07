@@ -12,3 +12,8 @@
   from = "/booking-cancelled"
   to = "/booking-cancelled.html"
   status = 200
+
+[[redirects]]
+  from = "/delegate-form"
+  to = "/delegate-form.html"
+  status = 200

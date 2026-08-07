@@ -14,7 +14,7 @@ exports.handler = async (event) => {
     return { statusCode: 400, body: 'Invalid JSON' };
   }
 
-  const { cohortId, delegates, contactEmail, salesRepCode, bookingProtection, tosAccepted, transferCode } = payload;
+  const { cohortId, seatCount: rawSeatCount, bookingContact, salesRepCode, bookingProtection, tosAccepted, transferCode } = payload;
   const repCode = (salesRepCode || 'ISM').trim().toUpperCase().slice(0, 20) || 'ISM';
   const creditCode = (transferCode || '').trim().toUpperCase();
 
@@ -22,16 +22,17 @@ exports.handler = async (event) => {
     return { statusCode: 400, body: 'You must accept the Terms of Service and Privacy Policy to continue.' };
   }
 
-  if (!Array.isArray(delegates) || delegates.length < 1) {
-    return { statusCode: 400, body: 'At least one delegate is required' };
+  const seatCount = parseInt(rawSeatCount, 10);
+  if (!seatCount || seatCount < 1) {
+    return { statusCode: 400, body: 'At least one delegate seat is required' };
   }
-  for (const d of delegates) {
-    if (!d.name || !d.company || !d.position) {
-      return { statusCode: 400, body: 'Each delegate needs name, company and position' };
-    }
+  const contactName = (bookingContact && bookingContact.name || '').trim();
+  const contactEmail = (bookingContact && bookingContact.email || '').trim();
+  if (!contactName || !contactEmail) {
+    return { statusCode: 400, body: 'Booking Contact name and email are required' };
   }
+  const contactPhone = (bookingContact && bookingContact.phone || '').trim();
 
-  const seatCount = delegates.length;
   const store = getStore('bookings');
 
   // Re-check capacity right before checkout so we never oversell
@@ -79,7 +80,8 @@ exports.handler = async (event) => {
   const bookingId = `bk_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   await store.setJSON(`roster:${bookingId}`, {
     cohortId,
-    delegates,
+    delegates: null,
+    bookingContact: { name: contactName, email: contactEmail, phone: contactPhone },
     contactEmail,
     pricing: {
       perSeat: pricing.perSeat,
@@ -124,7 +126,7 @@ exports.handler = async (event) => {
             unit_amount: pricing.perSeat,
             product_data: {
               name: `${pricing.cohort.programmeName} — ${pricing.cohort.label}`,
-              description: `${seatCount} delegate seat(s)${pricing.earlyBirdApplied ? ' · Early-bird rate' : ''}${pricing.seatDiscountApplied ? ' · Multi-seat discount' : ''}`
+              description: `${seatCount} delegate seat(s)${pricing.earlyBirdApplied ? ' · Early-bird rate' : ''}${pricing.seatDiscountApplied ? ' · Multi-seat discount' : ''}. Delegate details aren't needed to book — after payment we'll email your Booking Contact a short form to add each delegate's name, position and company.`
             }
           },
           quantity: seatCount
@@ -151,7 +153,9 @@ exports.handler = async (event) => {
         salesRepCode: repCode,
         bookingProtection: pricing.bookingProtectionSelected ? 'yes' : 'no',
         transferCreditCode: creditCode || 'none',
-        transferCreditApplied: String(creditAmountApplied)
+        transferCreditApplied: String(creditAmountApplied),
+        contactName,
+        contactEmail
       },
       success_url: `${siteUrl}/booking-confirmed?booking=${bookingId}`,
       cancel_url: `${siteUrl}/booking-cancelled?booking=${bookingId}`

@@ -88,4 +88,45 @@ async function sendOpsNotification({ cohort, delegates, pricing, contactEmail, b
   });
 }
 
-module.exports = { sendConfirmationEmail, sendOpsNotification };
+async function sendDelegateFormLinkEmail({ contactEmail, contactName, cohort, seatCount, bookingId, formUrl }) {
+  const html = `
+    <div style="font-family:sans-serif;color:#1C0333;">
+      <h2>Payment received — one more step</h2>
+      <p>Hi ${contactName || 'there'}, thanks for booking <strong>${cohort.programmeName}</strong> (${cohort.label}).</p>
+      <p>We just need the details of the ${seatCount} delegate${seatCount === 1 ? '' : 's'} attending. Please note this training is intended for <strong>C-Suite and division/department heads</strong>.</p>
+      <p style="margin:24px 0;"><a href="${formUrl}" style="background:#C79529;color:#1C0333;padding:12px 20px;text-decoration:none;font-weight:bold;border-radius:4px;">Add delegate details</a></p>
+      <p style="color:#746F82;font-size:12px;">This link is unique to your booking — please don't forward it. Your HRD Corp-claimable receipt will follow once delegate details are submitted.</p>
+      <p style="color:#746F82;font-size:12px;">Booking reference: ${bookingId}</p>
+    </div>`;
+
+  return sendEmail({
+    to: contactEmail,
+    subject: `Action needed — add delegate details for ${cohort.programmeName}`,
+    html
+  });
+}
+
+async function sendOpsAwaitingDelegatesNotification({ cohort, seatCount, pricing, contactName, contactEmail, bookingId }) {
+  if (!OPS_NOTIFICATION_EMAIL) {
+    console.warn('OPS_NOTIFICATION_EMAIL not set — skipping ops notification');
+    return { skipped: true };
+  }
+  const html = `
+    <div style="font-family:sans-serif;color:#1C0333;">
+      <h2>New paid booking — awaiting delegate details</h2>
+      <p><strong>${cohort.programmeName}</strong> — ${cohort.label}</p>
+      <p>Booking contact: ${contactName} &lt;${contactEmail}&gt;</p>
+      <p>Seats purchased: ${seatCount}</p>
+      <p>Total: RM ${((pricing.grandTotal ?? pricing.total) / 100).toLocaleString('en-MY', { minimumFractionDigits: 2 })}</p>
+      <p>Discount tier: <strong>${pricing.discountTier === 'heavy' ? 'Heavily Discounted' : 'Standard Discount'}</strong>${pricing.bookingProtectionSelected ? ' · Booking Protection purchased' : ''}</p>
+      <p style="color:#746F82;font-size:12px;">Delegate names will follow once the Booking Contact submits the delegate form. Booking reference: ${bookingId}</p>
+    </div>`;
+
+  return sendEmail({
+    to: OPS_NOTIFICATION_EMAIL,
+    subject: `New booking (awaiting delegates): ${seatCount} seat(s) — ${cohort.programmeName} ${cohort.label}`,
+    html
+  });
+}
+
+module.exports = { sendConfirmationEmail, sendOpsNotification, sendDelegateFormLinkEmail, sendOpsAwaitingDelegatesNotification };

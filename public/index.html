@@ -302,6 +302,11 @@
     display:block;
   }
 
+  .notice-row{
+    background:var(--paper); border:1px solid var(--line); padding:14px 16px;
+    font-size:13px; color:#5C566B; margin-bottom:16px;
+  }
+
   .price-box{
     margin-top:24px;
     padding:20px;
@@ -482,9 +487,24 @@
           <input type="number" id="seat-count" min="1" max="30" value="1">
         </div>
         <div>
-          <label for="contact-email">Booking contact email</label>
+          <label for="contact-name">Booking Contact name</label>
+          <input type="text" id="contact-name" placeholder="Full name">
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div>
+          <label for="contact-email">Booking Contact email</label>
           <input type="email" id="contact-email" placeholder="you@company.com">
         </div>
+        <div>
+          <label for="contact-phone">Booking Contact phone (optional)</label>
+          <input type="text" id="contact-phone" placeholder="+60...">
+        </div>
+      </div>
+
+      <div class="notice-row" id="delegate-note">
+        Delegate details aren't needed to book. After payment, we'll email your Booking Contact a short form to add each delegate's name, position and company. This programme is intended for C-Suite and division/department heads.
       </div>
 
       <div class="field-row">
@@ -495,8 +515,6 @@
         </div>
         <div></div>
       </div>
-
-      <div id="delegate-fields"></div>
 
       <div class="protection-row" id="protection-row">
         <label class="protection-label">
@@ -642,37 +660,18 @@ function selectCohort(id){
   state.selectedCohortId = id;
   renderAllCohortLists();
   const c = state.cohorts.find(x => x.id === id);
-  document.getElementById('panel-title').textContent = `Register delegates — ${c.programmeName}`;
+  document.getElementById('panel-title').textContent = `Book — ${c.programmeName}`;
   document.getElementById('panel-sub').textContent = `${c.label} · ${c.trackLabel}`;
   document.getElementById('booking-panel').classList.add('open');
   document.getElementById('booking-panel').scrollIntoView({ behavior:'smooth', block:'start' });
   document.getElementById('protection-toggle').checked = false;
   document.getElementById('tos-checkbox').checked = false;
   document.getElementById('transfer-code').value = '';
+  document.getElementById('contact-name').value = '';
+  document.getElementById('contact-email').value = '';
+  document.getElementById('contact-phone').value = '';
   document.getElementById('checkout-btn').disabled = true;
-  syncDelegateFields();
   updatePrice();
-}
-
-function syncDelegateFields(){
-  const count = parseInt(document.getElementById('seat-count').value, 10) || 1;
-  const container = document.getElementById('delegate-fields');
-  container.innerHTML = '';
-  for(let i=0; i<count; i++){
-    const card = document.createElement('div');
-    card.className = 'delegate-card';
-    card.innerHTML = `
-      <span class="num">DELEGATE ${String(i+1).padStart(2,'0')}</span>
-      <div class="field-row">
-        <div><label>Full name</label><input type="text" class="d-name" required></div>
-        <div><label>Job title / position</label><input type="text" class="d-position" placeholder="e.g. Chief Operating Officer" required></div>
-      </div>
-      <div class="field-row" style="grid-template-columns:1fr;">
-        <div><label>Company</label><input type="text" class="d-company" required></div>
-      </div>
-    `;
-    container.appendChild(card);
-  }
 }
 
 // Mirrors netlify/functions/_pricing.js exactly — additive discounts, not compounded.
@@ -714,7 +713,7 @@ function updatePrice(){
   document.getElementById('price-total').textContent = fmtRM(grandTotal);
 }
 
-document.getElementById('seat-count').addEventListener('input', () => { syncDelegateFields(); updatePrice(); });
+document.getElementById('seat-count').addEventListener('input', updatePrice);
 document.getElementById('protection-toggle').addEventListener('change', updatePrice);
 document.getElementById('tos-checkbox').addEventListener('change', (e) => {
   document.getElementById('checkout-btn').disabled = !e.target.checked;
@@ -726,25 +725,17 @@ document.getElementById('checkout-btn').addEventListener('click', async () => {
   statusEl.className = '';
 
   const seatCount = parseInt(document.getElementById('seat-count').value, 10) || 1;
-  const names = document.querySelectorAll('.d-name');
-  const positions = document.querySelectorAll('.d-position');
-  const companies = document.querySelectorAll('.d-company');
-  const contactEmail = document.getElementById('contact-email').value;
+  const contactName = document.getElementById('contact-name').value.trim();
+  const contactEmail = document.getElementById('contact-email').value.trim();
+  const contactPhone = document.getElementById('contact-phone').value.trim();
 
-  const delegates = [];
-  for(let i=0; i<seatCount; i++){
-    const name = names[i].value.trim();
-    const position = positions[i].value.trim();
-    const company = companies[i].value.trim();
-    if(!name || !position || !company){
-      statusEl.textContent = 'Please complete all delegate fields before continuing.';
-      statusEl.className = 'error';
-      return;
-    }
-    delegates.push({ name, position, company });
+  if(!contactName){
+    statusEl.textContent = 'Please enter the Booking Contact name.';
+    statusEl.className = 'error';
+    return;
   }
   if(!contactEmail){
-    statusEl.textContent = 'Please enter a booking contact email.';
+    statusEl.textContent = 'Please enter the Booking Contact email.';
     statusEl.className = 'error';
     return;
   }
@@ -759,8 +750,8 @@ document.getElementById('checkout-btn').addEventListener('click', async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         cohortId: state.selectedCohortId,
-        delegates,
-        contactEmail,
+        seatCount,
+        bookingContact: { name: contactName, email: contactEmail, phone: contactPhone },
         salesRepCode: document.getElementById('global-rep-code').value,
         bookingProtection: document.getElementById('protection-toggle').checked,
         tosAccepted: document.getElementById('tos-checkbox').checked,

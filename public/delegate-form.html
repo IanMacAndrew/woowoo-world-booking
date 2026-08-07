@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Add delegate details — WooWoo World</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1C0333;
+    --paper:#F4F2F8;
+    --paper-dim:#E9ECF2;
+    --brass:#C79529;
+    --brass-dark:#97711F;
+    --line:#D4D6DC;
+    --ok:#2E9E7A;
+    --danger:#9C3B4A;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--paper); color:var(--ink); font-family:'Inter',sans-serif; line-height:1.5;}
+  h1,h2,h3,.serif{font-family:'Newsreader',serif;}
+  main{max-width:720px; margin:0 auto; padding:64px 24px 96px;}
+  .eyebrow{font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.14em; text-transform:uppercase; color:var(--brass-dark); margin-bottom:14px;}
+  h1{font-size:clamp(28px,4vw,38px); font-weight:500; font-style:italic; margin-bottom:12px;}
+  .sub{color:#5C566B; font-size:15px; margin-bottom:8px;}
+  .notice{
+    background:var(--paper-dim); border:1px solid var(--line); padding:16px 20px;
+    font-size:13px; color:#5C566B; margin:24px 0 32px;
+  }
+  .notice strong{color:var(--ink);}
+  label{
+    display:block; font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase;
+    letter-spacing:0.06em; color:#746F82; margin-bottom:6px;
+  }
+  input[type=text]{
+    width:100%; padding:10px 12px; border:1px solid #C3C0CC; background:var(--paper);
+    font-family:'Inter',sans-serif; font-size:14px; color:var(--ink);
+  }
+  input:focus{outline:2px solid var(--brass-dark); outline-offset:1px;}
+  .field-row{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;}
+  .delegate-card{border:1px solid var(--line); background:var(--paper); padding:16px; margin-bottom:12px;}
+  .delegate-card .num{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--brass-dark); margin-bottom:10px; display:block;}
+  button.cta{
+    margin-top:12px; width:100%; padding:16px; background:var(--brass); color:var(--ink); border:none;
+    font-family:'IBM Plex Mono',monospace; font-size:13px; letter-spacing:0.06em; text-transform:uppercase;
+    cursor:pointer; transition:background .15s ease;
+  }
+  button.cta:hover{background:var(--brass-dark); color:var(--paper);}
+  button.cta:disabled{background:#D4D0DE; color:#8F8A9C; cursor:not-allowed;}
+  #status-msg{font-size:13px; margin-top:12px;}
+  #status-msg.error{color:var(--danger);}
+  #status-msg.ok{color:var(--ok);}
+  .center-box{max-width:480px; margin:0 auto; text-align:center; padding-top:80px;}
+  .center-box h1{font-size:28px;}
+  .center-box p{color:#5C566B; font-size:14px;}
+  @media (max-width:640px){ .field-row{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+
+<main id="app">
+  <div class="center-box"><p class="sub">Loading…</p></div>
+</main>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const token = params.get('token');
+const app = document.getElementById('app');
+
+function renderError(message){
+  app.innerHTML = `<div class="center-box"><h1>Can't load this form</h1><p>${message}</p></div>`;
+}
+
+function renderAlreadySubmitted(info){
+  app.innerHTML = `<div class="center-box"><h1>Already submitted</h1><p>Delegate details for ${info.programmeName} — ${info.cohortLabel} have already been received. If you need to make a change, please email bookings@woowoo.world.</p></div>`;
+}
+
+function renderForm(info){
+  app.innerHTML = `
+    <div class="eyebrow">WooWoo World · Delegate Details</div>
+    <h1>${info.programmeName}</h1>
+    <p class="sub">${info.cohortLabel}${info.trackLabel ? ' · ' + info.trackLabel : ''}</p>
+    <div class="notice">
+      <strong>${info.seatCount} delegate${info.seatCount === 1 ? '' : 's'}</strong> to add for this booking.
+      This programme is intended for <strong>C-Suite and division/department heads</strong>.
+      Your HRD Corp-claimable receipt will be emailed once this form is submitted.
+    </div>
+    <div id="delegate-fields"></div>
+    <button class="cta" id="submit-btn">Submit delegate details</button>
+    <div id="status-msg"></div>
+  `;
+
+  const container = document.getElementById('delegate-fields');
+  for(let i=0; i<info.seatCount; i++){
+    const card = document.createElement('div');
+    card.className = 'delegate-card';
+    card.innerHTML = `
+      <span class="num">DELEGATE ${String(i+1).padStart(2,'0')}</span>
+      <div class="field-row">
+        <div><label>Full name</label><input type="text" class="d-name" required></div>
+        <div><label>Job title / position</label><input type="text" class="d-position" placeholder="e.g. Chief Operating Officer" required></div>
+      </div>
+      <div class="field-row" style="grid-template-columns:1fr;">
+        <div><label>Company</label><input type="text" class="d-company" required></div>
+      </div>
+    `;
+    container.appendChild(card);
+  }
+
+  document.getElementById('submit-btn').addEventListener('click', async () => {
+    const statusEl = document.getElementById('status-msg');
+    statusEl.textContent = '';
+    statusEl.className = '';
+
+    const names = document.querySelectorAll('.d-name');
+    const positions = document.querySelectorAll('.d-position');
+    const companies = document.querySelectorAll('.d-company');
+    const delegates = [];
+    for(let i=0; i<info.seatCount; i++){
+      const name = names[i].value.trim();
+      const position = positions[i].value.trim();
+      const company = companies[i].value.trim();
+      if(!name || !position || !company){
+        statusEl.textContent = 'Please complete all delegate fields before submitting.';
+        statusEl.className = 'error';
+        return;
+      }
+      delegates.push({ name, position, company });
+    }
+
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Submitting…';
+
+    try {
+      const res = await fetch('/.netlify/functions/submit-delegate-details', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, delegates })
+      });
+      const data = await res.json();
+      if(!res.ok){
+        statusEl.textContent = data.error || 'Something went wrong. Please try again.';
+        statusEl.className = 'error';
+        btn.disabled = false;
+        btn.textContent = 'Submit delegate details';
+        return;
+      }
+      app.innerHTML = `<div class="center-box"><h1>Thank you.</h1><p>Delegate details received. Your HRD Corp-claimable receipt is on its way to your booking contact email.</p></div>`;
+    } catch (e) {
+      statusEl.textContent = 'Network error — please try again.';
+      statusEl.className = 'error';
+      btn.disabled = false;
+      btn.textContent = 'Submit delegate details';
+    }
+  });
+}
+
+(async () => {
+  if(!token){ renderError('This link is missing its token. Please use the link from your booking email.'); return; }
+  try {
+    const res = await fetch(`/.netlify/functions/delegate-form-info?token=${encodeURIComponent(token)}`);
+    const info = await res.json();
+    if(!res.ok || !info.valid){ renderError(info.error || 'This link is invalid or has expired.'); return; }
+    if(info.alreadySubmitted){ renderAlreadySubmitted(info); return; }
+    renderForm(info);
+  } catch (e) {
+    renderError('Network error — please refresh and try again.');
+  }
+})();
+</script>
+
+</body>
+</html>
