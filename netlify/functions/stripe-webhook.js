@@ -1,5 +1,5 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const { getStore } = require('@netlify/blobs');
+const { getStore } = require('./_blobs');
 const { getCohort } = require('./_pricing');
 const { generateInvoicePdf } = require('./_invoice');
 const { sendConfirmationEmail, sendOpsNotification } = require('./_email');

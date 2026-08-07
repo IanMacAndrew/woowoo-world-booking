@@ -1,5 +1,5 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const { getStore } = require('@netlify/blobs');
+const { getStore } = require('./_blobs');
 const { calculatePricing, cohortsData } = require('./_pricing');
 
 exports.handler = async (event) => {

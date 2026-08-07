@@ -1,4 +1,4 @@
-const { getStore } = require('@netlify/blobs');
+const { getStore } = require('./_blobs');
 const { cohortsData } = require('./_pricing');
 
 exports.handler = async (event) => {
