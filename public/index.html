@@ -440,7 +440,16 @@
     </div>
     <p class="programme-desc">A full working day to move from awareness to application — practical, hands-on, built around your own business problems.</p>
 
-    <div id="deepdive-courses"></div>
+    <div class="track-group">
+      <h4>Strategic AI Deep Dive</h4>
+      <div id="deepdive-strategic-eb-banner"></div>
+      <div class="cohort-list" id="list-deepdive-strategic"></div>
+    </div>
+    <div class="track-group">
+      <h4>Sales &amp; Marketing AI Deep Dive</h4>
+      <div id="deepdive-salesmarketing-eb-banner"></div>
+      <div class="cohort-list" id="list-deepdive-salesmarketing"></div>
+    </div>
   </section>
 
   <!-- MASTERCLASS -->
@@ -535,122 +544,10 @@
   <a href="/terms-of-service.html">Terms of Service</a> · <a href="/privacy-policy.html">Privacy Policy</a>
 </footer>
 
-<!-- CONSENT MODAL (Deep Dive checkout gate) -->
-<div id="consent-modal-overlay">
-  <div id="consent-modal">
-    <h3>Before you continue</h3>
-    <p class="modal-course-name" id="modal-course-name"></p>
-    <p class="modal-price" id="modal-price"></p>
-    <label class="consent-row">
-      <input type="checkbox" id="modal-tos-checkbox">
-      <span>I have read and agree to the <a href="/terms-of-service.html" target="_blank" rel="noopener">Terms of Service</a> and <a href="/privacy-policy.html" target="_blank" rel="noopener">Privacy Policy</a>, including the cancellation policy.</span>
-    </label>
-    <div class="modal-buttons">
-      <button class="cta" id="modal-continue-btn" disabled>Continue to secure payment</button>
-      <button class="modal-cancel" id="modal-cancel-btn">Cancel</button>
-    </div>
-  </div>
-</div>
-
 <script>
 /* ============================================================
-   1-DAY DEEP DIVE — static Stripe Payment Links
-   ============================================================ */
-const deepDiveCourses = [
-  {
-    name: 'Strategic AI Deep Dive',
-    dates: '15 & 16 August 2026',
-    earlyBirdCutoff: '2026-08-10', // "before 10 Aug 2026" → valid through 9 Aug 23:59 MYT
-    tiers: [
-      { label: 'Single delegate', range: 'single', full: 1750, eb: 875,
-        fullUrl: 'https://buy.stripe.com/fZu4gAaGbdrIdv1d3PcbC1q', ebUrl: 'https://buy.stripe.com/14A6oIcOjevM3Ur3tfcbC1l' },
-      { label: '2–4 delegates', range: '2-4', full: 1662.50, eb: 787.50,
-        fullUrl: 'https://buy.stripe.com/00w28s3dJ87o0IffbXcbC1r', ebUrl: 'https://buy.stripe.com/14A8wQeWr3R8aiPgg1cbC1m' },
-      { label: '5–9 delegates', range: '5-9', full: 1575, eb: 700,
-        fullUrl: 'https://buy.stripe.com/eVq00kcOj9bsez5aVHcbC1s', ebUrl: 'https://buy.stripe.com/7sYcN601x2N40If8NzcbC1n' },
-      { label: '10–19 delegates', range: '10-19', full: 1487.50, eb: 612.50,
-        fullUrl: 'https://buy.stripe.com/dRm28s9C7drI8aH9RDcbC1t', ebUrl: 'https://buy.stripe.com/eVq8wQ7tZafwbmT1l7cbC1o' },
-      { label: '20–30 delegates', range: '20-30', full: 1400, eb: 525,
-        fullUrl: 'https://buy.stripe.com/bJe28s29F1J09eL5BncbC1u', ebUrl: 'https://buy.stripe.com/7sY9AU4hN4VcbmTe7TcbC1p' }
-    ]
-  },
-  {
-    name: 'Sales & Marketing AI Deep Dive',
-    dates: '22 & 23 August 2026',
-    earlyBirdCutoff: '2026-08-12', // "before 12 Aug 2026" → valid through 11 Aug 23:59 MYT
-    tiers: [
-      { label: 'Single delegate', range: 'single', full: 1750, eb: 875,
-        fullUrl: 'https://buy.stripe.com/5kQ28s7tZcnE76De7TcbC1A', ebUrl: 'https://buy.stripe.com/28EbJ23dJgDU1Mj3tfcbC1v' },
-      { label: '2–4 delegates', range: '2-4', full: 1662.50, eb: 787.50,
-        fullUrl: 'https://buy.stripe.com/aFa00kbKfafwgHd0h3cbC1B', ebUrl: 'https://buy.stripe.com/cNi4gAbKfevMgHdd3PcbC1w' },
-      { label: '5–9 delegates', range: '5-9', full: 1575, eb: 700,
-        fullUrl: 'https://buy.stripe.com/28E4gA7tZ73kfD98NzcbC1C', ebUrl: 'https://buy.stripe.com/28EaEYcOj0EWbmT1l7cbC1x' },
-      { label: '10–19 delegates', range: '10-19', full: 1487.50, eb: 612.50,
-        fullUrl: 'https://buy.stripe.com/dRm28seWr1J04Yv4xjcbC1D', ebUrl: 'https://buy.stripe.com/8x2aEY9C773k8aH1l7cbC1y' },
-      { label: '20–30 delegates', range: '20-30', full: 1400, eb: 525,
-        fullUrl: 'https://buy.stripe.com/7sYfZi29FcnEbmTgg1cbC1E', ebUrl: 'https://buy.stripe.com/8x29AUeWr1J09eL1l7cbC1z' }
-    ]
-  }
-];
-
-function isEngLianActive(cutoffDateStr){
-  const cutoff = new Date(cutoffDateStr + 'T00:00:00+08:00'); // exclusive: valid through the day before
-  return new Date() < cutoff;
-}
-
-function fmtRMPlain(n){
-  return 'RM' + n.toLocaleString('en-MY', {minimumFractionDigits: n % 1 === 0 ? 0 : 2, maximumFractionDigits:2});
-}
-
-function renderDeepDive(){
-  const wrap = document.getElementById('deepdive-courses');
-  wrap.innerHTML = '';
-  deepDiveCourses.forEach(course => {
-    const ebActive = isEngLianActive(course.earlyBirdCutoff);
-    const block = document.createElement('div');
-    block.className = 'course-block';
-
-    // Build the "last valid day" from the cutoff's calendar date directly (not the
-    // instant), then format in a fixed UTC context — avoids the display date
-    // silently shifting a day depending on the visitor's own browser timezone.
-    const [cy, cm, cd] = course.earlyBirdCutoff.split('-').map(Number);
-    const cutoffPretty = new Date(Date.UTC(cy, cm - 1, cd - 1));
-    const cutoffLabel = cutoffPretty.toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric', timeZone:'UTC' });
-
-    let rows = '';
-    course.tiers.forEach(t => {
-      let url = ebActive ? t.ebUrl : t.fullUrl;
-      const repCode = (document.getElementById('global-rep-code').value || '').trim().toUpperCase();
-      if (repCode) {
-        url += (url.includes('?') ? '&' : '?') + 'client_reference_id=' + encodeURIComponent(repCode);
-      }
-      rows += `
-        <tr>
-          <td class="tier-name">${t.label}</td>
-          <td class="price">${ebActive ? `<span class="strike">${fmtRMPlain(t.full)}</span>${fmtRMPlain(t.eb)}` : fmtRMPlain(t.full)}</td>
-          <td><button type="button" class="book-btn" data-url="${url}" data-course="${course.name}" data-price="${ebActive ? fmtRMPlain(t.eb) : fmtRMPlain(t.full)} per delegate (${t.label})">Book now</button></td>
-        </tr>`;
-    });
-
-    block.innerHTML = `
-      <div class="course-block-head">
-        <h3>${course.name}</h3>
-        <div class="course-dates">${course.dates}</div>
-      </div>
-      ${ebActive
-        ? `<div class="eb-banner">Eng Lian early-bird — 50% off, until ${cutoffLabel}</div>`
-        : `<div class="eb-banner closed">Early-bird window closed — full price now applies</div>`}
-      <table class="tier-table">
-        <thead><tr><th>Group size</th><th>Per delegate</th><th></th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    `;
-    wrap.appendChild(block);
-  });
-}
-
-/* ============================================================
-   MASTERCLASS — dynamic Netlify Function checkout
+   BOOKING — unified dynamic Netlify Function checkout
+   (Masterclass and 1-Day Deep Dive both flow through this)
    ============================================================ */
 const state = { cohorts: [], seats: {}, selectedCohortId: null, rules: null };
 
@@ -659,9 +556,9 @@ async function loadCohorts() {
   const data = await res.json();
   state.cohorts = data.cohorts;
   state.rules = data;
-  renderEbBanner();
+  renderAllEbBanners();
   await refreshSeats();
-  renderMasterclass();
+  renderAllCohortLists();
 }
 
 async function refreshSeats() {
@@ -677,8 +574,8 @@ function fmtRM(cents){
   return 'RM' + (cents/100).toLocaleString('en-MY', {minimumFractionDigits:0, maximumFractionDigits:0});
 }
 
-function masterclassEarlyBirdActive(){
-  const w = state.rules.earlyBirdWindow;
+function earlyBirdActiveFor(programmeKey){
+  const w = state.rules.programmes[programmeKey].earlyBirdWindow;
   if(!w) return false;
   const start = new Date(w.start + 'T00:00:00+08:00');
   const end = new Date(w.end + 'T23:59:59+08:00');
@@ -686,13 +583,14 @@ function masterclassEarlyBirdActive(){
   return now >= start && now <= end;
 }
 
-function renderEbBanner(){
-  const el = document.getElementById('masterclass-eb-banner');
-  const w = state.rules.earlyBirdWindow;
+function renderEbBanner(programmeKey, elId){
+  const el = document.getElementById(elId);
+  if(!el) return;
+  const w = state.rules.programmes[programmeKey].earlyBirdWindow;
   if(!w){ el.innerHTML = ''; return; }
-  const active = masterclassEarlyBirdActive();
-  // Format from the raw Y-M-D digits in a fixed UTC context, same fix as the
-  // Deep Dive cutoff label — avoids the date shifting with visitor timezone.
+  const active = earlyBirdActiveFor(programmeKey);
+  // Format from the raw Y-M-D digits in a fixed UTC context — avoids the
+  // date shifting a day depending on the visitor's own browser timezone.
   const fmtDatePart = (dateStr, opts) => {
     const [y, m, d] = dateStr.split('-').map(Number);
     return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-GB', { ...opts, timeZone: 'UTC' });
@@ -700,13 +598,21 @@ function renderEbBanner(){
   const startLabel = fmtDatePart(w.start, {day:'numeric', month:'long'});
   const endLabel = fmtDatePart(w.end, {day:'numeric', month:'long', year:'numeric'});
   el.innerHTML = active
-    ? `<div class="eb-banner" style="margin-bottom:20px;">Eng Lian early-bird — 50% off, ${startLabel}–${endLabel}</div>`
-    : `<div class="eb-banner closed" style="margin-bottom:20px; border:1px solid var(--line); padding:10px 16px;">Eng Lian early-bird window: ${startLabel}–${endLabel}</div>`;
+    ? `<div class="eb-banner" style="margin-bottom:20px;">Early-bird — 50% off, until ${endLabel}</div>`
+    : `<div class="eb-banner closed" style="margin-bottom:20px; border:1px solid var(--line); padding:10px 16px;">Early-bird window: ${startLabel}–${endLabel}</div>`;
 }
 
-function renderMasterclass(){
+function renderAllEbBanners(){
+  renderEbBanner('masterclass', 'masterclass-eb-banner');
+  renderEbBanner('deepdive-strategic', 'deepdive-strategic-eb-banner');
+  renderEbBanner('deepdive-salesmarketing', 'deepdive-salesmarketing-eb-banner');
+}
+
+function renderAllCohortLists(){
   renderCohortList('masterclass', 'list-masterclass');
   renderCohortList('masterclass-sm', 'list-masterclass-sm');
+  renderCohortList('deepdive-strategic', 'list-deepdive-strategic');
+  renderCohortList('deepdive-salesmarketing', 'list-deepdive-salesmarketing');
 }
 
 function renderCohortList(programme, elId){
@@ -722,7 +628,7 @@ function renderCohortList(programme, elId){
         <div class="cohort-dates">${c.label}</div>
         <div class="cohort-track">${c.trackLabel}</div>
       </div>
-      <div>${masterclassEarlyBirdActive() ? `<span class="earlybird-tag">Eng Lian active</span>` : ''}</div>
+      <div>${earlyBirdActiveFor(programme) ? `<span class="earlybird-tag">Early-bird active</span>` : ''}</div>
       <div class="seat-count"><span class="num">${seatInfo.remaining}</span> of ${state.rules.maxSeats} seats left</div>
     `;
     if (!seatInfo.full) {
@@ -734,7 +640,7 @@ function renderCohortList(programme, elId){
 
 function selectCohort(id){
   state.selectedCohortId = id;
-  renderMasterclass();
+  renderAllCohortLists();
   const c = state.cohorts.find(x => x.id === id);
   document.getElementById('panel-title').textContent = `Register delegates — ${c.programmeName}`;
   document.getElementById('panel-sub').textContent = `${c.label} · ${c.trackLabel}`;
@@ -776,12 +682,13 @@ function updatePrice(){
   const seatCount = parseInt(document.getElementById('seat-count').value, 10) || 1;
   const protection = document.getElementById('protection-toggle').checked;
 
-  const base = state.rules.basePrice;
-  const earlyBird = masterclassEarlyBirdActive();
+  const programme = state.rules.programmes[c.programme];
+  const base = programme.basePrice;
+  const earlyBird = earlyBirdActiveFor(c.programme);
   const tier = state.rules.seatTiers.find(t => seatCount >= t.min && seatCount <= t.max);
   const seatDiscount = tier ? tier.discount : 0;
 
-  const ebAmount = earlyBird ? Math.round(base * state.rules.earlyBirdDiscount) : 0;
+  const ebAmount = earlyBird ? Math.round(base * programme.earlyBirdDiscount) : 0;
   const seatAmount = seatDiscount > 0 ? Math.round(base * seatDiscount) : 0;
   const perSeat = Math.max(0, base - ebAmount - seatAmount);
   const total = perSeat * seatCount;
@@ -798,7 +705,7 @@ function updatePrice(){
 
   const lines = [];
   lines.push(`${fmtRM(base)} base rate`);
-  if(earlyBird) lines.push(`- ${fmtRM(ebAmount)} Eng Lian early-bird (50%)`);
+  if(earlyBird) lines.push(`- ${fmtRM(ebAmount)} Early-bird (50%)`);
   if(seatDiscount > 0) lines.push(`- ${fmtRM(seatAmount)} multi-seat discount (${Math.round(seatDiscount*100)}%, ${seatCount} delegates)`);
   lines.push(`${fmtRM(perSeat)} per delegate × ${seatCount} = ${fmtRM(total)}`);
   if(protection) lines.push(`+ ${fmtRM(protectionFee)} Booking Protection (8%, non-refundable)`);
@@ -808,7 +715,6 @@ function updatePrice(){
 }
 
 document.getElementById('seat-count').addEventListener('input', () => { syncDelegateFields(); updatePrice(); });
-document.getElementById('global-rep-code').addEventListener('input', renderDeepDive);
 document.getElementById('protection-toggle').addEventListener('change', updatePrice);
 document.getElementById('tos-checkbox').addEventListener('change', (e) => {
   document.getElementById('checkout-btn').disabled = !e.target.checked;
@@ -878,47 +784,6 @@ document.getElementById('checkout-btn').addEventListener('click', async () => {
   }
 });
 
-/* ============================================================
-   CONSENT MODAL — gates Deep Dive Stripe Payment Link clicks
-   ============================================================ */
-let pendingStripeUrl = null;
-
-document.getElementById('deepdive-courses').addEventListener('click', (e) => {
-  const btn = e.target.closest('.book-btn');
-  if (!btn) return;
-  pendingStripeUrl = btn.dataset.url;
-  document.getElementById('modal-course-name').textContent = btn.dataset.course;
-  document.getElementById('modal-price').textContent = btn.dataset.price;
-  document.getElementById('modal-tos-checkbox').checked = false;
-  document.getElementById('modal-continue-btn').disabled = true;
-  document.getElementById('consent-modal-overlay').classList.add('open');
-});
-
-document.getElementById('modal-tos-checkbox').addEventListener('change', (e) => {
-  document.getElementById('modal-continue-btn').disabled = !e.target.checked;
-});
-
-document.getElementById('modal-cancel-btn').addEventListener('click', () => {
-  pendingStripeUrl = null;
-  document.getElementById('consent-modal-overlay').classList.remove('open');
-});
-
-document.getElementById('consent-modal-overlay').addEventListener('click', (e) => {
-  if (e.target.id === 'consent-modal-overlay') {
-    pendingStripeUrl = null;
-    document.getElementById('consent-modal-overlay').classList.remove('open');
-  }
-});
-
-document.getElementById('modal-continue-btn').addEventListener('click', () => {
-  if (pendingStripeUrl) {
-    window.open(pendingStripeUrl, '_blank', 'noopener');
-  }
-  document.getElementById('consent-modal-overlay').classList.remove('open');
-  pendingStripeUrl = null;
-});
-
-renderDeepDive();
 loadCohorts();
 </script>
 
