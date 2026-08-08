@@ -25,17 +25,29 @@ exports.handler = async (event) => {
 
     // Mark roster as paid, awaiting delegate details
     const roster = await store.get(`roster:${bookingId}`, { type: 'json' });
+
+    // Snapshot the event's attendance at the moment this sale is confirmed —
+    // this is the point-of-sale figure used for all commission gating
+    // (the 10-delegate minimum and the 80%-capacity bonus). Taking it here,
+    // rather than later when the delegate form is submitted, means a rep's
+    // payout can't drift up or down based on what OTHER reps sell into the
+    // same event after this sale was already made.
+    const seatCountNum = parseInt(seatCount, 10);
+    const attendanceRaw = await store.get(`seats-booked:${cohortId}`);
+    const attendanceBefore = attendanceRaw ? parseInt(attendanceRaw, 10) : 0;
+    const attendanceAfter = attendanceBefore + seatCountNum;
+
     if (roster) {
       roster.status = 'paid_awaiting_delegates';
       roster.stripeSessionId = session.id;
       roster.paidAt = new Date().toISOString();
+      roster.eventAttendanceBeforeSale = attendanceBefore;
+      roster.eventAttendanceAfterSale = attendanceAfter;
       await store.setJSON(`roster:${bookingId}`, roster);
     }
 
     // Increment confirmed seat count for the cohort
-    const raw = await store.get(`seats-booked:${cohortId}`);
-    const current = raw ? parseInt(raw, 10) : 0;
-    await store.set(`seats-booked:${cohortId}`, String(current + parseInt(seatCount, 10)));
+    await store.set(`seats-booked:${cohortId}`, String(attendanceAfter));
 
     // Issue a one-time delegate-form token and email the Booking Contact
     if (roster) {

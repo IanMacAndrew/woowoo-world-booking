@@ -58,12 +58,17 @@
   "commissionSeedingFeePerDelegate": 5000,
   "commissionWindowDaysBeforeEvent": 10,
   "commissionMinEventAttendance": 10,
+  "commissionDeepDiveFloorPerDelegate": 15000,
+  "commissionCapacityBonusThreshold": 0.8,
+  "commissionCapacityBonusPerDelegate": 15000,
+  "commissionFirstTimeCompanyBonusPerDelegate": 5000,
   "bookingProtectionFeeRate": 0.08,
   "tokenBonusRate": 1.1,
   "heavilyDiscountedThreshold": 0.5,
   "standardCancellationWindowHours": 72,
   "programmes": {
     "masterclass-cohort1": {
+      "format": "masterclass",
       "basePrice": 1000000,
       "earlyBirdDiscount": 0.5,
       "earlyBirdWindow": {
@@ -72,6 +77,7 @@
       }
     },
     "masterclass-cohort2": {
+      "format": "masterclass",
       "basePrice": 1000000,
       "earlyBirdDiscount": 0.5,
       "earlyBirdWindow": {
@@ -80,6 +86,7 @@
       }
     },
     "deepdive": {
+      "format": "deepdive",
       "basePrice": 175000,
       "earlyBirdDiscount": 0.5,
       "earlyBirdWindow": {

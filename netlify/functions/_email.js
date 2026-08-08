@@ -1,6 +1,7 @@
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const FROM_EMAIL = process.env.FROM_EMAIL || 'bookings@woowoo.world';
 const OPS_NOTIFICATION_EMAIL = process.env.OPS_NOTIFICATION_EMAIL; // set to Omar's inbox
+const SALES_NOTIFICATION_EMAIL = process.env.SALES_NOTIFICATION_EMAIL || 'sales@woowoo.world';
 
 async function sendEmail({ to, subject, html, attachments }) {
   if (!RESEND_API_KEY) {
@@ -141,4 +142,26 @@ async function sendOpsAwaitingDelegatesNotification({ cohort, seatCount, pricing
   });
 }
 
-module.exports = { sendConfirmationEmail, sendOpsNotification, sendDelegateFormLinkEmail, sendOpsAwaitingDelegatesNotification };
+async function sendSalesCommissionNotification({ cohort, commission, bookingId }) {
+  const html = `
+    <div style="font-family:sans-serif;color:#1C0333;">
+      <h2>Commission update — ${commission.repCode}</h2>
+      <p><strong>${cohort.programmeName}</strong> — ${cohort.label}</p>
+      ${commission.eligible
+        ? `<p><strong>RM ${(commission.commissionAmount / 100).toLocaleString('en-MY', { minimumFractionDigits: 2 })}</strong> for ${commission.eligibleDelegateCount} eligible delegate(s)${commission.payoutType === 'seeding' ? ' (seeding fee — event hadn\u2019t yet crossed the attendance threshold)' : ` at ${Math.round(commission.rate * 100)}%`}.</p>
+           ${commission.deepDiveFloorApplied ? '<p>Deep Dive floor applied.</p>' : ''}
+           ${commission.capacityBonusApplied ? '<p>Capacity-fill bonus applied \u2014 this sale pushed the event past 80% full.</p>' : ''}
+           ${commission.firstTimeCompanyBonusAmount ? `<p>First-time company bonus: RM ${(commission.firstTimeCompanyBonusAmount / 100).toLocaleString('en-MY', { minimumFractionDigits: 2 })} (${commission.firstTimeCompanies.join(', ')})</p>` : ''}
+           <p>Cumulative eligible delegates sold: <strong>${commission.repCumulativeAfter}</strong></p>`
+        : `<p>No commission on this booking: ${commission.reason}</p>`}
+      <p style="color:#746F82;font-size:12px;">Booking reference: ${bookingId}</p>
+    </div>`;
+
+  return sendEmail({
+    to: SALES_NOTIFICATION_EMAIL,
+    subject: `Commission ${commission.eligible ? 'earned' : 'update'} — ${commission.repCode} — ${cohort.programmeName}`,
+    html
+  });
+}
+
+module.exports = { sendConfirmationEmail, sendOpsNotification, sendDelegateFormLinkEmail, sendOpsAwaitingDelegatesNotification, sendSalesCommissionNotification };

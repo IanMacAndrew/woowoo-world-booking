@@ -1,7 +1,7 @@
 const { getStore } = require('./_blobs');
 const { getCohort } = require('./_pricing');
 const { generateInvoicePdf } = require('./_invoice');
-const { sendConfirmationEmail, sendOpsNotification } = require('./_email');
+const { sendConfirmationEmail, sendOpsNotification, sendSalesCommissionNotification } = require('./_email');
 const { calculateAndRecordCommission } = require('./_commission');
 
 exports.handler = async (event) => {
@@ -60,7 +60,9 @@ exports.handler = async (event) => {
       repCode: roster.salesRepCode,
       delegates: roster.delegates,
       perSeat: roster.pricing.perSeat,
-      createdAt: roster.createdAt
+      createdAt: roster.createdAt,
+      eventAttendanceBeforeSale: roster.eventAttendanceBeforeSale,
+      eventAttendanceAfterSale: roster.eventAttendanceAfterSale
     });
   } catch (err) {
     console.error('Commission calculation failed for booking', tokenRecord.bookingId, err);
@@ -93,6 +95,14 @@ exports.handler = async (event) => {
       bookingId: tokenRecord.bookingId,
       commission
     });
+
+    if (commission && roster.salesRepCode && roster.salesRepCode !== 'ISM') {
+      await sendSalesCommissionNotification({
+        cohort,
+        commission,
+        bookingId: tokenRecord.bookingId
+      });
+    }
   } catch (err) {
     // Delegate details are already saved — never let an email/PDF failure
     // undo that. Log for follow-up.
