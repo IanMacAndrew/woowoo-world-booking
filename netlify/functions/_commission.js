@@ -47,7 +47,7 @@ async function applyFirstTimeCompanyBonus(store, eligibleDelegates) {
     if (!existing) {
       bonusAmount += perDelegateBonus;
       newCompanies.push(delegate.company);
-      await store.set(storeKey, new Date().toISOString());
+      await store.setJSON(storeKey, { name: delegate.company, firstSeenAt: new Date().toISOString() });
     }
     seenThisCall.add(key);
   }

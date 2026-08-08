@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Company Registry — Internal</title>
+<style>
+  body{font-family:system-ui,sans-serif; max-width:640px; margin:60px auto; padding:0 20px; color:#1C0333;}
+  h1{font-size:20px; margin-bottom:6px;}
+  p.note{color:#746F82; font-size:13px; margin-bottom:24px;}
+  label{display:block; font-size:12px; text-transform:uppercase; letter-spacing:0.04em; color:#746F82; margin:14px 0 4px;}
+  input{width:100%; padding:10px; border:1px solid #C3C0CC; font-size:14px; box-sizing:border-box;}
+  button{margin-top:16px; width:100%; padding:12px; background:#C79529; color:#1C0333; border:none; font-size:14px; cursor:pointer; text-transform:uppercase; letter-spacing:0.04em;}
+  button:hover{background:#97711F; color:#F4F2F8;}
+  #error{margin-top:16px; padding:14px; background:#F3DCE0; color:#9C3B4A; font-family:monospace; font-size:13px; display:none;}
+  table{width:100%; border-collapse:collapse; margin-top:24px;}
+  th{text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:#8F8A9C; padding:8px 10px; border-bottom:2px solid #1C0333;}
+  td{padding:10px; border-bottom:1px solid #D4D6DC; font-size:14px;}
+  #count{color:#746F82; font-size:13px; margin-top:24px; display:none;}
+</style>
+</head>
+<body>
+  <h1>Company registry</h1>
+  <p class="note">Internal tool. Lists every company that has triggered the first-time-company commission bonus, most recent first.</p>
+
+  <label for="secret">Admin secret</label>
+  <input type="password" id="secret" autocomplete="off">
+  <button id="load-btn">Load registry</button>
+
+  <div id="error"></div>
+  <p id="count"></p>
+  <table id="results" style="display:none;">
+    <thead><tr><th>Company</th><th>First seen</th></tr></thead>
+    <tbody id="results-body"></tbody>
+  </table>
+
+  <script>
+    document.getElementById('load-btn').addEventListener('click', async () => {
+      const secret = document.getElementById('secret').value;
+      const errorEl = document.getElementById('error');
+      const countEl = document.getElementById('count');
+      const table = document.getElementById('results');
+      const tbody = document.getElementById('results-body');
+
+      errorEl.style.display = 'none';
+      countEl.style.display = 'none';
+      table.style.display = 'none';
+
+      if (!secret) {
+        errorEl.textContent = 'Enter the admin secret.';
+        errorEl.style.display = 'block';
+        return;
+      }
+
+      try {
+        const res = await fetch('/.netlify/functions/company-registry', {
+          headers: { 'x-admin-secret': secret }
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          errorEl.textContent = data.error || 'Failed — check the admin secret.';
+          errorEl.style.display = 'block';
+          return;
+        }
+
+        countEl.textContent = `${data.count} compan${data.count === 1 ? 'y' : 'ies'} registered`;
+        countEl.style.display = 'block';
+
+        tbody.innerHTML = '';
+        if (data.companies.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="2" style="color:#8F8A9C;">No companies registered yet.</td></tr>';
+        } else {
+          data.companies.forEach((c) => {
+            const tr = document.createElement('tr');
+            const dateStr = c.firstSeenAt ? new Date(c.firstSeenAt).toLocaleDateString('en-MY', { day: 'numeric', month: 'long', year: 'numeric' }) : '\u2014';
+            tr.innerHTML = `<td>${c.name || '\u2014'}</td><td>${dateStr}</td>`;
+            tbody.appendChild(tr);
+          });
+        }
+        table.style.display = 'table';
+      } catch (e) {
+        errorEl.textContent = 'Network error — please try again.';
+        errorEl.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>
