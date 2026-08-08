@@ -48,6 +48,7 @@ async function sendConfirmationEmail({ contactEmail, cohort, delegates, pricing,
     <div style="font-family:sans-serif;color:#1C0333;">
       <h2>Booking confirmed</h2>
       <p>Your registration for <strong>${cohort.programmeName}</strong> (${cohort.label}) is confirmed.</p>
+      <p>Venue: ${cohort.venue}</p>
       <h3>Delegates</h3>
       ${delegateRosterHtml(delegates)}
       <p style="margin-top:16px;">Total paid: <strong>RM ${((pricing.grandTotal ?? pricing.total) / 100).toLocaleString('en-MY', { minimumFractionDigits: 2 })}</strong>${pricing.bookingProtectionSelected ? ' <span style="color:#746F82;font-size:12px;">(includes non-refundable Booking Protection)</span>' : ''}</p>
@@ -81,6 +82,7 @@ async function sendOpsNotification({ cohort, delegates, pricing, contactEmail, b
     <div style="font-family:sans-serif;color:#1C0333;">
       <h2>New paid booking</h2>
       <p><strong>${cohort.programmeName}</strong> — ${cohort.label}</p>
+      <p>Venue: ${cohort.venue}</p>
       <p>Booking contact: ${contactEmail}</p>
       <h3>Delegates</h3>
       ${delegateRosterHtml(delegates)}
@@ -102,6 +104,7 @@ async function sendDelegateFormLinkEmail({ contactEmail, contactName, cohort, se
     <div style="font-family:sans-serif;color:#1C0333;">
       <h2>Payment received — one more step</h2>
       <p>Hi ${contactName || 'there'}, thanks for booking <strong>${cohort.programmeName}</strong> (${cohort.label}).</p>
+      <p>Venue: ${cohort.venue}</p>
       <p>We just need the details of the ${seatCount} delegate${seatCount === 1 ? '' : 's'} attending. Please note this training is intended for <strong>C-Suite and division/department heads</strong>.</p>
       <p style="margin:24px 0;"><a href="${formUrl}" style="background:#C79529;color:#1C0333;padding:12px 20px;text-decoration:none;font-weight:bold;border-radius:4px;">Add delegate details</a></p>
       <p style="color:#746F82;font-size:12px;">This link is unique to your booking — please don't forward it. Your HRD Corp-claimable receipt will follow once delegate details are submitted.</p>

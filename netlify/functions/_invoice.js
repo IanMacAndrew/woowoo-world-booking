@@ -43,7 +43,8 @@ async function generateInvoicePdf({ bookingId, cohort, delegates, pricing, conta
   draw(`Billed to: ${contactEmail}`, { size: 10, gap: 20 });
 
   draw(`Programme: ${cohort.programmeName}`, { size: 11, bold: true, gap: 16 });
-  draw(`Cohort: ${cohort.label}${cohort.trackLabel ? ' · ' + cohort.trackLabel : ''}`, { size: 10, gap: 20 });
+  draw(`Cohort: ${cohort.label}${cohort.trackLabel ? ' · ' + cohort.trackLabel : ''}`, { size: 10, gap: 16 });
+  draw(`Venue: ${cohort.venue}`, { size: 10, gap: 20 });
 
   draw('Delegates', { size: 11, bold: true, gap: 16 });
   draw('Name', { x: left, size: 9, color: grey });

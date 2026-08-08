@@ -3,43 +3,89 @@
   "currency": "myr",
   "maxSeats": 30,
   "seatTiers": [
-    { "min": 20, "max": 30, "discount": 0.20, "label": "20-30 delegates — 20% off" },
-    { "min": 10, "max": 19, "discount": 0.15, "label": "10-19 delegates — 15% off" },
-    { "min": 5, "max": 9, "discount": 0.10, "label": "5-9 delegates — 10% off" },
-    { "min": 2, "max": 4, "discount": 0.05, "label": "2-4 delegates — 5% off" },
-    { "min": 1, "max": 1, "discount": 0, "label": "" }
+    {
+      "min": 20,
+      "max": 30,
+      "discount": 0.2,
+      "label": "20-30 delegates — 20% off"
+    },
+    {
+      "min": 10,
+      "max": 19,
+      "discount": 0.15,
+      "label": "10-19 delegates — 15% off"
+    },
+    {
+      "min": 5,
+      "max": 9,
+      "discount": 0.1,
+      "label": "5-9 delegates — 10% off"
+    },
+    {
+      "min": 2,
+      "max": 4,
+      "discount": 0.05,
+      "label": "2-4 delegates — 5% off"
+    },
+    {
+      "min": 1,
+      "max": 1,
+      "discount": 0,
+      "label": ""
+    }
   ],
   "commissionTiers": [
-    { "min": 1, "max": 5, "rate": 0.10 },
-    { "min": 6, "max": 14, "rate": 0.15 },
-    { "min": 15, "max": 999999, "rate": 0.20 }
+    {
+      "min": 1,
+      "max": 5,
+      "rate": 0.1
+    },
+    {
+      "min": 6,
+      "max": 14,
+      "rate": 0.15
+    },
+    {
+      "min": 15,
+      "max": 999999,
+      "rate": 0.2
+    }
   ],
   "commissionOverageThreshold": 30,
   "commissionOverageBonus": 0.05,
-  "commissionEarlyBirdBonus": 0.10,
+  "commissionEarlyBirdBonus": 0.1,
   "commissionRateCap": 0.25,
   "commissionSeedingFeePerDelegate": 5000,
   "commissionWindowDaysBeforeEvent": 10,
   "commissionMinEventAttendance": 10,
   "bookingProtectionFeeRate": 0.08,
-  "tokenBonusRate": 1.10,
+  "tokenBonusRate": 1.1,
   "heavilyDiscountedThreshold": 0.5,
   "standardCancellationWindowHours": 72,
   "programmes": {
     "masterclass-cohort1": {
       "basePrice": 1000000,
       "earlyBirdDiscount": 0.5,
-      "earlyBirdWindow": { "start": "2026-08-08", "end": "2026-08-26" }
+      "earlyBirdWindow": {
+        "start": "2026-08-08",
+        "end": "2026-08-26"
+      }
     },
     "masterclass-cohort2": {
       "basePrice": 1000000,
       "earlyBirdDiscount": 0.5,
-      "earlyBirdWindow": { "start": "2026-08-08", "end": "2026-09-30" }
+      "earlyBirdWindow": {
+        "start": "2026-08-08",
+        "end": "2026-09-30"
+      }
     },
     "deepdive": {
       "basePrice": 175000,
       "earlyBirdDiscount": 0.5,
-      "earlyBirdWindow": { "start": "2026-01-01", "end": "2026-08-19" }
+      "earlyBirdWindow": {
+        "start": "2026-01-01",
+        "end": "2026-08-19"
+      }
     }
   },
   "cohorts": [
@@ -48,60 +94,94 @@
       "programme": "masterclass-cohort1",
       "programmeName": "Strategic AI Sales & Marketing Masterclass",
       "track": "saturday",
-      "trackLabel": "Saturdays, 8:30am\u20134:30pm (2hr lunch break)",
-      "label": "5 Sep \u2013 3 Oct 2026",
-      "sessionDates": ["2026-09-05", "2026-09-12", "2026-09-19", "2026-09-26", "2026-10-03"],
-      "startDate": "2026-09-05"
+      "trackLabel": "Saturdays, 8:30am–4:30pm (2hr lunch break)",
+      "label": "5 Sep – 3 Oct 2026",
+      "sessionDates": [
+        "2026-09-05",
+        "2026-09-12",
+        "2026-09-19",
+        "2026-09-26",
+        "2026-10-03"
+      ],
+      "startDate": "2026-09-05",
+      "venue": "Sri Wangsaria Condominium, Bangsar, KL"
     },
     {
       "id": "masterclass-c1-sun",
       "programme": "masterclass-cohort1",
       "programmeName": "Strategic AI Sales & Marketing Masterclass",
       "track": "sunday",
-      "trackLabel": "Sundays, 1pm\u20139pm (2hr tea break)",
-      "label": "6 Sep \u2013 4 Oct 2026",
-      "sessionDates": ["2026-09-06", "2026-09-13", "2026-09-20", "2026-09-27", "2026-10-04"],
-      "startDate": "2026-09-06"
+      "trackLabel": "Sundays, 1pm–9pm (2hr tea break)",
+      "label": "6 Sep – 4 Oct 2026",
+      "sessionDates": [
+        "2026-09-06",
+        "2026-09-13",
+        "2026-09-20",
+        "2026-09-27",
+        "2026-10-04"
+      ],
+      "startDate": "2026-09-06",
+      "venue": "Sri Wangsaria Condominium, Bangsar, KL"
     },
     {
       "id": "masterclass-c2-sat",
       "programme": "masterclass-cohort2",
       "programmeName": "Strategic AI Sales & Marketing Masterclass",
       "track": "saturday",
-      "trackLabel": "Saturdays, 8:30am\u20134:30pm (2hr lunch break)",
-      "label": "10 Oct \u2013 7 Nov 2026",
-      "sessionDates": ["2026-10-10", "2026-10-17", "2026-10-24", "2026-10-31", "2026-11-07"],
-      "startDate": "2026-10-10"
+      "trackLabel": "Saturdays, 8:30am–4:30pm (2hr lunch break)",
+      "label": "10 Oct – 7 Nov 2026",
+      "sessionDates": [
+        "2026-10-10",
+        "2026-10-17",
+        "2026-10-24",
+        "2026-10-31",
+        "2026-11-07"
+      ],
+      "startDate": "2026-10-10",
+      "venue": "Sri Wangsaria Condominium, Bangsar, KL"
     },
     {
       "id": "masterclass-c2-sun",
       "programme": "masterclass-cohort2",
       "programmeName": "Strategic AI Sales & Marketing Masterclass",
       "track": "sunday",
-      "trackLabel": "Sundays, 1pm\u20139pm (2hr tea break)",
-      "label": "11 Oct \u2013 8 Nov 2026",
-      "sessionDates": ["2026-10-11", "2026-10-18", "2026-10-25", "2026-11-01", "2026-11-08"],
-      "startDate": "2026-10-11"
+      "trackLabel": "Sundays, 1pm–9pm (2hr tea break)",
+      "label": "11 Oct – 8 Nov 2026",
+      "sessionDates": [
+        "2026-10-11",
+        "2026-10-18",
+        "2026-10-25",
+        "2026-11-01",
+        "2026-11-08"
+      ],
+      "startDate": "2026-10-11",
+      "venue": "Sri Wangsaria Condominium, Bangsar, KL"
     },
     {
       "id": "deepdive-sat-1",
       "programme": "deepdive",
       "programmeName": "Strategic AI Sales & Marketing Deep Dive",
       "track": "saturday",
-      "trackLabel": "Saturday, 8:30am\u20134:30pm (2hr lunch break)",
+      "trackLabel": "Saturday, 8:30am–4:30pm (2hr lunch break)",
       "label": "29 August 2026",
-      "sessionDates": ["2026-08-29"],
-      "startDate": "2026-08-29"
+      "sessionDates": [
+        "2026-08-29"
+      ],
+      "startDate": "2026-08-29",
+      "venue": "Sri Wangsaria Condominium, Bangsar, KL"
     },
     {
       "id": "deepdive-sun-1",
       "programme": "deepdive",
       "programmeName": "Strategic AI Sales & Marketing Deep Dive",
       "track": "sunday",
-      "trackLabel": "Sunday, 1pm\u20139pm (2hr tea break)",
+      "trackLabel": "Sunday, 1pm–9pm (2hr tea break)",
       "label": "30 August 2026",
-      "sessionDates": ["2026-08-30"],
-      "startDate": "2026-08-30"
+      "sessionDates": [
+        "2026-08-30"
+      ],
+      "startDate": "2026-08-30",
+      "venue": "Sri Wangsaria Condominium, Bangsar, KL"
     }
   ]
 }

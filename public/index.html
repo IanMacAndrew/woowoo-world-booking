@@ -218,6 +218,7 @@
   .cohort.selected .cohort-id{color:var(--brass);}
   .cohort-dates{font-size:17px; font-weight:600;}
   .cohort-track{font-size:13px; color:#746F82; margin-top:2px;}
+  .cohort-venue{font-size:12px; color:#8F8A9C; margin-top:2px; font-family:'IBM Plex Mono',monospace;}
   .seat-count{
     font-family:'IBM Plex Mono',monospace;
     font-size:13px;
@@ -410,7 +411,7 @@
 <header>
   <div class="eyebrow">WooWoo World · AI Strategy &amp; Implementation Practice</div>
   <h1>Strategic AI Transformation, for the people who have to answer for it.</h1>
-  <p>Four ways in, one shared standard: a short briefing to align a room, a one-day deep dive to build momentum, a paced masterclass for leaders who can't clear a full week, or an intensive bootcamp for teams who can. All HRD Corp claimable, all run at Sri Wangsaria Condominium, Bangsar, KL, with lunch at the restaurant included.</p>
+  <p>Four ways in, one shared standard: a short briefing to align a room, a one-day deep dive to build momentum, a paced masterclass for leaders who can't clear a full week, or an intensive bootcamp for teams who can. All HRD Corp claimable. Weekend sessions run at Sri Wangsaria Condominium, Bangsar, KL; occasional weekday sessions run at M Resort &amp; Hotel Kuala Lumpur — venue is shown against each date below, with lunch included either way.</p>
   <div class="format-nav">
     <a href="#briefing">Briefing</a>
     <a href="#deepdive">1-Day Deep Dive</a>
@@ -446,7 +447,7 @@
   <section class="programme" id="deepdive">
     <div class="programme-head">
       <h2>Strategic AI Sales & Marketing Deep Dive</h2>
-      <div class="programme-meta">One day — Saturday 8:30am–4:30pm or Sunday 1pm–9pm · Sri Wangsaria Condominium, Bangsar, KL · Lunch included · HRD Corp Claimable</div>
+      <div class="programme-meta">One day — Saturday 8:30am–4:30pm or Sunday 1pm–9pm · Venue shown per date · Lunch included · HRD Corp Claimable</div>
     </div>
     <p class="programme-desc">A full working day to move from awareness to application — practical, hands-on, built around your own business problems.</p>
 
@@ -465,7 +466,7 @@
   <section class="programme" id="masterclass">
     <div class="programme-head">
       <h2>Strategic AI Sales & Marketing Masterclass</h2>
-      <div class="programme-meta">One day a week, five weeks · Saturday 8:30am–4:30pm or Sunday 1pm–9pm · Sri Wangsaria Condominium, Bangsar, KL · Lunch included · HRD Corp Claimable</div>
+      <div class="programme-meta">One day a week, five weeks · Saturday 8:30am–4:30pm or Sunday 1pm–9pm · Venue shown per date · Lunch included · HRD Corp Claimable</div>
     </div>
     <p class="programme-desc">The paced route for leaders who can't clear a full week: one day weekly, same depth as the Deep Dive, spread over five sessions. Choose a Saturday or Sunday cohort. Each cohort needs a minimum of 10 delegates to run and is capped at 30.</p>
 
@@ -662,6 +663,7 @@ function renderCohortList(programme, elId, track){
         <span class="cohort-id">${c.id.toUpperCase()}</span>
         <div class="cohort-dates">${c.label}</div>
         <div class="cohort-track">${c.trackLabel}</div>
+        <div class="cohort-venue">${c.venue || state.rules.venue}</div>
       </div>
       <div>${earlyBirdActiveFor(programme) ? `<span class="earlybird-tag">Early-bird active</span>` : ''}</div>
       <div class="seat-count"><span class="num">${seatInfo.remaining}</span> of ${state.rules.maxSeats} seats left</div>
@@ -678,7 +680,7 @@ function selectCohort(id){
   renderAllCohortLists();
   const c = state.cohorts.find(x => x.id === id);
   document.getElementById('panel-title').textContent = `Book — ${c.programmeName}`;
-  document.getElementById('panel-sub').textContent = `${c.label} · ${c.trackLabel}`;
+  document.getElementById('panel-sub').textContent = `${c.label} · ${c.trackLabel} · ${c.venue || state.rules.venue}`;
   document.getElementById('booking-panel').classList.add('open');
   document.getElementById('booking-panel').scrollIntoView({ behavior:'smooth', block:'start' });
   document.getElementById('protection-toggle').checked = false;
