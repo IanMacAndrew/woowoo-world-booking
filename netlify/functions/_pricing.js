@@ -62,13 +62,7 @@ function calculatePricing({ cohortId, seatCount, bookingProtection, now = new Da
     ? 'heavy'
     : 'standard';
 
-  const commissionPerSeat = Math.round(perSeat * (cohortsData.salesRepCommissionRate || 0));
-
-  // Booking Protection: non-refundable, 8% of the total purchase price for
-  // the whole group booking. Upgrades cancellation terms one tier — see
-  // terms-of-service.html for the actual policy language.
-  const protectionFeeRate = cohortsData.bookingProtectionFeeRate || 0;
-  const bookingProtectionFee = bookingProtection ? Math.round(total * protectionFeeRate) : 0;
+  const bookingProtectionFee = bookingProtection ? Math.round(total * (cohortsData.bookingProtectionFeeRate || 0)) : 0;
   const grandTotal = total + bookingProtectionFee;
 
   return {
@@ -82,8 +76,6 @@ function calculatePricing({ cohortId, seatCount, bookingProtection, now = new Da
     seatDiscountApplied: seatDiscount,
     seatDiscountAmount,
     discountTier,
-    commissionPerSeat,
-    commissionTotal: commissionPerSeat * seatCount,
     bookingProtectionSelected: !!bookingProtection,
     bookingProtectionFee,
     grandTotal,

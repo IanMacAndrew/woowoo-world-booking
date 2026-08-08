@@ -148,8 +148,6 @@ exports.handler = async (event) => {
         cohortId,
         seatCount: String(seatCount),
         discountTier: pricing.discountTier,
-        commissionPerSeat: String(pricing.commissionPerSeat),
-        commissionTotal: String(pricing.commissionTotal),
         salesRepCode: repCode,
         bookingProtection: pricing.bookingProtectionSelected ? 'yes' : 'no',
         transferCreditCode: creditCode || 'none',

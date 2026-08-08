@@ -32,11 +32,12 @@ async function sendEmail({ to, subject, html, attachments }) {
 
 function delegateRosterHtml(delegates) {
   const rows = delegates
-    .map((d) => `<tr><td style="padding:6px 12px;">${d.name}</td><td style="padding:6px 12px;">${d.position}</td><td style="padding:6px 12px;">${d.company}</td></tr>`)
+    .map((d) => `<tr><td style="padding:6px 12px;">${d.name}</td><td style="padding:6px 12px;">${d.position}</td><td style="padding:6px 12px;">${d.company}</td>${'eligible' in d ? `<td style="padding:6px 12px;">${d.eligible ? 'Yes' : 'No'}</td>` : ''}</tr>`)
     .join('');
+  const hasEligibleCol = delegates.some((d) => 'eligible' in d);
   return `<table style="border-collapse:collapse;width:100%;font-family:sans-serif;font-size:14px;">
     <thead><tr style="text-align:left;border-bottom:1px solid #ccc;">
-      <th style="padding:6px 12px;">Name</th><th style="padding:6px 12px;">Position</th><th style="padding:6px 12px;">Company</th>
+      <th style="padding:6px 12px;">Name</th><th style="padding:6px 12px;">Position</th><th style="padding:6px 12px;">Company</th>${hasEligibleCol ? '<th style="padding:6px 12px;">C-Suite/Dept Head</th>' : ''}
     </tr></thead>
     <tbody>${rows}</tbody>
   </table>`;
@@ -64,11 +65,16 @@ async function sendConfirmationEmail({ contactEmail, cohort, delegates, pricing,
   });
 }
 
-async function sendOpsNotification({ cohort, delegates, pricing, contactEmail, bookingId }) {
+async function sendOpsNotification({ cohort, delegates, pricing, contactEmail, bookingId, commission }) {
   if (!OPS_NOTIFICATION_EMAIL) {
     console.warn('OPS_NOTIFICATION_EMAIL not set — skipping ops notification');
     return { skipped: true };
   }
+  const commissionHtml = commission
+    ? (commission.eligible
+        ? `<p><strong>Commission (${commission.repCode}):</strong> RM ${(commission.commissionAmount / 100).toLocaleString('en-MY', { minimumFractionDigits: 2 })} — ${commission.eligibleDelegateCount} eligible delegate(s) at ${Math.round(commission.rate * 100)}%, rep cumulative now ${commission.repCumulativeAfter}</p>`
+        : `<p style="color:#746F82;">No commission on this booking${commission.repCode && commission.repCode !== 'ISM' ? ` for ${commission.repCode}` : ''}: ${commission.reason}</p>`)
+    : '';
   const html = `
     <div style="font-family:sans-serif;color:#1C0333;">
       <h2>New paid booking</h2>
@@ -78,6 +84,7 @@ async function sendOpsNotification({ cohort, delegates, pricing, contactEmail, b
       ${delegateRosterHtml(delegates)}
       <p>Total: RM ${((pricing.grandTotal ?? pricing.total) / 100).toLocaleString('en-MY', { minimumFractionDigits: 2 })} (${pricing.seatCount} seats)</p>
       <p>Discount tier: <strong>${pricing.discountTier === 'heavy' ? 'Heavily Discounted' : 'Standard Discount'}</strong>${pricing.bookingProtectionSelected ? ' · Booking Protection purchased' : ''}</p>
+      ${commissionHtml}
       <p style="color:#746F82;font-size:12px;">Booking reference: ${bookingId}</p>
     </div>`;
 

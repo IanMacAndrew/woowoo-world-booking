@@ -103,6 +103,9 @@ function renderForm(info){
       <div class="field-row" style="grid-template-columns:1fr;">
         <div><label>Company</label><input type="text" class="d-company" required></div>
       </div>
+      <label style="display:flex; align-items:center; gap:8px; text-transform:none; font-size:13px; color:#5C566B; margin-top:4px;">
+        <input type="checkbox" class="d-eligible" style="width:auto;"> This delegate is C-Suite or a department head
+      </label>
     `;
     container.appendChild(card);
   }
@@ -115,17 +118,19 @@ function renderForm(info){
     const names = document.querySelectorAll('.d-name');
     const positions = document.querySelectorAll('.d-position');
     const companies = document.querySelectorAll('.d-company');
+    const eligibles = document.querySelectorAll('.d-eligible');
     const delegates = [];
     for(let i=0; i<info.seatCount; i++){
       const name = names[i].value.trim();
       const position = positions[i].value.trim();
       const company = companies[i].value.trim();
+      const eligible = eligibles[i].checked;
       if(!name || !position || !company){
         statusEl.textContent = 'Please complete all delegate fields before submitting.';
         statusEl.className = 'error';
         return;
       }
-      delegates.push({ name, position, company });
+      delegates.push({ name, position, company, eligible });
     }
 
     const btn = document.getElementById('submit-btn');
