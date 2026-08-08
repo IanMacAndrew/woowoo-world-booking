@@ -164,4 +164,4 @@ async function sendSalesCommissionNotification({ cohort, commission, bookingId }
   });
 }
 
-module.exports = { sendConfirmationEmail, sendOpsNotification, sendDelegateFormLinkEmail, sendOpsAwaitingDelegatesNotification, sendSalesCommissionNotification };
+module.exports = { sendEmail, sendConfirmationEmail, sendOpsNotification, sendDelegateFormLinkEmail, sendOpsAwaitingDelegatesNotification, sendSalesCommissionNotification };

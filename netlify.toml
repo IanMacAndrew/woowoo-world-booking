@@ -22,3 +22,6 @@
   from = "/leaderboard"
   to = "/leaderboard.html"
   status = 200
+
+[functions."send-sales-reports"]
+  schedule = "0 1 * * *"

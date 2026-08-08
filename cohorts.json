@@ -111,7 +111,17 @@
         "2026-10-03"
       ],
       "startDate": "2026-09-05",
-      "venue": "Sri Wangsaria Condominium, Bangsar, KL"
+      "venue": "Sri Wangsaria Condominium, Bangsar, KL",
+      "venueContact": {
+        "name": "TBC",
+        "phone": "TBC",
+        "email": "TBC"
+      },
+      "venueSalesRep": {
+        "name": "TBC",
+        "phone": "TBC",
+        "email": "TBC"
+      }
     },
     {
       "id": "masterclass-c1-sun",
@@ -128,7 +138,17 @@
         "2026-10-04"
       ],
       "startDate": "2026-09-06",
-      "venue": "Sri Wangsaria Condominium, Bangsar, KL"
+      "venue": "Sri Wangsaria Condominium, Bangsar, KL",
+      "venueContact": {
+        "name": "TBC",
+        "phone": "TBC",
+        "email": "TBC"
+      },
+      "venueSalesRep": {
+        "name": "TBC",
+        "phone": "TBC",
+        "email": "TBC"
+      }
     },
     {
       "id": "masterclass-c2-sat",
@@ -145,7 +165,17 @@
         "2026-11-07"
       ],
       "startDate": "2026-10-10",
-      "venue": "Sri Wangsaria Condominium, Bangsar, KL"
+      "venue": "Sri Wangsaria Condominium, Bangsar, KL",
+      "venueContact": {
+        "name": "TBC",
+        "phone": "TBC",
+        "email": "TBC"
+      },
+      "venueSalesRep": {
+        "name": "TBC",
+        "phone": "TBC",
+        "email": "TBC"
+      }
     },
     {
       "id": "masterclass-c2-sun",
@@ -162,7 +192,17 @@
         "2026-11-08"
       ],
       "startDate": "2026-10-11",
-      "venue": "Sri Wangsaria Condominium, Bangsar, KL"
+      "venue": "Sri Wangsaria Condominium, Bangsar, KL",
+      "venueContact": {
+        "name": "TBC",
+        "phone": "TBC",
+        "email": "TBC"
+      },
+      "venueSalesRep": {
+        "name": "TBC",
+        "phone": "TBC",
+        "email": "TBC"
+      }
     },
     {
       "id": "deepdive-sat-1",
@@ -175,7 +215,17 @@
         "2026-08-29"
       ],
       "startDate": "2026-08-29",
-      "venue": "Sri Wangsaria Condominium, Bangsar, KL"
+      "venue": "Sri Wangsaria Condominium, Bangsar, KL",
+      "venueContact": {
+        "name": "TBC",
+        "phone": "TBC",
+        "email": "TBC"
+      },
+      "venueSalesRep": {
+        "name": "TBC",
+        "phone": "TBC",
+        "email": "TBC"
+      }
     },
     {
       "id": "deepdive-sun-1",
@@ -188,7 +238,18 @@
         "2026-08-30"
       ],
       "startDate": "2026-08-30",
-      "venue": "Sri Wangsaria Condominium, Bangsar, KL"
+      "venue": "Sri Wangsaria Condominium, Bangsar, KL",
+      "venueContact": {
+        "name": "TBC",
+        "phone": "TBC",
+        "email": "TBC"
+      },
+      "venueSalesRep": {
+        "name": "TBC",
+        "phone": "TBC",
+        "email": "TBC"
+      }
     }
-  ]
+  ],
+  "salesReps": {}
 }

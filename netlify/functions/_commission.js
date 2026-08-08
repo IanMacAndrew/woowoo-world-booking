@@ -182,7 +182,7 @@ async function calculateAndRecordCommission({
   result.eligible = true;
   result.commissionAmount = amount;
 
-  await store.setJSON(`commission:${bookingId}`, {
+  const record = {
     bookingId,
     cohortId,
     repCode,
@@ -198,7 +198,11 @@ async function calculateAndRecordCommission({
     eventAttendanceBeforeSale: attendanceBefore,
     eventAttendanceAfterSale: attendanceAfter,
     computedAt: new Date().toISOString()
-  });
+  };
+  await store.setJSON(`commission:${bookingId}`, record);
+  // Secondary index for the bi-weekly sales report: lets it list one rep's
+  // commissions by prefix instead of scanning every booking in the system.
+  await store.setJSON(`commission-by-rep:${repCode}:${record.computedAt}:${bookingId}`, record);
 
   return result;
 }
