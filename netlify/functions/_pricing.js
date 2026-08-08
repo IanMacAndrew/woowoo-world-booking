@@ -10,8 +10,8 @@ function getProgramme(programmeKey) {
   return p;
 }
 
-// Early-bird window is per-programme (Masterclass tracks share one window;
-// each Deep Dive track has its own cutoff) rather than one global window.
+// Early-bird window is per-programme (each Masterclass cohort and the Deep
+// Dive weekend has its own cutoff) rather than one global window.
 function isEarlyBirdActive(programmeKey, now = new Date()) {
   const programme = getProgramme(programmeKey);
   const w = programme.earlyBirdWindow;

@@ -242,6 +242,11 @@
   }
 
   .track-group{margin-bottom:28px;}
+  .cohort-group-title{
+    font-family:'IBM Plex Mono',monospace; font-size:12px; text-transform:uppercase;
+    letter-spacing:0.06em; color:#97711F; margin:32px 0 12px; padding-top:20px; border-top:1px solid #D4D6DC;
+  }
+  .cohort-group-title:first-of-type{border-top:none; padding-top:0; margin-top:16px;}
   .track-group h4{
     font-family:'IBM Plex Mono',monospace;
     font-size:12px;
@@ -440,40 +445,50 @@
   <!-- 1-DAY DEEP DIVE -->
   <section class="programme" id="deepdive">
     <div class="programme-head">
-      <h2>1-Day Deep Dive</h2>
-      <div class="programme-meta">One day, 9am–5pm · Sri Wangsaria Condominium, Bangsar, KL · Lunch included · HRD Corp Claimable</div>
+      <h2>Strategic AI Sales & Marketing Deep Dive</h2>
+      <div class="programme-meta">One day — Saturday 8:30am–4:30pm or Sunday 1pm–9pm · Sri Wangsaria Condominium, Bangsar, KL · Lunch included · HRD Corp Claimable</div>
     </div>
     <p class="programme-desc">A full working day to move from awareness to application — practical, hands-on, built around your own business problems.</p>
 
+    <div id="deepdive-eb-banner"></div>
     <div class="track-group">
-      <h4>Strategic AI Deep Dive</h4>
-      <div id="deepdive-strategic-eb-banner"></div>
-      <div class="cohort-list" id="list-deepdive-strategic"></div>
+      <h4>Saturday</h4>
+      <div class="cohort-list" id="list-deepdive-sat"></div>
     </div>
     <div class="track-group">
-      <h4>Sales &amp; Marketing AI Deep Dive</h4>
-      <div id="deepdive-salesmarketing-eb-banner"></div>
-      <div class="cohort-list" id="list-deepdive-salesmarketing"></div>
+      <h4>Sunday</h4>
+      <div class="cohort-list" id="list-deepdive-sun"></div>
     </div>
   </section>
 
   <!-- MASTERCLASS -->
   <section class="programme" id="masterclass">
     <div class="programme-head">
-      <h2>Masterclass</h2>
-      <div class="programme-meta">One day a week, five weeks · Sri Wangsaria Condominium, Bangsar, KL · Lunch included · HRD Corp Claimable</div>
+      <h2>Strategic AI Sales & Marketing Masterclass</h2>
+      <div class="programme-meta">One day a week, five weeks · Saturday 8:30am–4:30pm or Sunday 1pm–9pm · Sri Wangsaria Condominium, Bangsar, KL · Lunch included · HRD Corp Claimable</div>
     </div>
-    <p class="programme-desc">The paced route for leaders who can't clear a full week: one day weekly, same depth as the Deep Dive, spread over five sessions. Strategic AI runs Saturdays, Sales &amp; Marketing AI runs Sundays. Each cohort needs a minimum of 10 delegates to run and is capped at 30.</p>
+    <p class="programme-desc">The paced route for leaders who can't clear a full week: one day weekly, same depth as the Deep Dive, spread over five sessions. Choose a Saturday or Sunday cohort. Each cohort needs a minimum of 10 delegates to run and is capped at 30.</p>
 
-    <div id="masterclass-eb-banner"></div>
-
+    <h3 class="cohort-group-title">Cohort 1 — 5 September to 4 October 2026</h3>
+    <div id="masterclass-cohort1-eb-banner"></div>
     <div class="track-group">
-      <h4>Strategic AI Transformation Masterclass — Saturdays</h4>
-      <div class="cohort-list" id="list-masterclass"></div>
+      <h4>Saturday</h4>
+      <div class="cohort-list" id="list-masterclass-c1-sat"></div>
     </div>
     <div class="track-group">
-      <h4>Sales &amp; Marketing AI Transformation Masterclass — Sundays</h4>
-      <div class="cohort-list" id="list-masterclass-sm"></div>
+      <h4>Sunday</h4>
+      <div class="cohort-list" id="list-masterclass-c1-sun"></div>
+    </div>
+
+    <h3 class="cohort-group-title">Cohort 2 — 10 October to 8 November 2026</h3>
+    <div id="masterclass-cohort2-eb-banner"></div>
+    <div class="track-group">
+      <h4>Saturday</h4>
+      <div class="cohort-list" id="list-masterclass-c2-sat"></div>
+    </div>
+    <div class="track-group">
+      <h4>Sunday</h4>
+      <div class="cohort-list" id="list-masterclass-c2-sun"></div>
     </div>
 
     <!-- BOOKING PANEL -->
@@ -621,22 +636,24 @@ function renderEbBanner(programmeKey, elId){
 }
 
 function renderAllEbBanners(){
-  renderEbBanner('masterclass', 'masterclass-eb-banner');
-  renderEbBanner('deepdive-strategic', 'deepdive-strategic-eb-banner');
-  renderEbBanner('deepdive-salesmarketing', 'deepdive-salesmarketing-eb-banner');
+  renderEbBanner('masterclass-cohort1', 'masterclass-cohort1-eb-banner');
+  renderEbBanner('masterclass-cohort2', 'masterclass-cohort2-eb-banner');
+  renderEbBanner('deepdive', 'deepdive-eb-banner');
 }
 
 function renderAllCohortLists(){
-  renderCohortList('masterclass', 'list-masterclass');
-  renderCohortList('masterclass-sm', 'list-masterclass-sm');
-  renderCohortList('deepdive-strategic', 'list-deepdive-strategic');
-  renderCohortList('deepdive-salesmarketing', 'list-deepdive-salesmarketing');
+  renderCohortList('masterclass-cohort1', 'list-masterclass-c1-sat', 'saturday');
+  renderCohortList('masterclass-cohort1', 'list-masterclass-c1-sun', 'sunday');
+  renderCohortList('masterclass-cohort2', 'list-masterclass-c2-sat', 'saturday');
+  renderCohortList('masterclass-cohort2', 'list-masterclass-c2-sun', 'sunday');
+  renderCohortList('deepdive', 'list-deepdive-sat', 'saturday');
+  renderCohortList('deepdive', 'list-deepdive-sun', 'sunday');
 }
 
-function renderCohortList(programme, elId){
+function renderCohortList(programme, elId, track){
   const el = document.getElementById(elId);
   el.innerHTML = '';
-  state.cohorts.filter(c => c.programme === programme).forEach(c => {
+  state.cohorts.filter(c => c.programme === programme && (!track || c.track === track)).forEach(c => {
     const seatInfo = state.seats[c.id] || { remaining: state.rules.maxSeats, full:false };
     const div = document.createElement('div');
     div.className = 'cohort' + (c.id === state.selectedCohortId ? ' selected' : '') + (seatInfo.full ? ' full' : '');
