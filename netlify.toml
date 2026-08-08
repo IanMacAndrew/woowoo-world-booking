@@ -17,3 +17,8 @@
   from = "/delegate-form"
   to = "/delegate-form.html"
   status = 200
+
+[[redirects]]
+  from = "/leaderboard"
+  to = "/leaderboard.html"
+  status = 200

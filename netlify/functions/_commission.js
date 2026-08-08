@@ -37,11 +37,24 @@ async function eventMeetsAttendanceThreshold(store, cohortId) {
 // based on the rep's running total AFTER this booking is added — i.e. rates
 // apply going forward as a rep crosses each threshold, not retroactively to
 // past bookings.
+//
+// Two payout paths:
+//  - "seeding": the event hasn't yet crossed the minimum attendance
+//    threshold. Pays a flat per-delegate fee regardless of tier, so an
+//    early trailblazing sale on a new event isn't worth nothing.
+//  - "commission": normal tiered-percentage payout once the event has
+//    enough attendance. Base tier + the >30-cumulative overage bonus +
+//    the early-bird bonus are additive, but the total is hard-capped
+//    (commissionRateCap) to protect margin as event costs rise.
+// Both paths require: a real (non-default) sales rep code, at least one
+// eligible (C-Suite/dept-head) delegate on the booking, and the sale itself
+// falling within the early-bird window or the pre-event window.
 async function calculateAndRecordCommission({ bookingId, cohortId, repCode, delegates, perSeat, createdAt }) {
   const store = getStore('bookings');
   const result = {
     repCode,
     eligible: false,
+    payoutType: null,
     reason: null,
     eligibleDelegateCount: 0,
     rate: 0,
@@ -56,11 +69,6 @@ async function calculateAndRecordCommission({ bookingId, cohortId, repCode, dele
 
   const cohort = getCohort(cohortId);
   const saleDate = new Date(createdAt);
-
-  if (!(await eventMeetsAttendanceThreshold(store, cohortId))) {
-    result.reason = "Event's total attendance has not yet exceeded the commission threshold";
-    return result;
-  }
 
   if (!saleWithinCommissionWindow(cohort, saleDate)) {
     result.reason = 'Sale was made outside the early-bird window and outside the 10-day pre-event window';
@@ -79,22 +87,41 @@ async function calculateAndRecordCommission({ bookingId, cohortId, repCode, dele
   const prior = priorRaw ? parseInt(priorRaw, 10) : 0;
   const after = prior + eligibleDelegates.length;
   await store.set(ledgerKey, String(after));
-
-  const rate = commissionRateForCumulative(after);
-  const commissionAmount = Math.round(perSeat * eligibleDelegates.length * rate);
-
-  result.eligible = true;
-  result.rate = rate;
-  result.commissionAmount = commissionAmount;
   result.repCumulativeAfter = after;
+
+  const eventOk = await eventMeetsAttendanceThreshold(store, cohortId);
+
+  if (!eventOk) {
+    // Seeding path: flat fee, event hasn't hit the attendance threshold yet.
+    const seedingFeePerDelegate = cohortsData.commissionSeedingFeePerDelegate || 0;
+    result.eligible = true;
+    result.payoutType = 'seeding';
+    result.commissionAmount = seedingFeePerDelegate * eligibleDelegates.length;
+  } else {
+    // Commission path: tiered rate + overage bonus + early-bird bonus, capped.
+    let rate = commissionRateForCumulative(after);
+    if (after > (cohortsData.commissionOverageThreshold || Infinity)) {
+      rate += cohortsData.commissionOverageBonus || 0;
+    }
+    if (isEarlyBirdActive(cohort.programme, saleDate)) {
+      rate += cohortsData.commissionEarlyBirdBonus || 0;
+    }
+    rate = Math.min(rate, cohortsData.commissionRateCap || rate);
+
+    result.eligible = true;
+    result.payoutType = 'commission';
+    result.rate = rate;
+    result.commissionAmount = Math.round(perSeat * eligibleDelegates.length * rate);
+  }
 
   await store.setJSON(`commission:${bookingId}`, {
     bookingId,
     cohortId,
     repCode,
+    payoutType: result.payoutType,
     eligibleDelegateCount: eligibleDelegates.length,
-    rate,
-    commissionAmount,
+    rate: result.rate,
+    commissionAmount: result.commissionAmount,
     repCumulativeAfter: after,
     computedAt: new Date().toISOString()
   });

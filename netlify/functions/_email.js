@@ -72,7 +72,9 @@ async function sendOpsNotification({ cohort, delegates, pricing, contactEmail, b
   }
   const commissionHtml = commission
     ? (commission.eligible
-        ? `<p><strong>Commission (${commission.repCode}):</strong> RM ${(commission.commissionAmount / 100).toLocaleString('en-MY', { minimumFractionDigits: 2 })} — ${commission.eligibleDelegateCount} eligible delegate(s) at ${Math.round(commission.rate * 100)}%, rep cumulative now ${commission.repCumulativeAfter}</p>`
+        ? (commission.payoutType === 'seeding'
+            ? `<p><strong>Seeding fee (${commission.repCode}):</strong> RM ${(commission.commissionAmount / 100).toLocaleString('en-MY', { minimumFractionDigits: 2 })} — ${commission.eligibleDelegateCount} eligible delegate(s), event hasn't yet crossed the attendance threshold. Rep cumulative now ${commission.repCumulativeAfter}</p>`
+            : `<p><strong>Commission (${commission.repCode}):</strong> RM ${(commission.commissionAmount / 100).toLocaleString('en-MY', { minimumFractionDigits: 2 })} — ${commission.eligibleDelegateCount} eligible delegate(s) at ${Math.round(commission.rate * 100)}%, rep cumulative now ${commission.repCumulativeAfter}</p>`)
         : `<p style="color:#746F82;">No commission on this booking${commission.repCode && commission.repCode !== 'ISM' ? ` for ${commission.repCode}` : ''}: ${commission.reason}</p>`)
     : '';
   const html = `
