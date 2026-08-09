@@ -23,5 +23,15 @@
   to = "/leaderboard.html"
   status = 200
 
+[[redirects]]
+  from = "/hrd-corp-claims"
+  to = "/hrd-corp-claims.html"
+  status = 200
+
+[[redirects]]
+  from = "/hrd-corp-eligibility"
+  to = "/hrd-corp-eligibility.html"
+  status = 200
+
 [functions."send-sales-reports"]
   schedule = "0 1 * * *"
