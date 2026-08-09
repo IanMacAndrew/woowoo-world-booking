@@ -418,7 +418,7 @@
 </head>
 <body>
 
-<div class="promo-banner">Exclusively for Eng Lian companies right now — <strong>Early Bird: 50% off, ends 10 August 2026</strong></div>
+<div class="promo-banner" id="promo-banner">Exclusively for Eng Lian companies right now — <strong>Early Bird: 50% off, ends 20 August 2026</strong></div>
 
 <header>
   <div class="eyebrow">WooWoo World · AI Strategy &amp; Implementation Practice</div>
@@ -598,6 +598,20 @@
    (Masterclass and 1-Day Deep Dive both flow through this)
    ============================================================ */
 const state = { cohorts: [], seats: {}, selectedCohortId: null, rules: null };
+
+function updatePromoBanner(){
+  const el = document.getElementById('promo-banner');
+  if (!el) return;
+  // Malaysia time (UTC+8) — switches right after 20 August 2026 ends locally.
+  const switchAt = new Date('2026-08-20T23:59:59+08:00');
+  const now = new Date();
+  if (now <= switchAt) {
+    el.innerHTML = 'Exclusively for Eng Lian companies right now — <strong>Early Bird: 50% off, ends 20 August 2026</strong>';
+  } else {
+    el.innerHTML = 'Exclusively for Malaysian Companies — <strong>Early Bird: 50% off, ends 15 days before scheduled dates</strong>';
+  }
+}
+updatePromoBanner();
 
 async function loadCohorts() {
   const res = await fetch('/cohorts.json');
