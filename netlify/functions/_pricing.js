@@ -10,11 +10,11 @@ function getProgramme(programmeKey) {
   return p;
 }
 
-// Early-bird window is per-programme (each Masterclass cohort and the Deep
-// Dive weekend has its own cutoff) rather than one global window.
-function isEarlyBirdActive(programmeKey, now = new Date()) {
-  const programme = getProgramme(programmeKey);
-  const w = programme.earlyBirdWindow;
+// Early-bird window is per-COHORT — each individual date has its own
+// cutoff (genuinely 15 days before that specific session), not shared
+// across every cohort under the same programme.
+function isEarlyBirdActive(cohort, now = new Date()) {
+  const w = cohort.earlyBirdWindow;
   if (!w) return false;
   const start = new Date(w.start + 'T00:00:00+08:00'); // Malaysia time
   const end = new Date(w.end + 'T23:59:59+08:00');
@@ -44,7 +44,7 @@ function calculatePricing({ cohortId, seatCount, bookingProtection, now = new Da
   const programme = getProgramme(cohort.programme);
   const basePerSeat = programme.basePrice;
 
-  const earlyBird = isEarlyBirdActive(cohort.programme, now);
+  const earlyBird = isEarlyBirdActive(cohort, now);
   const seatDiscount = seatTierDiscount(seatCount);
 
   const earlyBirdAmount = earlyBird ? Math.round(basePerSeat * programme.earlyBirdDiscount) : 0;

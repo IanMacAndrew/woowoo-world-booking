@@ -70,29 +70,17 @@
     "masterclass-cohort1": {
       "format": "masterclass",
       "basePrice": 1000000,
-      "earlyBirdDiscount": 0.5,
-      "earlyBirdWindow": {
-        "start": "2026-08-08",
-        "end": "2026-08-26"
-      }
+      "earlyBirdDiscount": 0.5
     },
     "masterclass-cohort2": {
       "format": "masterclass",
       "basePrice": 1000000,
-      "earlyBirdDiscount": 0.5,
-      "earlyBirdWindow": {
-        "start": "2026-08-08",
-        "end": "2026-09-30"
-      }
+      "earlyBirdDiscount": 0.5
     },
     "deepdive": {
       "format": "deepdive",
       "basePrice": 175000,
-      "earlyBirdDiscount": 0.5,
-      "earlyBirdWindow": {
-        "start": "2026-01-01",
-        "end": "2026-08-19"
-      }
+      "earlyBirdDiscount": 0.5
     }
   },
   "cohorts": [
@@ -121,6 +109,10 @@
         "name": "TBC",
         "phone": "TBC",
         "email": "TBC"
+      },
+      "earlyBirdWindow": {
+        "start": "2026-01-01",
+        "end": "2026-08-21"
       }
     },
     {
@@ -148,6 +140,10 @@
         "name": "TBC",
         "phone": "TBC",
         "email": "TBC"
+      },
+      "earlyBirdWindow": {
+        "start": "2026-01-01",
+        "end": "2026-08-22"
       }
     },
     {
@@ -175,6 +171,10 @@
         "name": "TBC",
         "phone": "TBC",
         "email": "TBC"
+      },
+      "earlyBirdWindow": {
+        "start": "2026-01-01",
+        "end": "2026-09-25"
       }
     },
     {
@@ -202,6 +202,10 @@
         "name": "TBC",
         "phone": "TBC",
         "email": "TBC"
+      },
+      "earlyBirdWindow": {
+        "start": "2026-01-01",
+        "end": "2026-09-26"
       }
     },
     {
@@ -225,6 +229,10 @@
         "name": "TBC",
         "phone": "TBC",
         "email": "TBC"
+      },
+      "earlyBirdWindow": {
+        "start": "2026-01-01",
+        "end": "2026-08-14"
       }
     },
     {
@@ -248,6 +256,10 @@
         "name": "TBC",
         "phone": "TBC",
         "email": "TBC"
+      },
+      "earlyBirdWindow": {
+        "start": "2026-01-01",
+        "end": "2026-08-15"
       }
     }
   ],

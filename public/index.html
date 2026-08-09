@@ -636,8 +636,8 @@ function fmtRM(cents){
   return 'RM' + (cents/100).toLocaleString('en-MY', {minimumFractionDigits:0, maximumFractionDigits:0});
 }
 
-function earlyBirdActiveFor(programmeKey){
-  const w = state.rules.programmes[programmeKey].earlyBirdWindow;
+function earlyBirdActiveFor(cohort){
+  const w = cohort.earlyBirdWindow;
   if(!w) return false;
   const start = new Date(w.start + 'T00:00:00+08:00');
   const end = new Date(w.end + 'T23:59:59+08:00');
@@ -645,29 +645,23 @@ function earlyBirdActiveFor(programmeKey){
   return now >= start && now <= end;
 }
 
-function renderEbBanner(programmeKey, elId){
+function fmtEbDate(dateStr){
+  // Format from raw Y-M-D digits in a fixed UTC context — avoids the date
+  // shifting a day depending on the visitor's own browser timezone.
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric', timeZone:'UTC' });
+}
+
+function renderProgrammeEbNote(elId){
   const el = document.getElementById(elId);
   if(!el) return;
-  const w = state.rules.programmes[programmeKey].earlyBirdWindow;
-  if(!w){ el.innerHTML = ''; return; }
-  const active = earlyBirdActiveFor(programmeKey);
-  // Format from the raw Y-M-D digits in a fixed UTC context — avoids the
-  // date shifting a day depending on the visitor's own browser timezone.
-  const fmtDatePart = (dateStr, opts) => {
-    const [y, m, d] = dateStr.split('-').map(Number);
-    return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-GB', { ...opts, timeZone: 'UTC' });
-  };
-  const startLabel = fmtDatePart(w.start, {day:'numeric', month:'long'});
-  const endLabel = fmtDatePart(w.end, {day:'numeric', month:'long', year:'numeric'});
-  el.innerHTML = active
-    ? `<div class="eb-banner" style="margin-bottom:20px;">Early-bird — 50% off, until ${endLabel}</div>`
-    : `<div class="eb-banner closed" style="margin-bottom:20px; border:1px solid var(--line); padding:10px 16px;">Early-bird window: ${startLabel}–${endLabel}</div>`;
+  el.innerHTML = `<div class="eb-banner" style="margin-bottom:20px; border:1px solid var(--line); padding:10px 16px; font-size:13px;">Early-bird pricing is date-specific — each session below runs its own 50% early-bird window, ending 15 days before that date.</div>`;
 }
 
 function renderAllEbBanners(){
-  renderEbBanner('masterclass-cohort1', 'masterclass-cohort1-eb-banner');
-  renderEbBanner('masterclass-cohort2', 'masterclass-cohort2-eb-banner');
-  renderEbBanner('deepdive', 'deepdive-eb-banner');
+  renderProgrammeEbNote('masterclass-cohort1-eb-banner');
+  renderProgrammeEbNote('masterclass-cohort2-eb-banner');
+  renderProgrammeEbNote('deepdive-eb-banner');
 }
 
 function renderAllCohortLists(){
@@ -686,6 +680,10 @@ function renderCohortList(programme, elId, track){
     const seatInfo = state.seats[c.id] || { remaining: state.rules.maxSeats, full:false };
     const div = document.createElement('div');
     div.className = 'cohort' + (c.id === state.selectedCohortId ? ' selected' : '') + (seatInfo.full ? ' full' : '');
+    const ebActive = earlyBirdActiveFor(c);
+    const ebLabel = c.earlyBirdWindow
+      ? (ebActive ? `Early-bird until ${fmtEbDate(c.earlyBirdWindow.end)}` : `Standard pricing (early-bird ended ${fmtEbDate(c.earlyBirdWindow.end)})`)
+      : '';
     div.innerHTML = `
       <div>
         <span class="cohort-id">${c.id.toUpperCase()}</span>
@@ -693,7 +691,7 @@ function renderCohortList(programme, elId, track){
         <div class="cohort-track">${c.trackLabel}</div>
         <div class="cohort-venue">${c.venue || state.rules.venue}</div>
       </div>
-      <div>${earlyBirdActiveFor(programme) ? `<span class="earlybird-tag">Early-bird active</span>` : ''}</div>
+      <div>${ebActive ? `<span class="earlybird-tag">Early-bird active</span>` : ''}${ebLabel ? `<div style="font-size:11px; color:#8F8A9C; margin-top:4px;">${ebLabel}</div>` : ''}</div>
       <div class="seat-count"><span class="num">${seatInfo.remaining}</span> of ${state.rules.maxSeats} seats left</div>
     `;
     if (!seatInfo.full) {
@@ -730,7 +728,7 @@ function updatePrice(){
 
   const programme = state.rules.programmes[c.programme];
   const base = programme.basePrice;
-  const earlyBird = earlyBirdActiveFor(c.programme);
+  const earlyBird = earlyBirdActiveFor(c);
   const tier = state.rules.seatTiers.find(t => seatCount >= t.min && seatCount <= t.max);
   const seatDiscount = tier ? tier.discount : 0;
 

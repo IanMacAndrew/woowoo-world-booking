@@ -8,10 +8,10 @@ function commissionRateForCumulative(eligibleCumulative) {
   return tier ? tier.rate : 0;
 }
 
-// Timing gate: the SALE must have happened either during the programme's
+// Timing gate: the SALE must have happened either during the cohort's own
 // early-bird window, or within N days before the event's start date.
 function saleWithinCommissionWindow(cohort, saleDate) {
-  if (isEarlyBirdActive(cohort.programme, saleDate)) return true;
+  if (isEarlyBirdActive(cohort, saleDate)) return true;
 
   const windowDays = cohortsData.commissionWindowDaysBeforeEvent || 10;
   const eventStart = new Date(cohort.startDate + 'T00:00:00+08:00');
@@ -145,7 +145,7 @@ async function calculateAndRecordCommission({
     if (after > (cohortsData.commissionOverageThreshold || Infinity)) {
       rate += cohortsData.commissionOverageBonus || 0;
     }
-    if (isEarlyBirdActive(cohort.programme, saleDate)) {
+    if (isEarlyBirdActive(cohort, saleDate)) {
       rate += cohortsData.commissionEarlyBirdBonus || 0;
     }
     rate = Math.min(rate, cohortsData.commissionRateCap || rate);
