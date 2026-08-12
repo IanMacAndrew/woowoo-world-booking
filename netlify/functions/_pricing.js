@@ -10,15 +10,30 @@ function getProgramme(programmeKey) {
   return p;
 }
 
-// Early-bird window is per-COHORT — each individual date has its own
-// cutoff (genuinely 15 days before that specific session), not shared
-// across every cohort under the same programme.
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+// Early-bird rule, applied identically to every cohort/event: it's
+// available with no start restriction, and switches off automatically
+// N days (earlyBirdDaysBeforeEvent, default 15) before that specific
+// cohort's own date. Computed from each cohort's startDate rather than a
+// stored window, so a new cohort (a fresh Bootcamp date, a weekday
+// top-up) gets the correct cutoff automatically without anyone having to
+// remember to compute and set it by hand.
 function isEarlyBirdActive(cohort, now = new Date()) {
-  const w = cohort.earlyBirdWindow;
-  if (!w) return false;
-  const start = new Date(w.start + 'T00:00:00+08:00'); // Malaysia time
-  const end = new Date(w.end + 'T23:59:59+08:00');
-  return now >= start && now <= end;
+  const daysBefore = cohortsData.earlyBirdDaysBeforeEvent ?? 15;
+  const eventStart = new Date(cohort.startDate + 'T00:00:00+08:00'); // Malaysia time
+  const cutoff = new Date(eventStart.getTime() - daysBefore * MS_PER_DAY + (23 * 60 + 59) * 60 * 1000); // end of that cutoff day
+  return now <= cutoff;
+}
+
+function earlyBirdCutoffDate(cohort) {
+  const daysBefore = cohortsData.earlyBirdDaysBeforeEvent ?? 15;
+  const [y, m, d] = cohort.startDate.split('-').map(Number);
+  // Pure calendar-date subtraction — Date.UTC here is just neutral scratch
+  // space for the arithmetic, not a real timezone-aware instant, so no
+  // day is lost converting back to a Y-M-D string afterward.
+  const cutoff = new Date(Date.UTC(y, m - 1, d) - daysBefore * MS_PER_DAY);
+  return cutoff.toISOString().slice(0, 10);
 }
 
 function seatTierDiscount(seatCount) {
@@ -83,4 +98,4 @@ function calculatePricing({ cohortId, seatCount, bookingProtection, now = new Da
   };
 }
 
-module.exports = { getCohort, getProgramme, isEarlyBirdActive, seatTierDiscount, calculatePricing, cohortsData };
+module.exports = { getCohort, getProgramme, isEarlyBirdActive, earlyBirdCutoffDate, seatTierDiscount, calculatePricing, cohortsData };

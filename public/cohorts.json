@@ -109,10 +109,6 @@
         "name": "TBC",
         "phone": "TBC",
         "email": "TBC"
-      },
-      "earlyBirdWindow": {
-        "start": "2026-01-01",
-        "end": "2026-08-21"
       }
     },
     {
@@ -140,10 +136,6 @@
         "name": "TBC",
         "phone": "TBC",
         "email": "TBC"
-      },
-      "earlyBirdWindow": {
-        "start": "2026-01-01",
-        "end": "2026-08-22"
       }
     },
     {
@@ -171,10 +163,6 @@
         "name": "TBC",
         "phone": "TBC",
         "email": "TBC"
-      },
-      "earlyBirdWindow": {
-        "start": "2026-01-01",
-        "end": "2026-09-25"
       }
     },
     {
@@ -202,10 +190,6 @@
         "name": "TBC",
         "phone": "TBC",
         "email": "TBC"
-      },
-      "earlyBirdWindow": {
-        "start": "2026-01-01",
-        "end": "2026-09-26"
       }
     },
     {
@@ -229,10 +213,6 @@
         "name": "TBC",
         "phone": "TBC",
         "email": "TBC"
-      },
-      "earlyBirdWindow": {
-        "start": "2026-01-01",
-        "end": "2026-08-14"
       }
     },
     {
@@ -256,12 +236,9 @@
         "name": "TBC",
         "phone": "TBC",
         "email": "TBC"
-      },
-      "earlyBirdWindow": {
-        "start": "2026-01-01",
-        "end": "2026-08-15"
       }
     }
   ],
-  "salesReps": {}
+  "salesReps": {},
+  "earlyBirdDaysBeforeEvent": 15
 }

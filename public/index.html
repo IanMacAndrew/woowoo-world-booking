@@ -636,13 +636,19 @@ function fmtRM(cents){
   return 'RM' + (cents/100).toLocaleString('en-MY', {minimumFractionDigits:0, maximumFractionDigits:0});
 }
 
+function earlyBirdCutoffDate(cohort){
+  const daysBefore = (state.rules && state.rules.earlyBirdDaysBeforeEvent) ?? 15;
+  const [y, m, d] = cohort.startDate.split('-').map(Number);
+  const cutoff = new Date(Date.UTC(y, m - 1, d) - daysBefore * 24 * 60 * 60 * 1000);
+  return cutoff.toISOString().slice(0, 10);
+}
+
 function earlyBirdActiveFor(cohort){
-  const w = cohort.earlyBirdWindow;
-  if(!w) return false;
-  const start = new Date(w.start + 'T00:00:00+08:00');
-  const end = new Date(w.end + 'T23:59:59+08:00');
+  const daysBefore = (state.rules && state.rules.earlyBirdDaysBeforeEvent) ?? 15;
+  const eventStart = new Date(cohort.startDate + 'T00:00:00+08:00');
+  const cutoff = new Date(eventStart.getTime() - daysBefore * 24 * 60 * 60 * 1000 + (23 * 60 + 59) * 60 * 1000);
   const now = new Date();
-  return now >= start && now <= end;
+  return now <= cutoff;
 }
 
 function fmtEbDate(dateStr){
@@ -681,9 +687,8 @@ function renderCohortList(programme, elId, track){
     const div = document.createElement('div');
     div.className = 'cohort' + (c.id === state.selectedCohortId ? ' selected' : '') + (seatInfo.full ? ' full' : '');
     const ebActive = earlyBirdActiveFor(c);
-    const ebLabel = c.earlyBirdWindow
-      ? (ebActive ? `Early-bird until ${fmtEbDate(c.earlyBirdWindow.end)}` : `Standard pricing (early-bird ended ${fmtEbDate(c.earlyBirdWindow.end)})`)
-      : '';
+    const cutoffDate = earlyBirdCutoffDate(c);
+    const ebLabel = ebActive ? `Early-bird until ${fmtEbDate(cutoffDate)}` : `Standard pricing (early-bird ended ${fmtEbDate(cutoffDate)})`;
     div.innerHTML = `
       <div>
         <span class="cohort-id">${c.id.toUpperCase()}</span>
