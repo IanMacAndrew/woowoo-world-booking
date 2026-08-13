@@ -27,10 +27,11 @@
   ul, ol{margin:8px 0 12px 22px; font-size:15px; color:#2B2438;}
   li{margin-bottom:6px;}
   a{color:var(--brass-dark);}
-  table{width:100%; border-collapse:collapse; margin:14px 0; font-size:14px;}
-  th, td{text-align:left; padding:8px 12px; border:1px solid var(--line); vertical-align:top;}
-  th{background:var(--paper-dim); font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase;}
+  table{width:100%; border-collapse:collapse; margin:14px 0; font-size:13.5px;}
+  th, td{text-align:left; padding:8px 10px; border:1px solid var(--line); vertical-align:top;}
+  th{background:var(--paper-dim); font-family:'IBM Plex Mono',monospace; font-size:10.5px; text-transform:uppercase;}
   .note{background:var(--paper-dim); border:1px solid var(--line); padding:14px 18px; font-size:13.5px; color:#5C566B; margin:14px 0;}
+  .tag{display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; padding:2px 8px; border-radius:3px; background:#E9ECF2; color:var(--brass-dark); margin-bottom:8px;}
   footer{max-width:760px; margin:0 auto; padding:32px 24px 64px; font-size:12px; color:#8F8A9C; border-top:1px solid var(--line);}
 </style>
 </head>
@@ -38,34 +39,58 @@
 <header>
   <div class="eyebrow">WooWoo World</div>
   <h1>How HRD Corp's Claims Work</h1>
-  <p class="updated">A plain-language summary for prospective bookers — see <a href="https://hrdcorp.gov.my" target="_blank" rel="noopener">hrdcorp.gov.my</a> for the definitive rules that apply to your organisation.</p>
+  <p class="updated">A plain-language summary for prospective bookers — see <a href="https://hrdcorp.gov.my" target="_blank" rel="noopener">hrdcorp.gov.my</a> and <a href="https://supportcentre.hrdcorp.gov.my" target="_blank" rel="noopener">supportcentre.hrdcorp.gov.my</a> for the definitive rules that apply to your organisation.</p>
 </header>
 <main>
   <section>
-    <p>HRD Corp (the Human Resource Development Corporation of Malaysia) lets levy-registered employers claim back eligible training costs from the levy they already pay. Our Strategic AI Sales &amp; Marketing programmes — Briefing, Deep Dive, Masterclass and Bootcamp — are structured as claimable training, so your organisation may be able to recover some or all of what you spend booking a seat.</p>
+    <p>HRD Corp (the Human Resource Development Corporation of Malaysia) lets levy-registered employers claim back eligible training costs from the levy they already pay. Our Strategy Led AI programmes are structured as HRD Corp claimable Public Focus Area AI courses.</p>
+    <p>Two claim paths run in parallel, and it's worth understanding both because they work differently:</p>
+    <ol>
+      <li><strong>The Course Fee</strong> — what your organisation pays WooWoo World directly, capped by HRD Corp per participant per day.</li>
+      <li><strong>Trainee Travel &amp; Logistics</strong> — what your organisation separately claims for your own staff's meals, transport and hotel, based on how far they travel to our venue.</li>
+    </ol>
   </section>
 
   <section>
-    <h2>What HRD Corp can cover</h2>
-    <p>For in-house training conducted at an external venue, HRD Corp's claim typically covers two things, each capped by daily allowances:</p>
+    <span class="tag">Path 1</span>
+    <h2>The Course Fee — what we charge, and its cap</h2>
+    <p>HRD Corp caps how much of a training fee it will treat as claimable, per participant, per day. Anything we charge above that daily cap simply isn't claimable — your organisation would pay the excess without a grant offset. All WooWoo World pricing is set to stay comfortably within these caps.</p>
     <table>
-      <tr><th>Cost type</th><th>Typical cap</th></tr>
-      <tr>
-        <td>Hotel Rental Package / Rental of Training Place</td>
-        <td>Subject to a daily allowance or group venue limit — roughly RM150 to RM400 per person, per day, depending on travel distance to the venue</td>
-      </tr>
-      <tr>
-        <td>Participant daily allowance</td>
-        <td>RM250/day if travelling under 100km to the venue, up to RM500/day if travelling over 100km — intended to cover combined hotel stays and meals</td>
-      </tr>
+      <tr><th>Workshop duration</th><th>Max face-to-face fee (per pax/day)</th><th>Max Remote Online (ROT) fee (per pax/day)</th><th>Max seats claimable per company</th></tr>
+      <tr><td>1-Day AI Workshop</td><td>RM3,000</td><td>RM2,000</td><td rowspan="3" style="text-align:center;">9</td></tr>
+      <tr><td>2-Day AI Workshop</td><td>RM3,000</td><td>RM2,000</td></tr>
+      <tr><td>5-Day AI Workshop</td><td>RM3,000</td><td>RM2,000</td></tr>
     </table>
-    <div class="note">These figures are indicative caps, not fixed reimbursement amounts — actual claimable amounts depend on your organisation's HRD Corp levy balance, the specific claim category used, and HRD Corp's rules at the time of claim. We'll help with the documentation, but the claim itself is between your organisation and HRD Corp.</div>
+    <div class="note">HRD Corp limits public-course billing to <strong>9 participants maximum per individual company</strong> for claim purposes. Multiple different companies can each send their own 9. If your organisation sends more than 9 delegates to one cohort, the first 9 are claimable and any beyond that are payable in full, without a claim, unless a separate in-house arrangement is agreed.</div>
+  </section>
+
+  <section>
+    <span class="tag">Path 2</span>
+    <h2>Trainee Travel &amp; Logistics — what your organisation claims separately</h2>
+    <p>Distinct from the course fee, your organisation can separately claim your own staff's meal, transport and accommodation costs, based on how far they're travelling to reach our Kuala Lumpur / Bukit Kiara venues.</p>
+    <table>
+      <tr><th>Claim item</th><th>Rule</th><th>Max claim</th><th>Conditions</th></tr>
+      <tr><td>Meal Allowance</td><td>Local / outstation</td><td>RM100 / pax / day</td><td>Only if meals aren't provided by us. Minimum 4 hours training that day.</td></tr>
+      <tr><td>Daily Trainee Allowance</td><td>Under 100km from your office</td><td>RM250 / pax / day</td><td>Local transit / pocket allowance for KL and Bukit Kiara-based attendees.</td></tr>
+      <tr><td>Daily Trainee Allowance</td><td>Over 100km (outstation)</td><td>RM500 / pax / day</td><td>Includes room + allowance for staff travelling in to KL/Bukit Kiara.</td></tr>
+      <tr><td>Hotel Rental Package</td><td>Booking at the venue hotel</td><td>As per official invoice</td><td>Claimable if bundled directly into the approved event package.</td></tr>
+      <tr><td>Consumable Materials</td><td>Course-specific</td><td>RM100 / group total</td><td>Flat cap without itemisation; higher claims need receipts.</td></tr>
+      <tr><td>Public Transport / Flight</td><td>Outstation to KL</td><td>Actual cost on receipt</td><td>Public transport only (flights, trains) — personal mileage isn't eligible.</td></tr>
+    </table>
+
+    <h3>The Inter-District Rule</h3>
+    <p>If you book us at a premium venue in Bukit Kiara or central KL, staff whose own office is already within the Klang Valley (under 100km away) can't claim the outstation RM500/day rate — they'd claim the RM250/day local allowance instead, or itemise specific receipts.</p>
+
+    <h3>The "Either/Or" Clause</h3>
+    <p>HRD Corp allows a claim for either the flat daily trainee allowance <em>or</em> an itemised meal allowance on the same training day, not both — this prevents double-dipping on food costs.</p>
+
+    <div class="note">These are the employer's own logistics claims, submitted separately from the course fee invoice. Actual claimable amounts still depend on your organisation's HRD Corp levy balance and claim category at the time of claim.</div>
   </section>
 
   <section>
     <h2>The general process</h2>
     <ol>
-      <li>Your organisation books seats on a WooWoo World Strategic AI Sales &amp; Marketing programme.</li>
+      <li>Your organisation books seats on a WooWoo World Strategy Led AI programme.</li>
       <li>We provide the documentation your HR/training team needs to support a claim (invoice, programme outline, attendance confirmation).</li>
       <li>Your organisation submits the claim to HRD Corp through their e-TRiS system, within HRD Corp's stipulated claim window.</li>
       <li>HRD Corp assesses the claim against your levy balance and the applicable caps, and reimburses your organisation directly.</li>

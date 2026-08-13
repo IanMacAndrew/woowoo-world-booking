@@ -422,17 +422,18 @@
 
 <header>
   <div class="eyebrow">WooWoo World · AI Strategy &amp; Implementation Practice</div>
-  <h1>Strategic AI Transformation, for the people who have to answer for it.</h1>
-  <p>Four ways in, one shared standard: a short briefing to align a room, a one-day deep dive to build momentum, a paced masterclass for leaders who can't clear a full week, or an intensive bootcamp for teams who can. All HRD Corp claimable. Masterclass venue is your choice at booking — Sri Wangsaria (included), M Resort Bukit Kiara, or Four Seasons KL.</p>
+  <h1>Strategy first, AI as the enabler, for the people who have to answer for it.</h1>
+  <p>Strategy is the primary focus of everything we teach. AI is the enabler that lets a business evolve fast on that strategy. Sales &amp; business development is the lifeblood of any organisation, and marketing is fundamental to its success — both are transformed by what AI now makes possible. Four ways in, one shared standard: a short briefing to align a room, a one-day Deep Dive to build momentum, a two-day Deeper Dive to go further, a paced Masterclass for leaders who can't clear a full week, or an intensive Bootcamp for teams who can. All HRD Corp claimable. Masterclass venue is your choice at booking — Sri Wangsaria (included), M Resort Bukit Kiara, or Four Seasons KL.</p>
   <div class="format-nav">
     <a href="#briefing">Briefing</a>
     <a href="#deepdive">1-Day Deep Dive</a>
+    <a href="#deeperdive">2-Day Deeper Dive</a>
     <a href="#masterclass">Masterclass</a>
     <a href="#bootcamp">Bootcamp</a>
   </div>
 </header>
 
-<div class="enquiry-notice">For the next four months, all bookings are managed directly by WooWoo World while we negotiate the best venue terms. Group enquiries, venue upgrade requests, or any other question about the Strategic AI Sales &amp; Marketing programmes — email <a href="mailto:sales@woowoo.world">sales@woowoo.world</a> and we'll respond on a best-endeavours basis.</div>
+<div class="enquiry-notice">For the next four months, all bookings are managed directly by WooWoo World while we negotiate the best venue terms. Group enquiries, venue upgrade requests, or any other question about the Strategy Led AI programmes — email <a href="mailto:sales@woowoo.world">sales@woowoo.world</a> and we'll respond on a best-endeavours basis.</div>
 
 <div class="rep-bar">
   <label for="global-rep-code">Sales code</label>
@@ -460,10 +461,10 @@
   <!-- 1-DAY DEEP DIVE -->
   <section class="programme" id="deepdive">
     <div class="programme-head">
-      <h2>Strategic AI Sales & Marketing Deep Dive</h2>
+      <h2>Strategy Led Deep Dive</h2>
       <div class="programme-meta">One day — Saturday 8:30am–4:30pm or Sunday 1pm–9pm · Venue shown per date · Lunch included · HRD Corp Claimable</div>
     </div>
-    <p class="programme-desc">A full working day to move from awareness to application — practical, hands-on, built around your own business problems.</p>
+    <p class="programme-desc">A full working day to move from strategic awareness to application. Strategy leads the session throughout; AI is introduced as the enabler that lets your business act on that strategy fast, with practical grounding in how it strengthens sales, business development and marketing. Built around your own business problems.</p>
 
     <div id="deepdive-eb-banner"></div>
     <div class="track-group">
@@ -476,13 +477,25 @@
     </div>
   </section>
 
+  <!-- 2-DAY DEEPER DIVE -->
+  <section class="programme" id="deeperdive">
+    <div class="programme-head">
+      <h2>Strategy Led Deeper Dive</h2>
+      <div class="programme-meta">Two consecutive days, 8:30am–4:30pm · Sri Wangsaria Condominium, Bangsar, KL · Lunch included · HRD Corp Claimable</div>
+    </div>
+    <p class="programme-desc">The two-day route for teams who want the same strategy-first grounding as the Deep Dive, with more room to work through real implementation, not just introduce it. AI stays the enabler throughout, applied concretely to sales, business development and marketing.</p>
+
+    <div id="deeperdive-eb-banner"></div>
+    <div class="cohort-list" id="list-deeperdive"></div>
+  </section>
+
   <!-- MASTERCLASS -->
   <section class="programme" id="masterclass">
     <div class="programme-head">
-      <h2>Strategic AI Sales & Marketing Masterclass</h2>
+      <h2>Strategy Led Masterclass</h2>
       <div class="programme-meta">Five consecutive weeks, one day a week · Wednesday, Thursday or Saturday, 8:30am–4:30pm · RM8,750 base · Choice of venue · HRD Corp Claimable</div>
     </div>
-    <p class="programme-desc">The paced route for leaders who can't clear a full week: one day weekly, same depth as the Deep Dive, spread over five sessions on the weekday of your choice. For C-Suite and Department Heads only (eligibility is audited). No training runs 15 December 2026 to 20 January 2027. Each cohort needs a minimum of 12 delegates to run and is capped at 36.</p>
+    <p class="programme-desc">The paced route for leaders who can't clear a full week: one day weekly, same strategy-first depth as the Deep Dive and Deeper Dive, spread over five sessions on the weekday of your choice. AI remains the enabler throughout, applied to sales, business development and marketing. For C-Suite and Department Heads only (eligibility is audited). No training runs 15 December 2026 to 20 January 2027. Each cohort needs a minimum of 12 delegates to run and is capped at 36.</p>
 
     <div id="masterclass-eb-banner"></div>
     <div class="track-group">
@@ -573,10 +586,10 @@
   <!-- BOOTCAMP -->
   <section class="programme" id="bootcamp">
     <div class="programme-head">
-      <h2>Bootcamp</h2>
+      <h2>Strategy Led Bootcamp</h2>
       <div class="programme-meta">Five consecutive days · Sri Wangsaria Condominium, Bangsar, KL</div>
     </div>
-    <p class="programme-desc">The intensive route: one focused week, full immersion, from strategy to action.</p>
+    <p class="programme-desc">The intensive route: one focused week, full immersion, strategy first with AI as the enabler throughout, applied to sales, business development and marketing.</p>
     <div class="coming-soon">
       <div>
         <div class="label">Coming soon</div>
@@ -668,6 +681,7 @@ function renderProgrammeEbNote(elId, pct){
 function renderAllEbBanners(){
   renderProgrammeEbNote('masterclass-eb-banner', 60);
   renderProgrammeEbNote('deepdive-eb-banner', 50);
+  renderProgrammeEbNote('deeperdive-eb-banner', 50);
 }
 
 function renderAllCohortLists(){
@@ -676,6 +690,7 @@ function renderAllCohortLists(){
   renderCohortList('masterclass', 'list-masterclass-saturday', 'saturday');
   renderCohortList('deepdive', 'list-deepdive-sat', 'saturday');
   renderCohortList('deepdive', 'list-deepdive-sun', 'sunday');
+  renderCohortList('deeperdive', 'list-deeperdive', 'wed-thu');
 }
 
 function renderCohortList(programme, elId, track){

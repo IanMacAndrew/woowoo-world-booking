@@ -104,13 +104,18 @@
       "format": "deepdive",
       "basePrice": 175000,
       "earlyBirdDiscount": 0.5
+    },
+    "deeperdive": {
+      "format": "deeperdive",
+      "basePrice": 350000,
+      "earlyBirdDiscount": 0.5
     }
   },
   "cohorts": [
     {
       "id": "masterclass-wednesday-1",
       "programme": "masterclass",
-      "programmeName": "Strategic AI Sales & Marketing Masterclass",
+      "programmeName": "Strategy Led Masterclass",
       "track": "wednesday",
       "trackLabel": "Wednesdays, 8:30am–4:30pm",
       "label": "23 Sept – 21 Oct 2026",
@@ -137,7 +142,7 @@
     {
       "id": "masterclass-wednesday-2",
       "programme": "masterclass",
-      "programmeName": "Strategic AI Sales & Marketing Masterclass",
+      "programmeName": "Strategy Led Masterclass",
       "track": "wednesday",
       "trackLabel": "Wednesdays, 8:30am–4:30pm",
       "label": "28 Oct – 25 Nov 2026",
@@ -164,7 +169,7 @@
     {
       "id": "masterclass-wednesday-3",
       "programme": "masterclass",
-      "programmeName": "Strategic AI Sales & Marketing Masterclass",
+      "programmeName": "Strategy Led Masterclass",
       "track": "wednesday",
       "trackLabel": "Wednesdays, 8:30am–4:30pm",
       "label": "24 Mar – 21 Apr 2027",
@@ -191,7 +196,7 @@
     {
       "id": "masterclass-wednesday-4",
       "programme": "masterclass",
-      "programmeName": "Strategic AI Sales & Marketing Masterclass",
+      "programmeName": "Strategy Led Masterclass",
       "track": "wednesday",
       "trackLabel": "Wednesdays, 8:30am–4:30pm",
       "label": "28 Apr – 26 May 2027",
@@ -218,7 +223,7 @@
     {
       "id": "masterclass-wednesday-5",
       "programme": "masterclass",
-      "programmeName": "Strategic AI Sales & Marketing Masterclass",
+      "programmeName": "Strategy Led Masterclass",
       "track": "wednesday",
       "trackLabel": "Wednesdays, 8:30am–4:30pm",
       "label": "02 Jun – 30 Jun 2027",
@@ -245,7 +250,7 @@
     {
       "id": "masterclass-wednesday-6",
       "programme": "masterclass",
-      "programmeName": "Strategic AI Sales & Marketing Masterclass",
+      "programmeName": "Strategy Led Masterclass",
       "track": "wednesday",
       "trackLabel": "Wednesdays, 8:30am–4:30pm",
       "label": "07 Jul – 04 Aug 2027",
@@ -272,7 +277,7 @@
     {
       "id": "masterclass-wednesday-7",
       "programme": "masterclass",
-      "programmeName": "Strategic AI Sales & Marketing Masterclass",
+      "programmeName": "Strategy Led Masterclass",
       "track": "wednesday",
       "trackLabel": "Wednesdays, 8:30am–4:30pm",
       "label": "11 Aug – 08 Sept 2027",
@@ -299,7 +304,7 @@
     {
       "id": "masterclass-wednesday-8",
       "programme": "masterclass",
-      "programmeName": "Strategic AI Sales & Marketing Masterclass",
+      "programmeName": "Strategy Led Masterclass",
       "track": "wednesday",
       "trackLabel": "Wednesdays, 8:30am–4:30pm",
       "label": "15 Sept – 13 Oct 2027",
@@ -326,7 +331,7 @@
     {
       "id": "masterclass-thursday-1",
       "programme": "masterclass",
-      "programmeName": "Strategic AI Sales & Marketing Masterclass",
+      "programmeName": "Strategy Led Masterclass",
       "track": "thursday",
       "trackLabel": "Thursdays, 8:30am–4:30pm",
       "label": "17 Sept – 15 Oct 2026",
@@ -353,7 +358,7 @@
     {
       "id": "masterclass-thursday-2",
       "programme": "masterclass",
-      "programmeName": "Strategic AI Sales & Marketing Masterclass",
+      "programmeName": "Strategy Led Masterclass",
       "track": "thursday",
       "trackLabel": "Thursdays, 8:30am–4:30pm",
       "label": "22 Oct – 19 Nov 2026",
@@ -380,7 +385,7 @@
     {
       "id": "masterclass-thursday-3",
       "programme": "masterclass",
-      "programmeName": "Strategic AI Sales & Marketing Masterclass",
+      "programmeName": "Strategy Led Masterclass",
       "track": "thursday",
       "trackLabel": "Thursdays, 8:30am–4:30pm",
       "label": "18 Mar – 15 Apr 2027",
@@ -407,7 +412,7 @@
     {
       "id": "masterclass-thursday-4",
       "programme": "masterclass",
-      "programmeName": "Strategic AI Sales & Marketing Masterclass",
+      "programmeName": "Strategy Led Masterclass",
       "track": "thursday",
       "trackLabel": "Thursdays, 8:30am–4:30pm",
       "label": "22 Apr – 20 May 2027",
@@ -434,7 +439,7 @@
     {
       "id": "masterclass-thursday-5",
       "programme": "masterclass",
-      "programmeName": "Strategic AI Sales & Marketing Masterclass",
+      "programmeName": "Strategy Led Masterclass",
       "track": "thursday",
       "trackLabel": "Thursdays, 8:30am–4:30pm",
       "label": "27 May – 24 Jun 2027",
@@ -461,7 +466,7 @@
     {
       "id": "masterclass-thursday-6",
       "programme": "masterclass",
-      "programmeName": "Strategic AI Sales & Marketing Masterclass",
+      "programmeName": "Strategy Led Masterclass",
       "track": "thursday",
       "trackLabel": "Thursdays, 8:30am–4:30pm",
       "label": "01 Jul – 29 Jul 2027",
@@ -488,7 +493,7 @@
     {
       "id": "masterclass-thursday-7",
       "programme": "masterclass",
-      "programmeName": "Strategic AI Sales & Marketing Masterclass",
+      "programmeName": "Strategy Led Masterclass",
       "track": "thursday",
       "trackLabel": "Thursdays, 8:30am–4:30pm",
       "label": "05 Aug – 02 Sept 2027",
@@ -515,7 +520,7 @@
     {
       "id": "masterclass-thursday-8",
       "programme": "masterclass",
-      "programmeName": "Strategic AI Sales & Marketing Masterclass",
+      "programmeName": "Strategy Led Masterclass",
       "track": "thursday",
       "trackLabel": "Thursdays, 8:30am–4:30pm",
       "label": "09 Sept – 07 Oct 2027",
@@ -542,7 +547,7 @@
     {
       "id": "masterclass-saturday-1",
       "programme": "masterclass",
-      "programmeName": "Strategic AI Sales & Marketing Masterclass",
+      "programmeName": "Strategy Led Masterclass",
       "track": "saturday",
       "trackLabel": "Saturdays, 8:30am–4:30pm",
       "label": "19 Sept – 17 Oct 2026",
@@ -569,7 +574,7 @@
     {
       "id": "masterclass-saturday-2",
       "programme": "masterclass",
-      "programmeName": "Strategic AI Sales & Marketing Masterclass",
+      "programmeName": "Strategy Led Masterclass",
       "track": "saturday",
       "trackLabel": "Saturdays, 8:30am–4:30pm",
       "label": "24 Oct – 21 Nov 2026",
@@ -596,7 +601,7 @@
     {
       "id": "masterclass-saturday-3",
       "programme": "masterclass",
-      "programmeName": "Strategic AI Sales & Marketing Masterclass",
+      "programmeName": "Strategy Led Masterclass",
       "track": "saturday",
       "trackLabel": "Saturdays, 8:30am–4:30pm",
       "label": "20 Mar – 17 Apr 2027",
@@ -623,7 +628,7 @@
     {
       "id": "masterclass-saturday-4",
       "programme": "masterclass",
-      "programmeName": "Strategic AI Sales & Marketing Masterclass",
+      "programmeName": "Strategy Led Masterclass",
       "track": "saturday",
       "trackLabel": "Saturdays, 8:30am–4:30pm",
       "label": "24 Apr – 22 May 2027",
@@ -650,7 +655,7 @@
     {
       "id": "masterclass-saturday-5",
       "programme": "masterclass",
-      "programmeName": "Strategic AI Sales & Marketing Masterclass",
+      "programmeName": "Strategy Led Masterclass",
       "track": "saturday",
       "trackLabel": "Saturdays, 8:30am–4:30pm",
       "label": "29 May – 26 Jun 2027",
@@ -677,7 +682,7 @@
     {
       "id": "masterclass-saturday-6",
       "programme": "masterclass",
-      "programmeName": "Strategic AI Sales & Marketing Masterclass",
+      "programmeName": "Strategy Led Masterclass",
       "track": "saturday",
       "trackLabel": "Saturdays, 8:30am–4:30pm",
       "label": "03 Jul – 31 Jul 2027",
@@ -704,7 +709,7 @@
     {
       "id": "masterclass-saturday-7",
       "programme": "masterclass",
-      "programmeName": "Strategic AI Sales & Marketing Masterclass",
+      "programmeName": "Strategy Led Masterclass",
       "track": "saturday",
       "trackLabel": "Saturdays, 8:30am–4:30pm",
       "label": "07 Aug – 04 Sept 2027",
@@ -731,7 +736,7 @@
     {
       "id": "masterclass-saturday-8",
       "programme": "masterclass",
-      "programmeName": "Strategic AI Sales & Marketing Masterclass",
+      "programmeName": "Strategy Led Masterclass",
       "track": "saturday",
       "trackLabel": "Saturdays, 8:30am–4:30pm",
       "label": "11 Sept – 09 Oct 2027",
@@ -758,7 +763,7 @@
     {
       "id": "deepdive-sat-1",
       "programme": "deepdive",
-      "programmeName": "Strategic AI Sales & Marketing Deep Dive",
+      "programmeName": "Strategy Led Deep Dive",
       "track": "saturday",
       "trackLabel": "Saturday, 8:30am–4:30pm (2hr lunch break)",
       "label": "29 August 2026",
@@ -781,7 +786,7 @@
     {
       "id": "deepdive-sun-1",
       "programme": "deepdive",
-      "programmeName": "Strategic AI Sales & Marketing Deep Dive",
+      "programmeName": "Strategy Led Deep Dive",
       "track": "sunday",
       "trackLabel": "Sunday, 1pm–9pm (2hr tea break)",
       "label": "30 August 2026",
@@ -789,6 +794,78 @@
         "2026-08-30"
       ],
       "startDate": "2026-08-30",
+      "venue": "Sri Wangsaria Condominium, Bangsar, KL",
+      "venueContact": {
+        "name": "TBC",
+        "phone": "TBC",
+        "email": "TBC"
+      },
+      "venueSalesRep": {
+        "name": "TBC",
+        "phone": "TBC",
+        "email": "TBC"
+      }
+    },
+    {
+      "id": "deeperdive-1",
+      "programme": "deeperdive",
+      "programmeName": "Strategy Led Deeper Dive",
+      "track": "wed-thu",
+      "trackLabel": "Wednesday–Thursday, 8:30am–4:30pm",
+      "label": "09 Sept – 10 Sept 2026",
+      "sessionDates": [
+        "2026-09-09",
+        "2026-09-10"
+      ],
+      "startDate": "2026-09-09",
+      "venue": "Sri Wangsaria Condominium, Bangsar, KL",
+      "venueContact": {
+        "name": "TBC",
+        "phone": "TBC",
+        "email": "TBC"
+      },
+      "venueSalesRep": {
+        "name": "TBC",
+        "phone": "TBC",
+        "email": "TBC"
+      }
+    },
+    {
+      "id": "deeperdive-2",
+      "programme": "deeperdive",
+      "programmeName": "Strategy Led Deeper Dive",
+      "track": "wed-thu",
+      "trackLabel": "Wednesday–Thursday, 8:30am–4:30pm",
+      "label": "14 Oct – 15 Oct 2026",
+      "sessionDates": [
+        "2026-10-14",
+        "2026-10-15"
+      ],
+      "startDate": "2026-10-14",
+      "venue": "Sri Wangsaria Condominium, Bangsar, KL",
+      "venueContact": {
+        "name": "TBC",
+        "phone": "TBC",
+        "email": "TBC"
+      },
+      "venueSalesRep": {
+        "name": "TBC",
+        "phone": "TBC",
+        "email": "TBC"
+      }
+    },
+    {
+      "id": "deeperdive-3",
+      "programme": "deeperdive",
+      "programmeName": "Strategy Led Deeper Dive",
+      "track": "wed-thu",
+      "trackLabel": "Wednesday–Thursday, 8:30am–4:30pm",
+      "label": "11 Nov – 12 Nov 2026",
+      "sessionDates": [
+        "2026-11-11",
+        "2026-11-12"
+      ],
+      "startDate": "2026-11-11",
       "venue": "Sri Wangsaria Condominium, Bangsar, KL",
       "venueContact": {
         "name": "TBC",
