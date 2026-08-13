@@ -50,7 +50,7 @@ exports.handler = async (event) => {
   await store.setJSON(`roster:${tokenRecord.bookingId}`, roster);
   await store.setJSON(`delegate-form:${token}`, { ...tokenRecord, used: true, usedAt: new Date().toISOString() });
 
-  const cohort = getCohort(roster.cohortId);
+  const cohort = { ...getCohort(roster.cohortId), venue: roster.venue || getCohort(roster.cohortId).venue };
 
   let commission = null;
   try {

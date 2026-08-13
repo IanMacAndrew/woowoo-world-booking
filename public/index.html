@@ -423,7 +423,7 @@
 <header>
   <div class="eyebrow">WooWoo World · AI Strategy &amp; Implementation Practice</div>
   <h1>Strategic AI Transformation, for the people who have to answer for it.</h1>
-  <p>Four ways in, one shared standard: a short briefing to align a room, a one-day deep dive to build momentum, a paced masterclass for leaders who can't clear a full week, or an intensive bootcamp for teams who can. All HRD Corp claimable. Weekend sessions run at Sri Wangsaria Condominium, Bangsar, KL; occasional weekday sessions run at M Resort &amp; Hotel Kuala Lumpur — venue is shown against each date below, with lunch included either way.</p>
+  <p>Four ways in, one shared standard: a short briefing to align a room, a one-day deep dive to build momentum, a paced masterclass for leaders who can't clear a full week, or an intensive bootcamp for teams who can. All HRD Corp claimable. Masterclass venue is your choice at booking — Sri Wangsaria (included), M Resort Bukit Kiara, or Four Seasons KL.</p>
   <div class="format-nav">
     <a href="#briefing">Briefing</a>
     <a href="#deepdive">1-Day Deep Dive</a>
@@ -480,30 +480,22 @@
   <section class="programme" id="masterclass">
     <div class="programme-head">
       <h2>Strategic AI Sales & Marketing Masterclass</h2>
-      <div class="programme-meta">One day a week, five weeks · Saturday 8:30am–4:30pm or Sunday 1pm–9pm · Venue shown per date · Lunch included · HRD Corp Claimable</div>
+      <div class="programme-meta">Five consecutive weeks, one day a week · Wednesday, Thursday or Saturday, 8:30am–4:30pm · RM8,750 base · Choice of venue · HRD Corp Claimable</div>
     </div>
-    <p class="programme-desc">The paced route for leaders who can't clear a full week: one day weekly, same depth as the Deep Dive, spread over five sessions. Choose a Saturday or Sunday cohort. Each cohort needs a minimum of 10 delegates to run and is capped at 30.</p>
+    <p class="programme-desc">The paced route for leaders who can't clear a full week: one day weekly, same depth as the Deep Dive, spread over five sessions on the weekday of your choice. For C-Suite and Department Heads only (eligibility is audited). No training runs 15 December 2026 to 20 January 2027. Each cohort needs a minimum of 12 delegates to run and is capped at 36.</p>
 
-    <h3 class="cohort-group-title">Cohort 1 — 5 September to 4 October 2026</h3>
-    <div id="masterclass-cohort1-eb-banner"></div>
+    <div id="masterclass-eb-banner"></div>
+    <div class="track-group">
+      <h4>Wednesday</h4>
+      <div class="cohort-list" id="list-masterclass-wednesday"></div>
+    </div>
+    <div class="track-group">
+      <h4>Thursday</h4>
+      <div class="cohort-list" id="list-masterclass-thursday"></div>
+    </div>
     <div class="track-group">
       <h4>Saturday</h4>
-      <div class="cohort-list" id="list-masterclass-c1-sat"></div>
-    </div>
-    <div class="track-group">
-      <h4>Sunday</h4>
-      <div class="cohort-list" id="list-masterclass-c1-sun"></div>
-    </div>
-
-    <h3 class="cohort-group-title">Cohort 2 — 10 October to 8 November 2026</h3>
-    <div id="masterclass-cohort2-eb-banner"></div>
-    <div class="track-group">
-      <h4>Saturday</h4>
-      <div class="cohort-list" id="list-masterclass-c2-sat"></div>
-    </div>
-    <div class="track-group">
-      <h4>Sunday</h4>
-      <div class="cohort-list" id="list-masterclass-c2-sun"></div>
+      <div class="cohort-list" id="list-masterclass-saturday"></div>
     </div>
 
     <!-- BOOKING PANEL -->
@@ -533,8 +525,17 @@
         </div>
       </div>
 
+      <div class="field-row" id="venue-row" style="display:none;">
+        <div>
+          <label for="venue-select">Venue</label>
+          <select id="venue-select"></select>
+          <span style="font-size:11px; color:#8F8A9C; display:block; margin-top:4px;" id="venue-includes"></span>
+        </div>
+        <div></div>
+      </div>
+
       <div class="notice-row" id="delegate-note">
-        Delegate details aren't needed to book. After payment, we'll email your Booking Contact a short form to add each delegate's name, position and company. This programme is intended for C-Suite and division/department heads.
+        Delegate details aren't needed to book. After payment, we'll email your Booking Contact a short form to add each delegate's name, position and company. This programme is intended for C-Suite and division/department heads — eligibility is audited via a weekly report.
       </div>
 
       <div class="field-row">
@@ -588,7 +589,7 @@
 
 <footer>
   WooWoo World · woowoo.world · woowooworld.co · <a href="mailto:sales@woowoo.world">sales@woowoo.world</a><br>
-  Prices in Malaysian Ringgit. Masterclass: minimum 10, maximum 30 delegates per cohort. HRD Corp claimable.<br>
+  Prices in Malaysian Ringgit. Masterclass: minimum 12, maximum 36 delegates per cohort, C-Suite and Department Heads only. HRD Corp claimable.<br>
   <a href="/terms-of-service.html">Terms of Service</a> · <a href="/privacy-policy.html">Privacy Policy</a>
 </footer>
 
@@ -658,23 +659,21 @@ function fmtEbDate(dateStr){
   return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric', timeZone:'UTC' });
 }
 
-function renderProgrammeEbNote(elId){
+function renderProgrammeEbNote(elId, pct){
   const el = document.getElementById(elId);
   if(!el) return;
-  el.innerHTML = `<div class="eb-banner" style="margin-bottom:20px; border:1px solid var(--line); padding:10px 16px; font-size:13px;">Early-bird pricing is date-specific — each session below runs its own 50% early-bird window, ending 15 days before that date.</div>`;
+  el.innerHTML = `<div class="eb-banner" style="margin-bottom:20px; border:1px solid var(--line); padding:10px 16px; font-size:13px;">Early-bird pricing is date-specific — each session below runs its own ${pct}% early-bird window, ending 15 days before that date.</div>`;
 }
 
 function renderAllEbBanners(){
-  renderProgrammeEbNote('masterclass-cohort1-eb-banner');
-  renderProgrammeEbNote('masterclass-cohort2-eb-banner');
-  renderProgrammeEbNote('deepdive-eb-banner');
+  renderProgrammeEbNote('masterclass-eb-banner', 60);
+  renderProgrammeEbNote('deepdive-eb-banner', 50);
 }
 
 function renderAllCohortLists(){
-  renderCohortList('masterclass-cohort1', 'list-masterclass-c1-sat', 'saturday');
-  renderCohortList('masterclass-cohort1', 'list-masterclass-c1-sun', 'sunday');
-  renderCohortList('masterclass-cohort2', 'list-masterclass-c2-sat', 'saturday');
-  renderCohortList('masterclass-cohort2', 'list-masterclass-c2-sun', 'sunday');
+  renderCohortList('masterclass', 'list-masterclass-wednesday', 'wednesday');
+  renderCohortList('masterclass', 'list-masterclass-thursday', 'thursday');
+  renderCohortList('masterclass', 'list-masterclass-saturday', 'saturday');
   renderCohortList('deepdive', 'list-deepdive-sat', 'saturday');
   renderCohortList('deepdive', 'list-deepdive-sun', 'sunday');
 }
@@ -682,8 +681,10 @@ function renderAllCohortLists(){
 function renderCohortList(programme, elId, track){
   const el = document.getElementById(elId);
   el.innerHTML = '';
+  const progRules = state.rules.programmes[programme] || {};
+  const progMax = progRules.maxSeats || state.rules.maxSeats;
   state.cohorts.filter(c => c.programme === programme && (!track || c.track === track)).forEach(c => {
-    const seatInfo = state.seats[c.id] || { remaining: state.rules.maxSeats, full:false };
+    const seatInfo = state.seats[c.id] || { remaining: progMax, full:false };
     const div = document.createElement('div');
     div.className = 'cohort' + (c.id === state.selectedCohortId ? ' selected' : '') + (seatInfo.full ? ' full' : '');
     const ebActive = earlyBirdActiveFor(c);
@@ -694,10 +695,9 @@ function renderCohortList(programme, elId, track){
         <span class="cohort-id">${c.id.toUpperCase()}</span>
         <div class="cohort-dates">${c.label}</div>
         <div class="cohort-track">${c.trackLabel}</div>
-        <div class="cohort-venue">${c.venue || state.rules.venue}</div>
       </div>
       <div>${ebActive ? `<span class="earlybird-tag">Early-bird active</span>` : ''}${ebLabel ? `<div style="font-size:11px; color:#8F8A9C; margin-top:4px;">${ebLabel}</div>` : ''}</div>
-      <div class="seat-count"><span class="num">${seatInfo.remaining}</span> of ${state.rules.maxSeats} seats left</div>
+      <div class="seat-count"><span class="num">${seatInfo.remaining}</span> of ${progMax} seats left</div>
     `;
     if (!seatInfo.full) {
       div.addEventListener('click', () => selectCohort(c.id));
@@ -706,12 +706,31 @@ function renderCohortList(programme, elId, track){
   });
 }
 
+function populateVenueSelect(){
+  const sel = document.getElementById('venue-select');
+  sel.innerHTML = '';
+  (state.rules.venues || []).forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v.id;
+    const extra = v.surchargePerSeat > 0 ? ` (+${fmtRM(v.surchargePerSeat)}/delegate)` : ' (included)';
+    opt.textContent = v.name + extra;
+    sel.appendChild(opt);
+  });
+}
+
+function updateVenueIncludesNote(){
+  const sel = document.getElementById('venue-select');
+  const venue = (state.rules.venues || []).find(v => v.id === sel.value);
+  document.getElementById('venue-includes').textContent = venue ? venue.includes : '';
+}
+
 function selectCohort(id){
   state.selectedCohortId = id;
   renderAllCohortLists();
   const c = state.cohorts.find(x => x.id === id);
+  const programme = state.rules.programmes[c.programme] || {};
   document.getElementById('panel-title').textContent = `Book — ${c.programmeName}`;
-  document.getElementById('panel-sub').textContent = `${c.label} · ${c.trackLabel} · ${c.venue || state.rules.venue}`;
+  document.getElementById('panel-sub').textContent = `${c.label} · ${c.trackLabel}`;
   document.getElementById('booking-panel').classList.add('open');
   document.getElementById('booking-panel').scrollIntoView({ behavior:'smooth', block:'start' });
   document.getElementById('protection-toggle').checked = false;
@@ -721,8 +740,30 @@ function selectCohort(id){
   document.getElementById('contact-email').value = '';
   document.getElementById('contact-phone').value = '';
   document.getElementById('checkout-btn').disabled = true;
+
+  const seatInput = document.getElementById('seat-count');
+  const minSeats = programme.minSeats || 1;
+  const maxSeats = programme.maxSeats || state.rules.maxSeats;
+  seatInput.min = minSeats;
+  seatInput.max = maxSeats;
+  seatInput.value = minSeats;
+
+  const venueRow = document.getElementById('venue-row');
+  if (c.programme === 'masterclass') {
+    venueRow.style.display = '';
+    populateVenueSelect();
+    updateVenueIncludesNote();
+  } else {
+    venueRow.style.display = 'none';
+  }
+
   updatePrice();
 }
+
+document.getElementById('venue-select') && document.getElementById('venue-select').addEventListener('change', () => {
+  updateVenueIncludesNote();
+  updatePrice();
+});
 
 // Mirrors netlify/functions/_pricing.js exactly — additive discounts, not compounded.
 function updatePrice(){
@@ -734,12 +775,22 @@ function updatePrice(){
   const programme = state.rules.programmes[c.programme];
   const base = programme.basePrice;
   const earlyBird = earlyBirdActiveFor(c);
-  const tier = state.rules.seatTiers.find(t => seatCount >= t.min && seatCount <= t.max);
+  const tiers = programme.seatTiers || state.rules.seatTiers;
+  const tier = tiers.find(t => seatCount >= t.min && seatCount <= t.max);
   const seatDiscount = tier ? tier.discount : 0;
 
   const ebAmount = earlyBird ? Math.round(base * programme.earlyBirdDiscount) : 0;
   const seatAmount = seatDiscount > 0 ? Math.round(base * seatDiscount) : 0;
-  const perSeat = Math.max(0, base - ebAmount - seatAmount);
+
+  let venue = null, venueSurcharge = 0;
+  if (c.programme === 'masterclass') {
+    const venueSel = document.getElementById('venue-select');
+    venue = (state.rules.venues || []).find(v => v.id === venueSel.value);
+    venueSurcharge = venue ? (venue.surchargePerSeat || 0) : 0;
+  }
+
+  const perSeatBeforeVenue = Math.max(0, base - ebAmount - seatAmount);
+  const perSeat = perSeatBeforeVenue + venueSurcharge;
   const total = perSeat * seatCount;
 
   const totalDiscountFraction = base > 0 ? (ebAmount + seatAmount) / base : 0;
@@ -752,10 +803,12 @@ function updatePrice(){
   tagEl.textContent = discountTier === 'heavy' ? 'Heavily discounted — strict no-return' : 'Standard discount — 72hr cancellation window';
   tagEl.className = 'discount-tier-tag ' + discountTier;
 
+  const ebPct = Math.round((programme.earlyBirdDiscount || 0) * 100);
   const lines = [];
   lines.push(`${fmtRM(base)} base rate`);
-  if(earlyBird) lines.push(`- ${fmtRM(ebAmount)} Early-bird (50%)`);
+  if(earlyBird) lines.push(`- ${fmtRM(ebAmount)} Early-bird (${ebPct}%)`);
   if(seatDiscount > 0) lines.push(`- ${fmtRM(seatAmount)} multi-seat discount (${Math.round(seatDiscount*100)}%, ${seatCount} delegates)`);
+  if(venueSurcharge > 0) lines.push(`+ ${fmtRM(venueSurcharge)} venue upgrade (${venue.name})`);
   lines.push(`${fmtRM(perSeat)} per delegate × ${seatCount} = ${fmtRM(total)}`);
   if(protection) lines.push(`+ ${fmtRM(protectionFee)} Booking Protection (8%, non-refundable)`);
 
@@ -795,6 +848,9 @@ document.getElementById('checkout-btn').addEventListener('click', async () => {
   btn.textContent = 'Preparing checkout…';
 
   try {
+    const c = state.cohorts.find(x => x.id === state.selectedCohortId);
+    const venueSel = document.getElementById('venue-select');
+    const venueId = (c && c.programme === 'masterclass' && venueSel) ? venueSel.value : undefined;
     const res = await fetch('/.netlify/functions/create-checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -805,7 +861,8 @@ document.getElementById('checkout-btn').addEventListener('click', async () => {
         salesRepCode: document.getElementById('global-rep-code').value,
         bookingProtection: document.getElementById('protection-toggle').checked,
         tosAccepted: document.getElementById('tos-checkbox').checked,
-        transferCode: document.getElementById('transfer-code').value
+        transferCode: document.getElementById('transfer-code').value,
+        venueId
       })
     });
     const data = await res.json();

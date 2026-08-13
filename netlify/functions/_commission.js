@@ -154,7 +154,7 @@ async function calculateAndRecordCommission({
 
     // Capacity-fill bonus: only meaningful once the event has real
     // attendance, so it's evaluated in the commission path.
-    const maxSeats = cohortsData.maxSeats || 30;
+    const maxSeats = programme.maxSeats || cohortsData.maxSeats || 30;
     const capacityThreshold = maxSeats * (cohortsData.commissionCapacityBonusThreshold || 0.8);
     if (attendanceBefore < capacityThreshold && attendanceAfter >= capacityThreshold) {
       result.capacityBonusApplied = true;

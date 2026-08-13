@@ -51,7 +51,8 @@ exports.handler = async (event) => {
 
     // Issue a one-time delegate-form token and email the Booking Contact
     if (roster) {
-      const cohort = getCohort(cohortId);
+      const baseCohort = getCohort(cohortId);
+      const cohort = { ...baseCohort, venue: roster.venue || baseCohort.venue };
       try {
         const token = crypto.randomBytes(24).toString('hex');
         await store.setJSON(`delegate-form:${token}`, {

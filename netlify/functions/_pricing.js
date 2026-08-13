@@ -36,9 +36,15 @@ function earlyBirdCutoffDate(cohort) {
   return cutoff.toISOString().slice(0, 10);
 }
 
-function seatTierDiscount(seatCount) {
-  const tier = cohortsData.seatTiers.find((t) => seatCount >= t.min && seatCount <= t.max);
+function seatTierDiscount(seatCount, programme) {
+  const tiers = (programme && programme.seatTiers) || cohortsData.seatTiers;
+  const tier = tiers.find((t) => seatCount >= t.min && seatCount <= t.max);
   return tier ? tier.discount : 0;
+}
+
+function getVenue(venueId) {
+  if (!venueId) return null;
+  return (cohortsData.venues || []).find((v) => v.id === venueId) || null;
 }
 
 // All prices in cents (Stripe's smallest unit for MYR).
@@ -49,23 +55,33 @@ function seatTierDiscount(seatCount) {
 // off base, not 1 - (0.5 * 0.85) = ~57.5%. Stacking multiplicatively would
 // silently undercharge/overcharge relative to the published tables, so don't
 // "simplify" this back to perSeat *= (1 - discount) chains.
-function calculatePricing({ cohortId, seatCount, bookingProtection, now = new Date() }) {
+function calculatePricing({ cohortId, seatCount, bookingProtection, venueId, now = new Date() }) {
   const cohort = getCohort(cohortId);
   if (!cohort) throw new Error('Unknown cohort: ' + cohortId);
-  if (seatCount < 1 || seatCount > cohortsData.maxSeats) {
-    throw new Error('Seat count must be between 1 and ' + cohortsData.maxSeats);
-  }
 
   const programme = getProgramme(cohort.programme);
+  const minSeats = programme.minSeats || 1;
+  const maxSeats = programme.maxSeats || cohortsData.maxSeats;
+  if (seatCount < minSeats || seatCount > maxSeats) {
+    throw new Error(`Seat count must be between ${minSeats} and ${maxSeats}`);
+  }
+
   const basePerSeat = programme.basePrice;
 
   const earlyBird = isEarlyBirdActive(cohort, now);
-  const seatDiscount = seatTierDiscount(seatCount);
+  const seatDiscount = seatTierDiscount(seatCount, programme);
 
   const earlyBirdAmount = earlyBird ? Math.round(basePerSeat * programme.earlyBirdDiscount) : 0;
   const seatDiscountAmount = seatDiscount > 0 ? Math.round(basePerSeat * seatDiscount) : 0;
 
-  const perSeat = Math.max(0, basePerSeat - earlyBirdAmount - seatDiscountAmount);
+  // Venue surcharge (if any) is a flat per-seat add-on for the catering/venue
+  // upgrade — applied AFTER discounts, never discounted itself, since it's a
+  // pass-through cost rather than part of the course fee.
+  const venue = getVenue(venueId);
+  const venueSurchargePerSeat = venue ? (venue.surchargePerSeat || 0) : 0;
+
+  const perSeatBeforeVenue = Math.max(0, basePerSeat - earlyBirdAmount - seatDiscountAmount);
+  const perSeat = perSeatBeforeVenue + venueSurchargePerSeat;
   const total = perSeat * seatCount;
 
   // "Heavily Discounted" = total discount off base is 50% or more. Early-bird
@@ -90,6 +106,8 @@ function calculatePricing({ cohortId, seatCount, bookingProtection, now = new Da
     earlyBirdAmount,
     seatDiscountApplied: seatDiscount,
     seatDiscountAmount,
+    venue,
+    venueSurchargePerSeat,
     discountTier,
     bookingProtectionSelected: !!bookingProtection,
     bookingProtectionFee,
@@ -98,4 +116,4 @@ function calculatePricing({ cohortId, seatCount, bookingProtection, now = new Da
   };
 }
 
-module.exports = { getCohort, getProgramme, isEarlyBirdActive, earlyBirdCutoffDate, seatTierDiscount, calculatePricing, cohortsData };
+module.exports = { getCohort, getProgramme, isEarlyBirdActive, earlyBirdCutoffDate, seatTierDiscount, getVenue, calculatePricing, cohortsData };

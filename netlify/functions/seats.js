@@ -1,5 +1,5 @@
 const { getStore } = require('./_blobs');
-const { cohortsData } = require('./_pricing');
+const { cohortsData, getProgramme } = require('./_pricing');
 
 exports.handler = async (event) => {
   const cohortId = event.queryStringParameters && event.queryStringParameters.cohortId;
@@ -11,13 +11,16 @@ exports.handler = async (event) => {
 
   const results = {};
   for (const id of cohortsToCheck) {
+    const cohort = cohortsData.cohorts.find((c) => c.id === id);
+    const programme = cohort ? getProgramme(cohort.programme) : null;
+    const max = (programme && programme.maxSeats) || cohortsData.maxSeats;
     const raw = await store.get(`seats-booked:${id}`);
     const booked = raw ? parseInt(raw, 10) : 0;
     results[id] = {
       booked,
-      remaining: Math.max(0, cohortsData.maxSeats - booked),
-      max: cohortsData.maxSeats,
-      full: booked >= cohortsData.maxSeats
+      remaining: Math.max(0, max - booked),
+      max,
+      full: booked >= max
     };
   }
 

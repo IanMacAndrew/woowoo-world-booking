@@ -1,6 +1,6 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const { getStore } = require('./_blobs');
-const { calculatePricing, cohortsData } = require('./_pricing');
+const { calculatePricing, cohortsData, getCohort, getProgramme, getVenue } = require('./_pricing');
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -14,7 +14,7 @@ exports.handler = async (event) => {
     return { statusCode: 400, body: 'Invalid JSON' };
   }
 
-  const { cohortId, seatCount: rawSeatCount, bookingContact, salesRepCode, bookingProtection, tosAccepted, transferCode } = payload;
+  const { cohortId, seatCount: rawSeatCount, bookingContact, salesRepCode, bookingProtection, tosAccepted, transferCode, venueId } = payload;
   const repCode = (salesRepCode || 'ISM').trim().toUpperCase().slice(0, 20) || 'ISM';
   const creditCode = (transferCode || '').trim().toUpperCase();
 
@@ -33,23 +33,30 @@ exports.handler = async (event) => {
   }
   const contactPhone = (bookingContact && bookingContact.phone || '').trim();
 
+  const cohort = getCohort(cohortId);
+  if (!cohort) {
+    return { statusCode: 400, body: 'Unknown cohort' };
+  }
+  const programme = getProgramme(cohort.programme);
+  const maxSeatsForCohort = programme.maxSeats || cohortsData.maxSeats;
+
   const store = getStore('bookings');
 
   // Re-check capacity right before checkout so we never oversell
   const raw = await store.get(`seats-booked:${cohortId}`);
   const alreadyBooked = raw ? parseInt(raw, 10) : 0;
-  if (alreadyBooked + seatCount > cohortsData.maxSeats) {
+  if (alreadyBooked + seatCount > maxSeatsForCohort) {
     return {
       statusCode: 409,
       body: JSON.stringify({
-        error: `Only ${cohortsData.maxSeats - alreadyBooked} seat(s) left in this cohort.`
+        error: `Only ${maxSeatsForCohort - alreadyBooked} seat(s) left in this cohort.`
       })
     };
   }
 
   let pricing;
   try {
-    pricing = calculatePricing({ cohortId, seatCount, bookingProtection: !!bookingProtection });
+    pricing = calculatePricing({ cohortId, seatCount, bookingProtection: !!bookingProtection, venueId });
   } catch (e) {
     return { statusCode: 400, body: e.message };
   }
@@ -83,11 +90,13 @@ exports.handler = async (event) => {
     delegates: null,
     bookingContact: { name: contactName, email: contactEmail, phone: contactPhone },
     contactEmail,
+    venue: pricing.venue ? pricing.venue.name : cohort.venue,
     pricing: {
       perSeat: pricing.perSeat,
       total: pricing.total,
       seatCount,
       discountTier: pricing.discountTier,
+      venueSurchargePerSeat: pricing.venueSurchargePerSeat,
       bookingProtectionSelected: pricing.bookingProtectionSelected,
       bookingProtectionFee: pricing.bookingProtectionFee,
       grandTotal: pricing.grandTotal
@@ -126,7 +135,7 @@ exports.handler = async (event) => {
             unit_amount: pricing.perSeat,
             product_data: {
               name: `${pricing.cohort.programmeName} — ${pricing.cohort.label}`,
-              description: `${seatCount} delegate seat(s)${pricing.earlyBirdApplied ? ' · Early-bird rate' : ''}${pricing.seatDiscountApplied ? ' · Multi-seat discount' : ''}. Delegate details aren't needed to book — after payment we'll email your Booking Contact a short form to add each delegate's name, position and company.`
+              description: `${seatCount} delegate seat(s)${pricing.earlyBirdApplied ? ' · Early-bird rate' : ''}${pricing.seatDiscountApplied ? ' · Multi-seat discount' : ''}${pricing.venue ? ' · Venue: ' + pricing.venue.name : ''}. Delegate details aren't needed to book — after payment we'll email your Booking Contact a short form to add each delegate's name, position and company.`
             }
           },
           quantity: seatCount
@@ -148,6 +157,7 @@ exports.handler = async (event) => {
         cohortId,
         seatCount: String(seatCount),
         discountTier: pricing.discountTier,
+        venue: pricing.venue ? pricing.venue.name : cohort.venue,
         salesRepCode: repCode,
         bookingProtection: pricing.bookingProtectionSelected ? 'yes' : 'no',
         transferCreditCode: creditCode || 'none',
