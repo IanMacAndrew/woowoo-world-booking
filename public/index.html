@@ -130,9 +130,9 @@
   }
   .programme-desc{
     color:#5C566B;
-    max-width:62ch;
     margin:14px 0 28px;
     font-size:15px;
+    line-height:1.6;
   }
 
   /* Coming soon card */
@@ -499,7 +499,7 @@
   <section class="programme" id="briefing">
     <div class="programme-head">
       <h2>Drive Time Briefing</h2>
-      <div class="programme-meta">2 hours · Morning or evening drive time · Sri Wangsaria Condominium, Bangsar, KL</div>
+      <div class="programme-meta">2 hours · Morning or evening drive time · Broadcast — join from anywhere, no venue</div>
     </div>
     <p class="programme-desc">A short, high-level session for leadership teams who need a shared starting point before committing further — sized to fit a commute, offered in a morning or evening slot. Narrow AI focused: what's changing, what it means for the business, and where to focus first.</p>
     <div class="coming-soon">
@@ -514,26 +514,19 @@
   <section class="programme" id="deepdive">
     <div class="programme-head">
       <h2>Strategy Led Deep Dive</h2>
-      <div class="programme-meta">One day — Saturday 8:30am–4:30pm or Sunday 1pm–9pm · Venue shown per date · Lunch included · HRD Corp Claimable</div>
+      <div class="programme-meta">Every Thursday, 8:30am–4:30pm · Sri Wangsaria Condominium, Bangsar, KL · Lunch included · HRD Corp Claimable</div>
     </div>
     <p class="programme-desc">A full working day to move from strategic awareness to application. Strategy leads the session throughout; AI is introduced as the enabler that lets your business act on that strategy fast, with practical grounding in how it strengthens sales, business development and marketing. Narrow AI focused: task-level tools, not systemic re-engineering. Built around your own business problems, with a live cohort of real companies in your own vertical — not a generic online course.</p>
 
     <div id="deepdive-eb-banner"></div>
-    <div class="track-group">
-      <h4>Saturday</h4>
-      <div class="cohort-list" id="list-deepdive-sat"></div>
-    </div>
-    <div class="track-group">
-      <h4>Sunday</h4>
-      <div class="cohort-list" id="list-deepdive-sun"></div>
-    </div>
+    <div class="cohort-list" id="list-deepdive"></div>
   </section>
 
   <!-- 2-DAY DEEPER DIVE -->
   <section class="programme" id="deeperdive">
     <div class="programme-head">
       <h2>Strategy Led Deeper Dive</h2>
-      <div class="programme-meta">Two consecutive days, 8:30am–4:30pm · Sri Wangsaria Condominium, Bangsar, KL · Lunch included · HRD Corp Claimable</div>
+      <div class="programme-meta">Every Tuesday–Wednesday, 8:30am–4:30pm · Sri Wangsaria Condominium, Bangsar, KL · Lunch included · HRD Corp Claimable</div>
     </div>
     <p class="programme-desc">The two-day route for teams who want the same strategy-first grounding as the Deep Dive, with more room to work through real implementation, not just introduce it. AI stays the enabler throughout, applied concretely to sales, business development and marketing — still Narrow AI focused, going deeper rather than broader.</p>
 
@@ -547,7 +540,7 @@
       <h2>Strategy Led Masterclass</h2>
       <div class="programme-meta">Five consecutive weeks, one day a week · Wednesday, Thursday or Saturday, 8:30am–4:30pm · RM8,750 base · Choice of venue · HRD Corp Claimable</div>
     </div>
-    <p class="programme-desc">The paced route for leaders who can't clear a full week: one day weekly, same strategy-first depth as the Deep Dive and Deeper Dive, spread over five sessions on the weekday of your choice. Where the shorter formats stay Narrow AI focused, the Masterclass goes further — re-engineering how your organisation's systems work, to actually adopt AGI, not just apply a tool. AI remains the enabler throughout, applied to sales, business development and marketing. For C-Suite and Department Heads only (eligibility is audited). No training runs 15 December 2026 to 20 January 2027. Each cohort needs a minimum of 12 delegates to run and is capped at 36.</p>
+    <p class="programme-desc">The paced route for leaders who can't clear a full week: one day weekly, same strategy-first depth as the Deep Dive and Deeper Dive, spread over five sessions on the weekday of your choice. Where the shorter formats stay Narrow AI focused, the Masterclass goes further — re-engineering how your organisation's systems work, to actually adopt AGI, not just apply a tool. AI remains the enabler throughout, applied to sales, business development and marketing. For C-Suite and Department Heads only (eligibility is audited). No training runs 15 December 2026 to 7 January 2027. Each cohort needs a minimum of 12 delegates to run and is capped at 36. C-Suite and Department Heads can request a smaller, private cohort for their organisation only — email <a href="mailto:sales@woowoo.world" style="color:inherit;">sales@woowoo.world</a> to discuss.</p>
 
     <div id="masterclass-eb-banner"></div>
     <div class="track-group">
@@ -755,9 +748,8 @@ function renderAllCohortLists(){
   renderCohortList('masterclass', 'list-masterclass-wednesday', 'wednesday');
   renderCohortList('masterclass', 'list-masterclass-thursday', 'thursday');
   renderCohortList('masterclass', 'list-masterclass-saturday', 'saturday');
-  renderCohortList('deepdive', 'list-deepdive-sat', 'saturday');
-  renderCohortList('deepdive', 'list-deepdive-sun', 'sunday');
-  renderCohortList('deeperdive', 'list-deeperdive', 'wed-thu');
+  renderCohortList('deepdive', 'list-deepdive', 'thursday');
+  renderCohortList('deeperdive', 'list-deeperdive', 'tue-wed');
 }
 
 function renderCohortList(programme, elId, track){
