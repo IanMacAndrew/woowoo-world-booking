@@ -113,33 +113,6 @@
   },
   "cohorts": [
     {
-      "id": "masterclass-wednesday-1",
-      "programme": "masterclass",
-      "programmeName": "Strategy Led Masterclass",
-      "track": "wednesday",
-      "trackLabel": "Wednesdays, 8:30am–4:30pm",
-      "label": "23 Sept – 21 Oct 2026",
-      "sessionDates": [
-        "2026-09-23",
-        "2026-09-30",
-        "2026-10-07",
-        "2026-10-14",
-        "2026-10-21"
-      ],
-      "startDate": "2026-09-23",
-      "venue": "Sri Wangsaria Condominium, Bangsar, KL",
-      "venueContact": {
-        "name": "TBC",
-        "phone": "TBC",
-        "email": "TBC"
-      },
-      "venueSalesRep": {
-        "name": "TBC",
-        "phone": "TBC",
-        "email": "TBC"
-      }
-    },
-    {
       "id": "masterclass-wednesday-2",
       "programme": "masterclass",
       "programmeName": "Strategy Led Masterclass",
@@ -316,33 +289,6 @@
         "2027-10-13"
       ],
       "startDate": "2027-09-15",
-      "venue": "Sri Wangsaria Condominium, Bangsar, KL",
-      "venueContact": {
-        "name": "TBC",
-        "phone": "TBC",
-        "email": "TBC"
-      },
-      "venueSalesRep": {
-        "name": "TBC",
-        "phone": "TBC",
-        "email": "TBC"
-      }
-    },
-    {
-      "id": "masterclass-thursday-1",
-      "programme": "masterclass",
-      "programmeName": "Strategy Led Masterclass",
-      "track": "thursday",
-      "trackLabel": "Thursdays, 8:30am–4:30pm",
-      "label": "17 Sept – 15 Oct 2026",
-      "sessionDates": [
-        "2026-09-17",
-        "2026-09-24",
-        "2026-10-01",
-        "2026-10-08",
-        "2026-10-15"
-      ],
-      "startDate": "2026-09-17",
       "venue": "Sri Wangsaria Condominium, Bangsar, KL",
       "venueContact": {
         "name": "TBC",
@@ -545,33 +491,6 @@
       }
     },
     {
-      "id": "masterclass-saturday-1",
-      "programme": "masterclass",
-      "programmeName": "Strategy Led Masterclass",
-      "track": "saturday",
-      "trackLabel": "Saturdays, 8:30am–4:30pm",
-      "label": "19 Sept – 17 Oct 2026",
-      "sessionDates": [
-        "2026-09-19",
-        "2026-09-26",
-        "2026-10-03",
-        "2026-10-10",
-        "2026-10-17"
-      ],
-      "startDate": "2026-09-19",
-      "venue": "Sri Wangsaria Condominium, Bangsar, KL",
-      "venueContact": {
-        "name": "TBC",
-        "phone": "TBC",
-        "email": "TBC"
-      },
-      "venueSalesRep": {
-        "name": "TBC",
-        "phone": "TBC",
-        "email": "TBC"
-      }
-    },
-    {
       "id": "masterclass-saturday-2",
       "programme": "masterclass",
       "programmeName": "Strategy Led Masterclass",
@@ -761,76 +680,6 @@
       }
     },
     {
-      "id": "deepdive-sat-1",
-      "programme": "deepdive",
-      "programmeName": "Strategy Led Deep Dive",
-      "track": "saturday",
-      "trackLabel": "Saturday, 8:30am–4:30pm (2hr lunch break)",
-      "label": "29 August 2026",
-      "sessionDates": [
-        "2026-08-29"
-      ],
-      "startDate": "2026-08-29",
-      "venue": "Sri Wangsaria Condominium, Bangsar, KL",
-      "venueContact": {
-        "name": "TBC",
-        "phone": "TBC",
-        "email": "TBC"
-      },
-      "venueSalesRep": {
-        "name": "TBC",
-        "phone": "TBC",
-        "email": "TBC"
-      }
-    },
-    {
-      "id": "deepdive-sun-1",
-      "programme": "deepdive",
-      "programmeName": "Strategy Led Deep Dive",
-      "track": "sunday",
-      "trackLabel": "Sunday, 1pm–9pm (2hr tea break)",
-      "label": "30 August 2026",
-      "sessionDates": [
-        "2026-08-30"
-      ],
-      "startDate": "2026-08-30",
-      "venue": "Sri Wangsaria Condominium, Bangsar, KL",
-      "venueContact": {
-        "name": "TBC",
-        "phone": "TBC",
-        "email": "TBC"
-      },
-      "venueSalesRep": {
-        "name": "TBC",
-        "phone": "TBC",
-        "email": "TBC"
-      }
-    },
-    {
-      "id": "deeperdive-1",
-      "programme": "deeperdive",
-      "programmeName": "Strategy Led Deeper Dive",
-      "track": "wed-thu",
-      "trackLabel": "Wednesday–Thursday, 8:30am–4:30pm",
-      "label": "09 Sept – 10 Sept 2026",
-      "sessionDates": [
-        "2026-09-09",
-        "2026-09-10"
-      ],
-      "startDate": "2026-09-09",
-      "venue": "Sri Wangsaria Condominium, Bangsar, KL",
-      "venueContact": {
-        "name": "TBC",
-        "phone": "TBC",
-        "email": "TBC"
-      },
-      "venueSalesRep": {
-        "name": "TBC",
-        "phone": "TBC",
-        "email": "TBC"
-      }
-    },
-    {
       "id": "deeperdive-2",
       "programme": "deeperdive",
       "programmeName": "Strategy Led Deeper Dive",
@@ -877,10 +726,147 @@
         "phone": "TBC",
         "email": "TBC"
       }
+    },
+    {
+      "id": "deepdive-sat-1",
+      "programme": "deepdive",
+      "programmeName": "Strategy Led Deep Dive",
+      "track": "saturday",
+      "trackLabel": "Saturday, 8:30am–4:30pm",
+      "label": "26 Sept 2026",
+      "sessionDates": [
+        "2026-09-26"
+      ],
+      "startDate": "2026-09-26",
+      "venue": "Sri Wangsaria Condominium, Bangsar, KL",
+      "venueContact": {
+        "name": "TBC",
+        "phone": "TBC",
+        "email": "TBC"
+      },
+      "venueSalesRep": {
+        "name": "TBC",
+        "phone": "TBC",
+        "email": "TBC"
+      }
+    },
+    {
+      "id": "deepdive-sun-1",
+      "programme": "deepdive",
+      "programmeName": "Strategy Led Deep Dive",
+      "track": "sunday",
+      "trackLabel": "Sunday, 1pm–9pm",
+      "label": "27 Sept 2026",
+      "sessionDates": [
+        "2026-09-27"
+      ],
+      "startDate": "2026-09-27",
+      "venue": "Sri Wangsaria Condominium, Bangsar, KL",
+      "venueContact": {
+        "name": "TBC",
+        "phone": "TBC",
+        "email": "TBC"
+      },
+      "venueSalesRep": {
+        "name": "TBC",
+        "phone": "TBC",
+        "email": "TBC"
+      }
+    },
+    {
+      "id": "deepdive-sat-2",
+      "programme": "deepdive",
+      "programmeName": "Strategy Led Deep Dive",
+      "track": "saturday",
+      "trackLabel": "Saturday, 8:30am–4:30pm",
+      "label": "24 Oct 2026",
+      "sessionDates": [
+        "2026-10-24"
+      ],
+      "startDate": "2026-10-24",
+      "venue": "Sri Wangsaria Condominium, Bangsar, KL",
+      "venueContact": {
+        "name": "TBC",
+        "phone": "TBC",
+        "email": "TBC"
+      },
+      "venueSalesRep": {
+        "name": "TBC",
+        "phone": "TBC",
+        "email": "TBC"
+      }
+    },
+    {
+      "id": "deepdive-sun-2",
+      "programme": "deepdive",
+      "programmeName": "Strategy Led Deep Dive",
+      "track": "sunday",
+      "trackLabel": "Sunday, 1pm–9pm",
+      "label": "25 Oct 2026",
+      "sessionDates": [
+        "2026-10-25"
+      ],
+      "startDate": "2026-10-25",
+      "venue": "Sri Wangsaria Condominium, Bangsar, KL",
+      "venueContact": {
+        "name": "TBC",
+        "phone": "TBC",
+        "email": "TBC"
+      },
+      "venueSalesRep": {
+        "name": "TBC",
+        "phone": "TBC",
+        "email": "TBC"
+      }
+    },
+    {
+      "id": "deepdive-sat-3",
+      "programme": "deepdive",
+      "programmeName": "Strategy Led Deep Dive",
+      "track": "saturday",
+      "trackLabel": "Saturday, 8:30am–4:30pm",
+      "label": "21 Nov 2026",
+      "sessionDates": [
+        "2026-11-21"
+      ],
+      "startDate": "2026-11-21",
+      "venue": "Sri Wangsaria Condominium, Bangsar, KL",
+      "venueContact": {
+        "name": "TBC",
+        "phone": "TBC",
+        "email": "TBC"
+      },
+      "venueSalesRep": {
+        "name": "TBC",
+        "phone": "TBC",
+        "email": "TBC"
+      }
+    },
+    {
+      "id": "deepdive-sun-3",
+      "programme": "deepdive",
+      "programmeName": "Strategy Led Deep Dive",
+      "track": "sunday",
+      "trackLabel": "Sunday, 1pm–9pm",
+      "label": "22 Nov 2026",
+      "sessionDates": [
+        "2026-11-22"
+      ],
+      "startDate": "2026-11-22",
+      "venue": "Sri Wangsaria Condominium, Bangsar, KL",
+      "venueContact": {
+        "name": "TBC",
+        "phone": "TBC",
+        "email": "TBC"
+      },
+      "venueSalesRep": {
+        "name": "TBC",
+        "phone": "TBC",
+        "email": "TBC"
+      }
     }
   ],
   "salesReps": {},
-  "earlyBirdDaysBeforeEvent": 15,
   "venues": [
     {
       "id": "sri-wangsaria",
@@ -913,5 +899,9 @@
       "end": "2027-03-17",
       "reason": "Chinese New Year into Ramadan and Hari Raya Aidilfitri (avoid entire block per Malaysia training-calendar guidance, not just the gazetted days)"
     }
-  ]
+  ],
+  "minDaysToList": 40,
+  "earlyBirdEndsDaysOut": 20,
+  "fireSaleEndsDaysOut": 15,
+  "fireSaleDiscount": 0.5
 }

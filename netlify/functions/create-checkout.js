@@ -135,7 +135,7 @@ exports.handler = async (event) => {
             unit_amount: pricing.perSeat,
             product_data: {
               name: `${pricing.cohort.programmeName} — ${pricing.cohort.label}`,
-              description: `${seatCount} delegate seat(s)${pricing.earlyBirdApplied ? ' · Early-bird rate' : ''}${pricing.seatDiscountApplied ? ' · Multi-seat discount' : ''}${pricing.venue ? ' · Venue: ' + pricing.venue.name : ''}. Delegate details aren't needed to book — after payment we'll email your Booking Contact a short form to add each delegate's name, position and company.`
+              description: `${seatCount} delegate seat(s)${pricing.earlyBirdApplied ? ' · Early-bird rate' : ''}${pricing.fireSaleApplied ? ' · Fire Sale rate (50% off)' : ''}${pricing.seatDiscountApplied ? ' · Multi-seat discount' : ''}${pricing.venue ? ' · Venue: ' + pricing.venue.name : ''}. Delegate details aren't needed to book — after payment we'll email your Booking Contact a short form to add each delegate's name, position and company.`
             }
           },
           quantity: seatCount

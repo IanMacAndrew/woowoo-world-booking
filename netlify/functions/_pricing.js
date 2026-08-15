@@ -12,28 +12,69 @@ function getProgramme(programmeKey) {
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
-// Early-bird rule, applied identically to every cohort/event: it's
-// available with no start restriction, and switches off automatically
-// N days (earlyBirdDaysBeforeEvent, default 15) before that specific
-// cohort's own date. Computed from each cohort's startDate rather than a
-// stored window, so a new cohort (a fresh Bootcamp date, a weekday
-// top-up) gets the correct cutoff automatically without anyone having to
-// remember to compute and set it by hand.
-function isEarlyBirdActive(cohort, now = new Date()) {
-  const daysBefore = cohortsData.earlyBirdDaysBeforeEvent ?? 15;
+// Sale lifecycle for every cohort, computed purely from its own startDate —
+// no per-cohort window needs setting by hand:
+//
+//   40+ days out : cohort is listed at all (gives reps a full 20-day
+//                   Early-Bird selling window before Fire Sale starts)
+//   20-39 days out: Early Bird (each format's own earlyBirdDiscount, e.g.
+//                   60% for Masterclass, 50% for Deep/Deeper Dive)
+//   15-19 days out: Fire Sale — flat 50% off for every format, reps earn
+//                   no commission on Fire Sale sales (see _commission.js)
+//   <15 days out : Closed, no further bookings. This 15-day floor is
+//                   deliberate, not arbitrary — HRD Corp bans any grant
+//                   modification within 14 days of an event, so closing
+//                   sales at 15 leaves a 1-day safety buffer before that
+//                   lock rather than running right up against it.
+const SALE_PHASES = {
+  get MIN_DAYS_TO_LIST() { return cohortsData.minDaysToList ?? 40; },
+  get EARLY_BIRD_ENDS_DAYS_OUT() { return cohortsData.earlyBirdEndsDaysOut ?? 20; },
+  get FIRE_SALE_ENDS_DAYS_OUT() { return cohortsData.fireSaleEndsDaysOut ?? 15; },
+  get FIRE_SALE_DISCOUNT() { return cohortsData.fireSaleDiscount ?? 0.5; },
+};
+
+function daysUntilStart(cohort, now = new Date()) {
   const eventStart = new Date(cohort.startDate + 'T00:00:00+08:00'); // Malaysia time
-  const cutoff = new Date(eventStart.getTime() - daysBefore * MS_PER_DAY + (23 * 60 + 59) * 60 * 1000); // end of that cutoff day
-  return now <= cutoff;
+  return Math.floor((eventStart.getTime() - now.getTime()) / MS_PER_DAY);
+}
+
+// 'listed' means "40+ days out" — whether a cohort should appear at all.
+// A cohort already listed keeps counting down through its own lifecycle
+// as time passes; this only gates first appearance, not ongoing display.
+function isCohortListed(cohort, now = new Date()) {
+  return daysUntilStart(cohort, now) >= SALE_PHASES.MIN_DAYS_TO_LIST;
+}
+
+// 'early-bird' | 'fire-sale' | 'closed'
+function salePhase(cohort, now = new Date()) {
+  const d = daysUntilStart(cohort, now);
+  if (d >= SALE_PHASES.EARLY_BIRD_ENDS_DAYS_OUT) return 'early-bird';
+  if (d >= SALE_PHASES.FIRE_SALE_ENDS_DAYS_OUT) return 'fire-sale';
+  return 'closed';
+}
+
+function isEarlyBirdActive(cohort, now = new Date()) {
+  return salePhase(cohort, now) === 'early-bird';
+}
+
+function isFireSaleActive(cohort, now = new Date()) {
+  return salePhase(cohort, now) === 'fire-sale';
+}
+
+function isSaleClosed(cohort, now = new Date()) {
+  return salePhase(cohort, now) === 'closed';
 }
 
 function earlyBirdCutoffDate(cohort) {
-  const daysBefore = cohortsData.earlyBirdDaysBeforeEvent ?? 15;
   const [y, m, d] = cohort.startDate.split('-').map(Number);
-  // Pure calendar-date subtraction — Date.UTC here is just neutral scratch
-  // space for the arithmetic, not a real timezone-aware instant, so no
-  // day is lost converting back to a Y-M-D string afterward.
-  const cutoff = new Date(Date.UTC(y, m - 1, d) - daysBefore * MS_PER_DAY);
+  const cutoff = new Date(Date.UTC(y, m - 1, d) - SALE_PHASES.EARLY_BIRD_ENDS_DAYS_OUT * MS_PER_DAY);
   return cutoff.toISOString().slice(0, 10);
+}
+
+function fireSaleEndDate(cohort) {
+  const [y, m, d] = cohort.startDate.split('-').map(Number);
+  const end = new Date(Date.UTC(y, m - 1, d) - SALE_PHASES.FIRE_SALE_ENDS_DAYS_OUT * MS_PER_DAY);
+  return end.toISOString().slice(0, 10);
 }
 
 function seatTierDiscount(seatCount, programme) {
@@ -59,19 +100,38 @@ function calculatePricing({ cohortId, seatCount, bookingProtection, venueId, now
   const cohort = getCohort(cohortId);
   if (!cohort) throw new Error('Unknown cohort: ' + cohortId);
 
+  const phase = salePhase(cohort, now);
+  if (phase === 'closed') {
+    throw new Error('Sales for this cohort have closed. Delegates within 15 days of the start date can no longer be added — this keeps every booking inside HRD Corp\u2019s 14-day claim window.');
+  }
+
   const programme = getProgramme(cohort.programme);
-  const minSeats = programme.minSeats || 1;
   const maxSeats = programme.maxSeats || cohortsData.maxSeats;
-  if (seatCount < minSeats || seatCount > maxSeats) {
-    throw new Error(`Seat count must be between ${minSeats} and ${maxSeats}`);
+  // NOTE: programme.minSeats (e.g. Masterclass's 12) is a COHORT-level fill
+  // target, not a per-purchase floor — multiple companies each buying a
+  // handful of seats is exactly how a cohort is meant to reach it. A single
+  // checkout only ever needs at least 1 seat; whether the cohort as a whole
+  // has cleared its minimum by the early-bird deadline is checked
+  // separately (see checkCohortMinimums in _commission.js) and drives the
+  // fire-sale rescue flow, not checkout eligibility.
+  if (seatCount < 1 || seatCount > maxSeats) {
+    throw new Error(`Seat count must be between 1 and ${maxSeats}`);
   }
 
   const basePerSeat = programme.basePrice;
 
-  const earlyBird = isEarlyBirdActive(cohort, now);
+  const earlyBird = phase === 'early-bird';
+  const fireSale = phase === 'fire-sale';
   const seatDiscount = seatTierDiscount(seatCount, programme);
 
-  const earlyBirdAmount = earlyBird ? Math.round(basePerSeat * programme.earlyBirdDiscount) : 0;
+  // Fire Sale is a flat 50% off for every format, replacing (not stacking
+  // with) that format's own early-bird rate — it's a distinct, simpler
+  // clearance mechanism, not an extension of early-bird.
+  const earlyBirdAmount = earlyBird
+    ? Math.round(basePerSeat * programme.earlyBirdDiscount)
+    : fireSale
+      ? Math.round(basePerSeat * SALE_PHASES.FIRE_SALE_DISCOUNT)
+      : 0;
   const seatDiscountAmount = seatDiscount > 0 ? Math.round(basePerSeat * seatDiscount) : 0;
 
   // Venue surcharge (if any) is a flat per-seat add-on for the catering/venue
@@ -102,7 +162,9 @@ function calculatePricing({ cohortId, seatCount, bookingProtection, venueId, now
     perSeat,
     seatCount,
     total,
+    salePhase: phase,
     earlyBirdApplied: earlyBird,
+    fireSaleApplied: fireSale,
     earlyBirdAmount,
     seatDiscountApplied: seatDiscount,
     seatDiscountAmount,
@@ -116,4 +178,8 @@ function calculatePricing({ cohortId, seatCount, bookingProtection, venueId, now
   };
 }
 
-module.exports = { getCohort, getProgramme, isEarlyBirdActive, earlyBirdCutoffDate, seatTierDiscount, getVenue, calculatePricing, cohortsData };
+module.exports = {
+  getCohort, getProgramme, isEarlyBirdActive, isFireSaleActive, isSaleClosed,
+  salePhase, isCohortListed, daysUntilStart, earlyBirdCutoffDate, fireSaleEndDate,
+  seatTierDiscount, getVenue, calculatePricing, cohortsData, SALE_PHASES
+};
