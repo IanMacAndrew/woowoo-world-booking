@@ -35,3 +35,9 @@
 
 [functions."send-sales-reports"]
   schedule = "0 1 * * *"
+
+[functions."check-cohort-minimums"]
+  schedule = "0 2 * * *"
+
+[functions."send-ops-planning-report"]
+  schedule = "0 3 * * *"

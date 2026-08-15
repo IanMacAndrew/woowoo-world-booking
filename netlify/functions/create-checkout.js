@@ -2,16 +2,20 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const { getStore } = require('./_blobs');
 const { calculatePricing, cohortsData, getCohort, getProgramme, getVenue } = require('./_pricing');
 
+function jsonError(statusCode, error) {
+  return { statusCode, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error }) };
+}
+
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Method not allowed' };
+    return jsonError(405, 'Method not allowed');
   }
 
   let payload;
   try {
     payload = JSON.parse(event.body);
   } catch (e) {
-    return { statusCode: 400, body: 'Invalid JSON' };
+    return jsonError(400, 'Invalid request — please refresh the page and try again.');
   }
 
   const { cohortId, seatCount: rawSeatCount, bookingContact, salesRepCode, bookingProtection, tosAccepted, transferCode, venueId } = payload;
@@ -19,23 +23,23 @@ exports.handler = async (event) => {
   const creditCode = (transferCode || '').trim().toUpperCase();
 
   if (!tosAccepted) {
-    return { statusCode: 400, body: 'You must accept the Terms of Service and Privacy Policy to continue.' };
+    return jsonError(400, 'You must accept the Terms of Service and Privacy Policy to continue.');
   }
 
   const seatCount = parseInt(rawSeatCount, 10);
   if (!seatCount || seatCount < 1) {
-    return { statusCode: 400, body: 'At least one delegate seat is required' };
+    return jsonError(400, 'At least one delegate seat is required');
   }
   const contactName = (bookingContact && bookingContact.name || '').trim();
   const contactEmail = (bookingContact && bookingContact.email || '').trim();
   if (!contactName || !contactEmail) {
-    return { statusCode: 400, body: 'Booking Contact name and email are required' };
+    return jsonError(400, 'Booking Contact name and email are required');
   }
   const contactPhone = (bookingContact && bookingContact.phone || '').trim();
 
   const cohort = getCohort(cohortId);
   if (!cohort) {
-    return { statusCode: 400, body: 'Unknown cohort' };
+    return jsonError(400, 'Unknown cohort — please refresh the page and select a date again.');
   }
   const programme = getProgramme(cohort.programme);
   const maxSeatsForCohort = programme.maxSeats || cohortsData.maxSeats;
@@ -43,22 +47,23 @@ exports.handler = async (event) => {
   const store = getStore('bookings');
 
   // Re-check capacity right before checkout so we never oversell
-  const raw = await store.get(`seats-booked:${cohortId}`);
-  const alreadyBooked = raw ? parseInt(raw, 10) : 0;
+  let alreadyBooked;
+  try {
+    const raw = await store.get(`seats-booked:${cohortId}`);
+    alreadyBooked = raw ? parseInt(raw, 10) : 0;
+  } catch (err) {
+    console.error('Blobs read failed (seats-booked) for', cohortId, err);
+    return jsonError(500, 'Could not check seat availability right now — please try again in a moment.');
+  }
   if (alreadyBooked + seatCount > maxSeatsForCohort) {
-    return {
-      statusCode: 409,
-      body: JSON.stringify({
-        error: `Only ${maxSeatsForCohort - alreadyBooked} seat(s) left in this cohort.`
-      })
-    };
+    return jsonError(409, `Only ${maxSeatsForCohort - alreadyBooked} seat(s) left in this cohort.`);
   }
 
   let pricing;
   try {
     pricing = calculatePricing({ cohortId, seatCount, bookingProtection: !!bookingProtection, venueId });
   } catch (e) {
-    return { statusCode: 400, body: e.message };
+    return jsonError(400, e.message);
   }
 
   // Deep Dive → Masterclass transfer credit (see admin-issue-credit.html).
@@ -69,10 +74,10 @@ exports.handler = async (event) => {
     creditStore = getStore('transfer-credits');
     creditRecord = await creditStore.get(creditCode, { type: 'json' }).catch(() => null);
     if (!creditRecord) {
-      return { statusCode: 400, body: 'Transfer credit code not recognised.' };
+      return jsonError(400, 'Transfer credit code not recognised.');
     }
     if (creditRecord.status !== 'unused') {
-      return { statusCode: 400, body: 'This transfer credit code has already been used.' };
+      return jsonError(400, 'This transfer credit code has already been used.');
     }
     creditAmountApplied = Math.min(creditRecord.amountCents, pricing.grandTotal);
     // Reserve immediately (optimistic — see SETUP.md note on abandoned checkouts).
@@ -85,28 +90,36 @@ exports.handler = async (event) => {
 
   // Store the full delegate roster server-side (Stripe metadata has tight size limits)
   const bookingId = `bk_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-  await store.setJSON(`roster:${bookingId}`, {
-    cohortId,
-    delegates: null,
-    bookingContact: { name: contactName, email: contactEmail, phone: contactPhone },
-    contactEmail,
-    venue: pricing.venue ? pricing.venue.name : cohort.venue,
-    pricing: {
-      perSeat: pricing.perSeat,
-      total: pricing.total,
-      seatCount,
-      discountTier: pricing.discountTier,
-      venueSurchargePerSeat: pricing.venueSurchargePerSeat,
-      bookingProtectionSelected: pricing.bookingProtectionSelected,
-      bookingProtectionFee: pricing.bookingProtectionFee,
-      grandTotal: pricing.grandTotal
-    },
-    salesRepCode: repCode,
-    transferCredit: creditCode ? { code: creditCode, amountApplied: creditAmountApplied } : null,
-    tosAcceptedAt: new Date().toISOString(),
-    createdAt: new Date().toISOString(),
-    status: 'pending'
-  });
+  try {
+    await store.setJSON(`roster:${bookingId}`, {
+      cohortId,
+      delegates: null,
+      bookingContact: { name: contactName, email: contactEmail, phone: contactPhone },
+      contactEmail,
+      venue: pricing.venue ? pricing.venue.name : cohort.venue,
+      pricing: {
+        perSeat: pricing.perSeat,
+        total: pricing.total,
+        seatCount,
+        discountTier: pricing.discountTier,
+        venueSurchargePerSeat: pricing.venueSurchargePerSeat,
+        bookingProtectionSelected: pricing.bookingProtectionSelected,
+        bookingProtectionFee: pricing.bookingProtectionFee,
+        grandTotal: pricing.grandTotal
+      },
+      salesRepCode: repCode,
+      transferCredit: creditCode ? { code: creditCode, amountApplied: creditAmountApplied } : null,
+      tosAcceptedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      status: 'pending'
+    });
+  } catch (err) {
+    console.error('Blobs write failed (roster) for', bookingId, err);
+    if (creditCode && creditStore && creditRecord) {
+      await creditStore.setJSON(creditCode, { ...creditRecord, status: 'unused', redeemedAt: null }).catch(() => {});
+    }
+    return jsonError(500, 'Could not save your booking right now — please try again in a moment.');
+  }
 
   const siteUrl = process.env.URL || 'https://woowoo.world';
 
@@ -179,6 +192,7 @@ exports.handler = async (event) => {
     if (creditCode && creditStore && creditRecord) {
       await creditStore.setJSON(creditCode, { ...creditRecord, status: 'unused', redeemedAt: null }).catch(() => {});
     }
-    return { statusCode: 500, body: 'Could not start checkout — please try again.' };
+    console.error('Stripe checkout session creation failed for booking', bookingId, '—', err && err.message, err && err.type, err && err.code);
+    return jsonError(500, (err && err.message) || 'Could not start checkout — please try again.');
   }
 };

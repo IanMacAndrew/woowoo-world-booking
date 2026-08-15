@@ -164,4 +164,55 @@ async function sendSalesCommissionNotification({ cohort, commission, bookingId }
   });
 }
 
-module.exports = { sendEmail, sendConfirmationEmail, sendOpsNotification, sendDelegateFormLinkEmail, sendOpsAwaitingDelegatesNotification, sendSalesCommissionNotification };
+async function sendMinimumNotMetEmail({ contactEmail, contactName, cohort, booked, minSeats, seatCount, mergeTarget }) {
+  const shortfall = minSeats - booked;
+  const html = `
+    <div style="font-family:sans-serif;color:#1C0333;">
+      <h2>An update on your ${cohort.programmeName} booking</h2>
+      <p>Hi ${contactName || 'there'},</p>
+      <p><strong>${cohort.programmeName}</strong> (${cohort.label}${cohort.trackLabel ? ' \u00b7 ' + cohort.trackLabel : ''}) currently has ${booked} of the ${minSeats} delegates it needs to run, ${shortfall} short of that minimum. Your ${seatCount} seat(s) are safe either way \u2014 this is just to give you options while there's still time to act.</p>
+      <p>Two options over the next 5 days, while Fire Sale pricing (50% off) is live:</p>
+      <ol>
+        <li><strong>Add more delegates now</strong> at the Fire Sale rate, if you'd like to bring more of your team.</li>
+        <li><strong>Do nothing</strong> \u2014 if the cohort still hasn't reached its minimum once the Fire Sale ends, we'll be in touch with alternative dates${mergeTarget ? ` (most likely ${mergeTarget.label})` : ''}, and your existing price will carry over.</li>
+      </ol>
+      <p style="color:#746F82;font-size:12px;">Booking reference on file for your seats. Questions? Reply to this email or contact sales@woowoo.world.</p>
+    </div>`;
+
+  return sendEmail({
+    to: contactEmail,
+    subject: `${cohort.programmeName} (${cohort.label}) \u2014 still ${shortfall} delegate${shortfall === 1 ? '' : 's'} short of minimum`,
+    html
+  });
+}
+
+async function sendOpsMinimumNotMetNotification({ cohort, booked, minSeats, bookings, repCodes, mergeTarget }) {
+  if (!OPS_NOTIFICATION_EMAIL) {
+    console.warn('OPS_NOTIFICATION_EMAIL not set — skipping ops minimum-not-met notification');
+    return { skipped: true };
+  }
+  const contactRows = bookings
+    .map((b) => `<tr><td style="padding:3px 8px 3px 0;">${b.bookingContact ? b.bookingContact.name : ''}</td><td style="padding:3px 8px;">${b.contactEmail}</td><td style="padding:3px 8px;">${b.pricing.seatCount}</td><td style="padding:3px 0;">${b.salesRepCode || 'ISM'}</td></tr>`)
+    .join('');
+
+  const html = `
+    <div style="font-family:sans-serif;color:#1C0333;">
+      <h2>Cohort short of minimum — Fire Sale rescue triggered</h2>
+      <p><strong>${cohort.programmeName}</strong> \u2014 ${cohort.label}${cohort.trackLabel ? ' \u00b7 ' + cohort.trackLabel : ''}</p>
+      <p>${booked} of ${minSeats} delegates booked. Booking Contacts have just been emailed with the option to grow their booking during the 5-day Fire Sale.</p>
+      <p><strong>If still short after the Fire Sale ends</strong>, consider merging with ${mergeTarget ? `<strong>${mergeTarget.id}</strong> (${mergeTarget.label})` : 'the next cohort on this track'} \u2014 existing paid delegates keep their original price.</p>
+      <table style="font-size:13px;width:100%;border-collapse:collapse;margin-top:12px;">
+        <tr style="border-bottom:1px solid #D4D6DC;"><th style="text-align:left;padding:3px 8px 3px 0;">Booking Contact</th><th style="text-align:left;padding:3px 8px;">Email</th><th style="text-align:left;padding:3px 8px;">Seats</th><th style="text-align:left;padding:3px 0;">Sales Rep</th></tr>
+        ${contactRows}
+      </table>
+      <p style="color:#746F82;font-size:12px;margin-top:12px;">Sales rep(s) on this cohort: ${repCodes.length ? repCodes.join(', ') : 'none recorded'}. This alert only fires once per cohort.</p>
+    </div>`;
+
+  return sendEmail({
+    to: [OPS_NOTIFICATION_EMAIL, SALES_NOTIFICATION_EMAIL],
+    subject: `Rescue triggered: ${cohort.programmeName} ${cohort.label} at ${booked}/${minSeats}`,
+    html
+  });
+}
+
+module.exports = { sendEmail, sendConfirmationEmail, sendOpsNotification, sendDelegateFormLinkEmail, sendOpsAwaitingDelegatesNotification, sendSalesCommissionNotification, sendMinimumNotMetEmail, sendOpsMinimumNotMetNotification };
