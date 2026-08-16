@@ -119,25 +119,50 @@ async function sendDelegateFormLinkEmail({ contactEmail, contactName, cohort, se
   });
 }
 
-async function sendOpsAwaitingDelegatesNotification({ cohort, seatCount, pricing, contactName, contactEmail, bookingId }) {
+async function sendOpsAwaitingDelegatesNotification({ cohort, seatCount, pricing, contactName, contactEmail, bookingId, rosterMissing }) {
   if (!OPS_NOTIFICATION_EMAIL) {
     console.warn('OPS_NOTIFICATION_EMAIL not set — skipping ops notification');
     return { skipped: true };
   }
+  const warningBanner = rosterMissing
+    ? `<div style="background:#FDECEC;border:1px solid #9C3B4A;color:#9C3B4A;padding:10px 14px;margin-bottom:14px;font-size:13px;"><strong>Roster record failed to save at checkout</strong> — this booking is reconstructed from Stripe's own session metadata. Full pricing breakdown isn't available here; check the Stripe dashboard for booking ${bookingId} if you need it.</div>`
+    : '';
   const html = `
     <div style="font-family:sans-serif;color:#1C0333;">
+      ${warningBanner}
       <h2>New paid booking — awaiting delegate details</h2>
       <p><strong>${cohort.programmeName}</strong> — ${cohort.label}</p>
       <p>Booking contact: ${contactName} &lt;${contactEmail}&gt;</p>
       <p>Seats purchased: ${seatCount}</p>
-      <p>Total: RM ${((pricing.grandTotal ?? pricing.total) / 100).toLocaleString('en-MY', { minimumFractionDigits: 2 })}</p>
-      <p>Discount tier: <strong>${pricing.discountTier === 'heavy' ? 'Heavily Discounted' : 'Standard Discount'}</strong>${pricing.bookingProtectionSelected ? ' · Booking Protection purchased' : ''}</p>
+      ${pricing ? `<p>Total: RM ${((pricing.grandTotal ?? pricing.total) / 100).toLocaleString('en-MY', { minimumFractionDigits: 2 })}</p>
+      <p>Discount tier: <strong>${pricing.discountTier === 'heavy' ? 'Heavily Discounted' : 'Standard Discount'}</strong>${pricing.bookingProtectionSelected ? ' · Booking Protection purchased' : ''}</p>` : ''}
       <p style="color:#746F82;font-size:12px;">Delegate names will follow once the Booking Contact submits the delegate form. Booking reference: ${bookingId}</p>
     </div>`;
 
   return sendEmail({
     to: OPS_NOTIFICATION_EMAIL,
     subject: `New booking (awaiting delegates): ${seatCount} seat(s) — ${cohort.programmeName} ${cohort.label}`,
+    html
+  });
+}
+
+async function sendOpsRosterWriteFailedAlert({ bookingId, cohort, rosterRecord }) {
+  if (!OPS_NOTIFICATION_EMAIL) {
+    console.warn('OPS_NOTIFICATION_EMAIL not set — skipping roster-write-failed alert');
+    return { skipped: true };
+  }
+  const html = `
+    <div style="font-family:sans-serif;color:#1C0333;">
+      <h2>Roster save failed at checkout — booking is proceeding to payment anyway</h2>
+      <p><strong>${cohort.programmeName}</strong> — ${cohort.label}</p>
+      <p>Booking reference: ${bookingId}</p>
+      <p>Contact: ${rosterRecord.bookingContact.name} &lt;${rosterRecord.contactEmail}&gt;, ${rosterRecord.pricing.seatCount} seat(s)</p>
+      <p style="color:#9C3B4A;">Internal Blobs storage failed for this booking's roster record. The customer was still allowed to pay (we don't block revenue over an internal tracking write). Stripe's own session metadata for this booking carries the same details as a backup — check the Stripe dashboard for booking ${bookingId}. Worth checking whether Netlify Blobs is having a wider issue.</p>
+    </div>`;
+
+  return sendEmail({
+    to: OPS_NOTIFICATION_EMAIL,
+    subject: `⚠️ Roster save failed: ${cohort.programmeName} ${cohort.label} (${bookingId})`,
     html
   });
 }
@@ -215,4 +240,4 @@ async function sendOpsMinimumNotMetNotification({ cohort, booked, minSeats, book
   });
 }
 
-module.exports = { sendEmail, sendConfirmationEmail, sendOpsNotification, sendDelegateFormLinkEmail, sendOpsAwaitingDelegatesNotification, sendSalesCommissionNotification, sendMinimumNotMetEmail, sendOpsMinimumNotMetNotification };
+module.exports = { sendEmail, sendConfirmationEmail, sendOpsNotification, sendDelegateFormLinkEmail, sendOpsAwaitingDelegatesNotification, sendSalesCommissionNotification, sendMinimumNotMetEmail, sendOpsMinimumNotMetNotification, sendOpsRosterWriteFailedAlert };

@@ -17,8 +17,7 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 //
 //   40+ days out : cohort is listed at all (gives reps a full 20-day
 //                   Early-Bird selling window before Fire Sale starts)
-//   20-39 days out: Early Bird (each format's own earlyBirdDiscount, e.g.
-//                   60% for Masterclass, 50% for Deep/Deeper Dive)
+//   20-39 days out: Early Bird (60% off, uniform across every format)
 //   15-19 days out: Fire Sale — flat 50% off for every format, reps earn
 //                   no commission on Fire Sale sales (see _commission.js)
 //   <15 days out : Closed, no further bookings. This 15-day floor is
@@ -92,8 +91,8 @@ function getVenue(venueId) {
 //
 // IMPORTANT: discounts are ADDITIVE off the base price, not compounded/stacked.
 // This mirrors the 1-Day Deep Dive pricing model exactly — e.g. the early-bird
-// discount (50%) and a 10-19 delegate group discount (15%) together take 65%
-// off base, not 1 - (0.5 * 0.85) = ~57.5%. Stacking multiplicatively would
+// discount (60%) and a 10-19 delegate group discount (15%) together take 75%
+// off base, not 1 - (0.4 * 0.85) = 66%. Stacking multiplicatively would
 // silently undercharge/overcharge relative to the published tables, so don't
 // "simplify" this back to perSeat *= (1 - discount) chains.
 function calculatePricing({ cohortId, seatCount, bookingProtection, venueId, now = new Date() }) {

@@ -49,15 +49,23 @@ exports.handler = async (event) => {
     // Increment confirmed seat count for the cohort
     await store.set(`seats-booked:${cohortId}`, String(attendanceAfter));
 
-    // Issue a one-time delegate-form token and email the Booking Contact
-    if (roster) {
+    // Issue a one-time delegate-form token and email the Booking Contact.
+    // Prefer the internal roster record, but fall back to the Stripe
+    // session's own metadata if the roster write failed at checkout time
+    // (see rosterWriteFailed flag) — either way, a paid customer still gets
+    // their delegate-form email and ops still gets visibility.
+    const contactEmail = roster ? roster.contactEmail : session.metadata.contactEmail;
+    const contactName = roster ? (roster.bookingContact && roster.bookingContact.name) : session.metadata.contactName;
+    const effectiveSeatCount = roster ? roster.pricing.seatCount : seatCountNum;
+
+    if (contactEmail) {
       const baseCohort = getCohort(cohortId);
-      const cohort = { ...baseCohort, venue: roster.venue || baseCohort.venue };
+      const cohort = { ...baseCohort, venue: (roster && roster.venue) || session.metadata.venue || baseCohort.venue };
       try {
         const token = crypto.randomBytes(24).toString('hex');
         await store.setJSON(`delegate-form:${token}`, {
           bookingId,
-          seatCount: roster.pricing.seatCount,
+          seatCount: effectiveSeatCount,
           used: false,
           createdAt: new Date().toISOString()
         });
@@ -66,27 +74,30 @@ exports.handler = async (event) => {
         const formUrl = `${siteUrl}/delegate-form?token=${token}`;
 
         await sendDelegateFormLinkEmail({
-          contactEmail: roster.contactEmail,
-          contactName: roster.bookingContact && roster.bookingContact.name,
+          contactEmail,
+          contactName,
           cohort,
-          seatCount: roster.pricing.seatCount,
+          seatCount: effectiveSeatCount,
           bookingId,
           formUrl
         });
 
         await sendOpsAwaitingDelegatesNotification({
           cohort,
-          seatCount: roster.pricing.seatCount,
-          pricing: roster.pricing,
-          contactName: roster.bookingContact && roster.bookingContact.name,
-          contactEmail: roster.contactEmail,
-          bookingId
+          seatCount: effectiveSeatCount,
+          pricing: roster ? roster.pricing : null,
+          contactName,
+          contactEmail,
+          bookingId,
+          rosterMissing: !roster
         });
       } catch (err) {
         // Payment already succeeded — never let an email failure block that.
         // Log it so it surfaces in Netlify's function logs for follow-up.
         console.error('Post-payment notification failed for booking', bookingId, err);
       }
+    } else {
+      console.error('No contact email available (roster missing AND no metadata fallback) for booking', bookingId, '— manual follow-up needed via Stripe dashboard.');
     }
   }
 

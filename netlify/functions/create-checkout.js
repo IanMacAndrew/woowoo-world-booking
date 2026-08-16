@@ -46,16 +46,21 @@ exports.handler = async (event) => {
 
   const store = getStore('bookings');
 
-  // Re-check capacity right before checkout so we never oversell
-  let alreadyBooked;
+  // Re-check capacity right before checkout so we never oversell. If the
+  // read itself fails (Blobs has proven unreliable), fail OPEN, not closed —
+  // a hiccup here should never block a paying customer. Worst case is a
+  // very rare, very small oversell during an actual outage; that's a far
+  // better trade than turning away every customer whenever Blobs blips.
+  let alreadyBooked = 0;
+  let capacityCheckFailed = false;
   try {
     const raw = await store.get(`seats-booked:${cohortId}`);
     alreadyBooked = raw ? parseInt(raw, 10) : 0;
   } catch (err) {
-    console.error('Blobs read failed (seats-booked) for', cohortId, err);
-    return jsonError(500, 'Could not check seat availability right now — please try again in a moment.');
+    console.error('Blobs read failed (seats-booked) for', cohortId, '— proceeding without a capacity check:', err);
+    capacityCheckFailed = true;
   }
-  if (alreadyBooked + seatCount > maxSeatsForCohort) {
+  if (!capacityCheckFailed && alreadyBooked + seatCount > maxSeatsForCohort) {
     return jsonError(409, `Only ${maxSeatsForCohort - alreadyBooked} seat(s) left in this cohort.`);
   }
 
@@ -88,37 +93,47 @@ exports.handler = async (event) => {
     });
   }
 
-  // Store the full delegate roster server-side (Stripe metadata has tight size limits)
+  // Store the full delegate roster server-side (Stripe metadata has tight size limits).
+  // If this write fails, we still let the customer pay — Stripe's own session
+  // metadata (set below) carries enough to manually reconstruct the roster,
+  // and that's a far better outcome than blocking a paying customer over an
+  // internal tracking write. We do send a loud, best-effort ops alert so a
+  // human follows up rather than this failing silently.
   const bookingId = `bk_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const rosterRecord = {
+    cohortId,
+    delegates: null,
+    bookingContact: { name: contactName, email: contactEmail, phone: contactPhone },
+    contactEmail,
+    venue: pricing.venue ? pricing.venue.name : cohort.venue,
+    pricing: {
+      perSeat: pricing.perSeat,
+      total: pricing.total,
+      seatCount,
+      discountTier: pricing.discountTier,
+      venueSurchargePerSeat: pricing.venueSurchargePerSeat,
+      bookingProtectionSelected: pricing.bookingProtectionSelected,
+      bookingProtectionFee: pricing.bookingProtectionFee,
+      grandTotal: pricing.grandTotal
+    },
+    salesRepCode: repCode,
+    transferCredit: creditCode ? { code: creditCode, amountApplied: creditAmountApplied } : null,
+    tosAcceptedAt: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+    status: 'pending'
+  };
+  let rosterWriteFailed = false;
   try {
-    await store.setJSON(`roster:${bookingId}`, {
-      cohortId,
-      delegates: null,
-      bookingContact: { name: contactName, email: contactEmail, phone: contactPhone },
-      contactEmail,
-      venue: pricing.venue ? pricing.venue.name : cohort.venue,
-      pricing: {
-        perSeat: pricing.perSeat,
-        total: pricing.total,
-        seatCount,
-        discountTier: pricing.discountTier,
-        venueSurchargePerSeat: pricing.venueSurchargePerSeat,
-        bookingProtectionSelected: pricing.bookingProtectionSelected,
-        bookingProtectionFee: pricing.bookingProtectionFee,
-        grandTotal: pricing.grandTotal
-      },
-      salesRepCode: repCode,
-      transferCredit: creditCode ? { code: creditCode, amountApplied: creditAmountApplied } : null,
-      tosAcceptedAt: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      status: 'pending'
-    });
+    await store.setJSON(`roster:${bookingId}`, rosterRecord);
   } catch (err) {
-    console.error('Blobs write failed (roster) for', bookingId, err);
-    if (creditCode && creditStore && creditRecord) {
-      await creditStore.setJSON(creditCode, { ...creditRecord, status: 'unused', redeemedAt: null }).catch(() => {});
+    rosterWriteFailed = true;
+    console.error('Blobs write failed (roster) for', bookingId, '— proceeding to Stripe anyway, roster metadata is duplicated onto the Stripe session:', err);
+    try {
+      const { sendOpsRosterWriteFailedAlert } = require('./_email');
+      await sendOpsRosterWriteFailedAlert({ bookingId, cohort, rosterRecord });
+    } catch (alertErr) {
+      console.error('Ops alert for failed roster write ALSO failed:', alertErr);
     }
-    return jsonError(500, 'Could not save your booking right now — please try again in a moment.');
   }
 
   const siteUrl = process.env.URL || 'https://woowoo.world';
@@ -176,7 +191,8 @@ exports.handler = async (event) => {
         transferCreditCode: creditCode || 'none',
         transferCreditApplied: String(creditAmountApplied),
         contactName,
-        contactEmail
+        contactEmail,
+        rosterWriteFailed: rosterWriteFailed ? 'yes' : 'no'
       },
       success_url: `${siteUrl}/booking-confirmed?booking=${bookingId}`,
       cancel_url: `${siteUrl}/booking-cancelled?booking=${bookingId}`

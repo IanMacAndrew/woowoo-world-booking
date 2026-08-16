@@ -103,13 +103,13 @@
     "deepdive": {
       "format": "deepdive",
       "basePrice": 175000,
-      "earlyBirdDiscount": 0.5,
+      "earlyBirdDiscount": 0.6,
       "minSeats": 10
     },
     "deeperdive": {
       "format": "deeperdive",
       "basePrice": 350000,
-      "earlyBirdDiscount": 0.5,
+      "earlyBirdDiscount": 0.6,
       "minSeats": 10
     }
   },
