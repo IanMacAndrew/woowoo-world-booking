@@ -33,6 +33,11 @@
   to = "/hrd-corp-eligibility.html"
   status = 200
 
+[[redirects]]
+  from = "/how-the-sales-code-works"
+  to = "/how-the-sales-code-works.html"
+  status = 200
+
 [functions."send-sales-reports"]
   schedule = "0 1 * * *"
 

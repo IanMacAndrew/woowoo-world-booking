@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How the Sales Code Works — WooWoo World</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1C0333; --paper:#F4F2F8; --paper-dim:#E9ECF2;
+    --brass:#C79529; --brass-dark:#97711F; --line:#D4D6DC;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--paper); color:var(--ink); font-family:'Inter',sans-serif; line-height:1.65;}
+  h1,h2{font-family:'Newsreader',serif;}
+  header{max-width:760px; margin:0 auto; padding:56px 24px 32px; border-bottom:1px solid var(--line);}
+  .eyebrow{font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.14em; text-transform:uppercase; color:var(--brass-dark); margin-bottom:14px;}
+  h1{font-size:clamp(28px,4vw,40px); font-weight:500; font-style:italic;}
+  main{max-width:760px; margin:0 auto; padding:40px 24px 96px;}
+  section{margin-bottom:38px;}
+  h2{font-size:19px; font-weight:500; margin-bottom:12px; color:var(--brass-dark);}
+  h3{font-size:15px; font-weight:600; margin:16px 0 6px;}
+  p{margin-bottom:10px; font-size:15px; color:#2B2438;}
+  ul, ol{margin:8px 0 12px 22px; font-size:15px; color:#2B2438;}
+  li{margin-bottom:6px;}
+  a{color:var(--brass-dark);}
+  table{width:100%; border-collapse:collapse; margin:14px 0; font-size:13.5px;}
+  th, td{text-align:left; padding:10px 12px; border:1px solid var(--line); vertical-align:top;}
+  th{background:var(--paper-dim); font-family:'IBM Plex Mono',monospace; font-size:10.5px; text-transform:uppercase;}
+  .note{background:var(--paper-dim); border:1px solid var(--line); padding:14px 18px; font-size:13.5px; color:#5C566B; margin:14px 0;}
+  .card{border-radius:12px; padding:20px 22px; margin-bottom:14px; border:1px solid var(--line);}
+  .card.credit{background:#FBF3E8; border-color:var(--brass);}
+  .card.commission{background:#F4F2F8; border-color:var(--ink);}
+  .card.house{background:#fff;}
+  .card h3{margin-top:0; font-size:16px;}
+  .tag{display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; padding:2px 8px; border-radius:3px; background:#E9ECF2; color:var(--brass-dark); margin-bottom:8px;}
+  footer{max-width:760px; margin:0 auto; padding:32px 24px 64px; font-size:12px; color:#8F8A9C; border-top:1px solid var(--line);}
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">WooWoo World</div>
+  <h1>How the Sales Code Works</h1>
+  <p style="margin-top:12px; color:#5C566B; font-size:14px;">What happens with the "Sales code" field at checkout — and how booking directly can put money back in your pocket.</p>
+</header>
+<main>
+  <section>
+    <p>At checkout, you'll see a <strong>Sales code</strong> field pre-filled with <code>ISM</code>. What you do with that one field decides whether this booking earns you anything extra. There are three options, and they're entirely your choice.</p>
+  </section>
+
+  <section>
+    <div class="card house">
+      <span class="tag">Option 1</span>
+      <h3>Leave it as ISM</h3>
+      <p>The standard house default. You pay the listed price, nothing more to do. This is the right choice if a WooWoo sales rep has already been working with you and you don't know their code, or you'd simply rather not deal with any of this.</p>
+    </div>
+
+    <div class="card credit">
+      <span class="tag">Option 2</span>
+      <h3>Clear the field entirely (remove ISM)</h3>
+      <p>Booking for your own organisation, no sales rep involved? Delete "ISM" so the field is blank. Once your session is confirmed to run (it's hit its minimum delegate count and closed to further sales), we'll email you an account credit — usable on your next WooWoo World booking, any programme.</p>
+      <p>The credit value matches what a sales rep would have earned on the same booking: 5% for 1-3 delegates, 10% for 4-6, 15% for 7 or more.</p>
+    </div>
+
+    <div class="card commission">
+      <span class="tag">Option 3</span>
+      <h3>Type your own initials</h3>
+      <p>Prefer cash-equivalent commission over a future-booking credit? Enter your own initials as if you were your own sales rep. You'll earn standard commission on your own booking — same rates as Option 2, paid the same way a rep is paid, not held back until the cohort locks in.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>The commission/credit rate table</h2>
+    <table>
+      <tr><th>Delegates in your booking</th><th>Rate</th></tr>
+      <tr><td>1–3</td><td>5%</td></tr>
+      <tr><td>4–6</td><td>10%</td></tr>
+      <tr><td>7 or more</td><td>15%</td></tr>
+    </table>
+    <div class="note">Applied to what you actually pay (after any Early-Bird or Fire Sale discount) — not the list price. Only available on Early-Bird bookings; Fire Sale bookings don't carry this benefit.</div>
+  </section>
+
+  <section>
+    <h2>Worked examples</h2>
+    <table>
+      <tr><th>Booking</th><th>You pay</th><th>Rate</th><th>Credit or commission value</th></tr>
+      <tr><td>Deep Dive, 3 delegates</td><td>RM1,837.50</td><td>5%</td><td>RM91.88</td></tr>
+      <tr><td>Deeper Dive, 5 delegates</td><td>RM5,250</td><td>10%</td><td>RM525</td></tr>
+      <tr><td>Masterclass, 8 delegates</td><td>RM21,000</td><td>15%</td><td>RM3,150</td></tr>
+      <tr><td>Masterclass, 12 delegates (the minimum for a cohort to run)</td><td>RM31,500</td><td>15%</td><td>RM4,725</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>Why "once it's confirmed to run"?</h2>
+    <p>Every WooWoo World cohort needs a minimum number of delegates before it goes ahead. If you choose the account-credit option (Option 2), we hold the credit until we know your session is definitely happening — there's no point crediting an account for a session that ends up being rescheduled. If your cohort doesn't hit its minimum, we'll be in touch about your options before your credit is issued.</p>
+    <p>Choosing Option 3 (your own initials, treated as a sales rep) pays out the same way a rep's commission does, without waiting on that confirmation.</p>
+  </section>
+
+  <section>
+    <h2>Questions</h2>
+    <p>Email <a href="mailto:sales@woowoo.world">sales@woowoo.world</a> and we'll help.</p>
+  </section>
+</main>
+<footer>
+  WooWoo World · woowoo.world · woowooworld.co
+</footer>
+</body>
+</html>
