@@ -18,8 +18,16 @@ exports.handler = async (event) => {
     return jsonError(400, 'Invalid request — please refresh the page and try again.');
   }
 
-  const { cohortId, seatCount: rawSeatCount, bookingContact, salesRepCode, bookingProtection, tosAccepted, transferCode, venueId } = payload;
-  const repCode = (salesRepCode || 'ISM').trim().toUpperCase().slice(0, 20) || 'ISM';
+  const { cohortId, seatCount: rawSeatCount, bookingContact, companyName: rawCompanyName, salesRepCode, bookingProtection, tosAccepted, transferCode, venueId } = payload;
+  const companyName = (rawCompanyName || '').trim().slice(0, 120);
+  // Three distinct states: a genuinely blank field means the booking
+  // contact actively cleared "ISM" -> they get an account credit once the
+  // cohort is confirmed to run (see issue-self-credits.js). "ISM" left
+  // untouched is the plain house default -> no commission, no credit.
+  // Anything else typed -> standard commission path, whether that's the
+  // booking contact's own initials or an actual rep's.
+  const rawRepCode = (salesRepCode || '').trim().toUpperCase().slice(0, 20);
+  const repCode = rawRepCode === '' ? 'SELF_CREDIT' : rawRepCode;
   const creditCode = (transferCode || '').trim().toUpperCase();
 
   if (!tosAccepted) {
@@ -34,6 +42,9 @@ exports.handler = async (event) => {
   const contactEmail = (bookingContact && bookingContact.email || '').trim();
   if (!contactName || !contactEmail) {
     return jsonError(400, 'Booking Contact name and email are required');
+  }
+  if (!companyName) {
+    return jsonError(400, 'Company name is required');
   }
   const contactPhone = (bookingContact && bookingContact.phone || '').trim();
 
@@ -105,6 +116,7 @@ exports.handler = async (event) => {
     delegates: null,
     bookingContact: { name: contactName, email: contactEmail, phone: contactPhone },
     contactEmail,
+    companyName,
     venue: pricing.venue ? pricing.venue.name : cohort.venue,
     pricing: {
       perSeat: pricing.perSeat,
@@ -192,6 +204,7 @@ exports.handler = async (event) => {
         transferCreditApplied: String(creditAmountApplied),
         contactName,
         contactEmail,
+        companyName,
         rosterWriteFailed: rosterWriteFailed ? 'yes' : 'no'
       },
       success_url: `${siteUrl}/booking-confirmed?booking=${bookingId}`,

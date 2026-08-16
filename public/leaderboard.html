@@ -33,7 +33,7 @@
 <main>
   <div class="eyebrow">WooWoo World · Sales</div>
   <h1>Leaderboard</h1>
-  <p class="sub">Ranked by cumulative eligible (C-Suite / department head) delegates sold, across all events.</p>
+  <p class="sub">Ranked by total delegates sold, across all cohorts.</p>
   <div id="content"><p class="empty">Loading…</p></div>
 </main>
 <script>
@@ -50,13 +50,14 @@
       <tr>
         <td class="rank">${i + 1}</td>
         <td>${s.repCode}</td>
-        <td>${s.eligibleDelegateCount}</td>
-        <td>${s.currentTier}</td>
+        <td>${s.totalDelegates}</td>
+        <td>${s.cohortsSoldInto}</td>
+        <td>${s.bestSingleCohortCount} (+${Math.round(s.bestSingleCohortBonusRate * 100)}%)</td>
       </tr>
     `).join('');
     el.innerHTML = `
       <table>
-        <thead><tr><th></th><th>Sales Rep</th><th>Eligible Delegates</th><th>Current Tier</th></tr></thead>
+        <thead><tr><th></th><th>Sales Rep</th><th>Total Delegates</th><th>Cohorts</th><th>Best Single Cohort</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
     `;

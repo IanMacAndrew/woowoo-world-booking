@@ -438,7 +438,7 @@
 <div class="rep-bar">
   <label for="global-rep-code">Sales code</label>
   <input type="text" id="global-rep-code" placeholder="e.g. JD" value="ISM" maxlength="20">
-  <span class="note">Attributes this booking to whoever sold it, for commission. Leave as ISM if no one sold it. <a href="/leaderboard" style="color:#97711F;">View leaderboard</a></span>
+  <span class="note">Leave as ISM if a WooWoo rep isn't attributed. <strong>Booking for yourself?</strong> Clear this box entirely for an account credit once your session is confirmed to run, or type your own initials to earn the same reward as a sales commission instead. <a href="/how-the-sales-code-works.html" style="color:#97711F;">How this works</a> · <a href="/leaderboard" style="color:#97711F;">View leaderboard</a></span>
 </div>
 
 <main>
@@ -578,9 +578,17 @@
           <input type="email" id="contact-email" placeholder="you@company.com">
         </div>
         <div>
+          <label for="company-name">Company name</label>
+          <input type="text" id="company-name" placeholder="Your organisation">
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div>
           <label for="contact-phone">Booking Contact phone (optional)</label>
           <input type="text" id="contact-phone" placeholder="+60...">
         </div>
+        <div></div>
       </div>
 
       <div class="field-row" id="venue-row" style="display:none;">
@@ -826,6 +834,7 @@ function selectCohort(id){
   document.getElementById('transfer-code').value = '';
   document.getElementById('contact-name').value = '';
   document.getElementById('contact-email').value = '';
+  document.getElementById('company-name').value = '';
   document.getElementById('contact-phone').value = '';
   document.getElementById('checkout-btn').disabled = true;
 
@@ -925,6 +934,7 @@ document.getElementById('checkout-btn').addEventListener('click', async () => {
   const seatCount = parseInt(document.getElementById('seat-count').value, 10) || 1;
   const contactName = document.getElementById('contact-name').value.trim();
   const contactEmail = document.getElementById('contact-email').value.trim();
+  const companyName = document.getElementById('company-name').value.trim();
   const contactPhone = document.getElementById('contact-phone').value.trim();
 
   if(!contactName){
@@ -934,6 +944,11 @@ document.getElementById('checkout-btn').addEventListener('click', async () => {
   }
   if(!contactEmail){
     statusEl.textContent = 'Please enter the Booking Contact email.';
+    statusEl.className = 'error';
+    return;
+  }
+  if(!companyName){
+    statusEl.textContent = 'Please enter your company name.';
     statusEl.className = 'error';
     return;
   }
@@ -953,6 +968,7 @@ document.getElementById('checkout-btn').addEventListener('click', async () => {
         cohortId: state.selectedCohortId,
         seatCount,
         bookingContact: { name: contactName, email: contactEmail, phone: contactPhone },
+        companyName,
         salesRepCode: document.getElementById('global-rep-code').value,
         bookingProtection: document.getElementById('protection-toggle').checked,
         tosAccepted: document.getElementById('tos-checkbox').checked,

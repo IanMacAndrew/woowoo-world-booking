@@ -2,7 +2,8 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const crypto = require('crypto');
 const { getStore } = require('./_blobs');
 const { getCohort } = require('./_pricing');
-const { sendDelegateFormLinkEmail, sendOpsAwaitingDelegatesNotification } = require('./_email');
+const { sendDelegateFormLinkEmail, sendOpsAwaitingDelegatesNotification, sendSalesCommissionNotification } = require('./_email');
+const { calculateAndRecordCommission } = require('./_commission');
 
 exports.handler = async (event) => {
   const sig = event.headers['stripe-signature'];
@@ -48,6 +49,39 @@ exports.handler = async (event) => {
 
     // Increment confirmed seat count for the cohort
     await store.set(`seats-booked:${cohortId}`, String(attendanceAfter));
+
+    // Commission is calculated immediately at payment, not later at
+    // delegate-form submission — the new scheme only needs seat count and
+    // revenue, not delegate-level eligibility, so there's no reason to wait
+    // on a step the customer might never complete.
+    try {
+      const repCode = session.metadata.salesRepCode;
+      const revenue = roster ? roster.pricing.total : null;
+      const companyName = (roster && roster.companyName) || session.metadata.companyName;
+      if (revenue != null) {
+        const commission = await calculateAndRecordCommission({
+          bookingId,
+          cohortId,
+          repCode,
+          companyName,
+          seatCount: seatCountNum,
+          revenue,
+          createdAt: (roster && roster.createdAt) || new Date().toISOString()
+        });
+        if (commission.eligible) {
+          const baseCohortForCommission = getCohort(cohortId);
+          await sendSalesCommissionNotification({ cohort: baseCohortForCommission, commission, bookingId }).catch((err) =>
+            console.error('Commission notification email failed for booking', bookingId, err)
+          );
+        }
+      } else {
+        console.error('No revenue figure available (roster missing, no fallback) — skipping commission calc for booking', bookingId);
+      }
+    } catch (err) {
+      // Payment already succeeded — a commission-calc failure should never
+      // block that. Log for follow-up.
+      console.error('Commission calculation failed for booking', bookingId, err);
+    }
 
     // Issue a one-time delegate-form token and email the Booking Contact.
     // Prefer the internal roster record, but fall back to the Stripe

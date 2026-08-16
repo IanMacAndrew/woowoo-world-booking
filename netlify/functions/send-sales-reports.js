@@ -22,17 +22,15 @@ async function buildSaleSection(commission) {
   const cohort = getCohort(commission.cohortId);
   const store = getStore('bookings');
   const roster = await store.get(`roster:${commission.bookingId}`, { type: 'json' });
-  const eligibleDelegates = ((roster && roster.delegates) || []).filter((d) => d.eligible);
+  const delegates = (roster && roster.delegates) || [];
 
-  const delegateRows = eligibleDelegates
+  const delegateRows = delegates
     .map((d) => `<tr><td style="padding:3px 8px 3px 0;">${d.name}</td><td style="padding:3px 8px;">${d.position}</td><td style="padding:3px 0;">${d.company}</td></tr>`)
     .join('');
 
   const notes = [];
-  if (commission.payoutType === 'seeding') notes.push('Seeding fee — event had not yet crossed the attendance threshold');
-  if (commission.deepDiveFloorApplied) notes.push('Deep Dive floor applied');
-  if (commission.capacityBonusApplied) notes.push('Capacity-fill bonus applied (pushed event past 80% full)');
-  if (commission.firstTimeCompanyBonusAmount) notes.push(`First-time company bonus: ${money(commission.firstTimeCompanyBonusAmount)} (${(commission.firstTimeCompanies || []).join(', ')})`);
+  notes.push(`${Math.round(commission.companyTierRate * 100)}% company tier (${commission.seatCount} delegate${commission.seatCount === 1 ? '' : 's'})`);
+  if (commission.workshopBonusRate > 0) notes.push(`+${Math.round(commission.workshopBonusRate * 100)}% workshop-volume bonus (${commission.repCumulativeInCohortAfter} cumulative in this cohort)`);
 
   return `
     <div style="border-top:0.5px solid #D4D6DC;padding-top:12px;margin-bottom:12px;">
@@ -42,13 +40,14 @@ async function buildSaleSection(commission) {
         <tr><td style="color:#5C566B;padding:2px 0;">Venue</td><td style="padding:2px 0;">${cohort.venue}</td></tr>
         <tr><td style="color:#5C566B;padding:2px 0;">Venue contact</td><td style="padding:2px 0;">${cohort.venueContact ? `${cohort.venueContact.name} · ${cohort.venueContact.phone} · ${cohort.venueContact.email}` : 'TBC'}</td></tr>
         <tr><td style="color:#5C566B;padding:2px 0;">Venue sales rep</td><td style="padding:2px 0;">${cohort.venueSalesRep ? `${cohort.venueSalesRep.name} · ${cohort.venueSalesRep.phone} · ${cohort.venueSalesRep.email}` : 'TBC'}</td></tr>
-        <tr><td style="color:#5C566B;padding:2px 0;">Eligible delegates</td><td style="padding:2px 0;">${eligibleDelegates.length}</td></tr>
-        <tr><td style="color:#5C566B;padding:2px 0;">Commission</td><td style="padding:2px 0;font-weight:600;">${money(commission.commissionAmount)}</td></tr>
+        <tr><td style="color:#5C566B;padding:2px 0;">Company</td><td style="padding:2px 0;">${commission.companyName || '—'}</td></tr>
+        <tr><td style="color:#5C566B;padding:2px 0;">Delegates</td><td style="padding:2px 0;">${commission.seatCount}</td></tr>
+        <tr><td style="color:#5C566B;padding:2px 0;">Commission</td><td style="padding:2px 0;font-weight:600;">${money(commission.commissionAmount)} (${Math.round(commission.totalRate * 100)}%)</td></tr>
       </table>
       ${delegateRows ? `<table style="font-size:12px;width:100%;border-collapse:collapse;margin-top:6px;color:#5C566B;">
         <tr><th style="text-align:left;padding:2px 8px 2px 0;">Delegate</th><th style="text-align:left;padding:2px 8px;">Position</th><th style="text-align:left;padding:2px 0;">Company</th></tr>
         ${delegateRows}
-      </table>` : ''}
+      </table>` : '<p style="font-size:11px;color:#B0ABBB;margin:6px 0 0;">Delegate names not yet submitted.</p>'}
       ${notes.length ? `<p style="font-size:12px;color:#8F8A9C;margin:6px 0 0;">${notes.join(' · ')}</p>` : ''}
       <p style="font-size:11px;color:#B0ABBB;margin:4px 0 0;">Booking reference: ${commission.bookingId}</p>
     </div>`;

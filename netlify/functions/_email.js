@@ -67,18 +67,11 @@ async function sendConfirmationEmail({ contactEmail, cohort, delegates, pricing,
   });
 }
 
-async function sendOpsNotification({ cohort, delegates, pricing, contactEmail, bookingId, commission }) {
+async function sendOpsNotification({ cohort, delegates, pricing, contactEmail, bookingId }) {
   if (!OPS_NOTIFICATION_EMAIL) {
     console.warn('OPS_NOTIFICATION_EMAIL not set — skipping ops notification');
     return { skipped: true };
   }
-  const commissionHtml = commission
-    ? (commission.eligible
-        ? (commission.payoutType === 'seeding'
-            ? `<p><strong>Seeding fee (${commission.repCode}):</strong> RM ${(commission.commissionAmount / 100).toLocaleString('en-MY', { minimumFractionDigits: 2 })} — ${commission.eligibleDelegateCount} eligible delegate(s), event hasn't yet crossed the attendance threshold. Rep cumulative now ${commission.repCumulativeAfter}</p>`
-            : `<p><strong>Commission (${commission.repCode}):</strong> RM ${(commission.commissionAmount / 100).toLocaleString('en-MY', { minimumFractionDigits: 2 })} — ${commission.eligibleDelegateCount} eligible delegate(s) at ${Math.round(commission.rate * 100)}%, rep cumulative now ${commission.repCumulativeAfter}</p>`)
-        : `<p style="color:#746F82;">No commission on this booking${commission.repCode && commission.repCode !== 'ISM' ? ` for ${commission.repCode}` : ''}: ${commission.reason}</p>`)
-    : '';
   const html = `
     <div style="font-family:sans-serif;color:#1C0333;">
       <h2>New paid booking</h2>
@@ -89,7 +82,6 @@ async function sendOpsNotification({ cohort, delegates, pricing, contactEmail, b
       ${delegateRosterHtml(delegates)}
       <p>Total: RM ${((pricing.grandTotal ?? pricing.total) / 100).toLocaleString('en-MY', { minimumFractionDigits: 2 })} (${pricing.seatCount} seats)</p>
       <p>Discount tier: <strong>${pricing.discountTier === 'heavy' ? 'Heavily Discounted' : 'Standard Discount'}</strong>${pricing.bookingProtectionSelected ? ' · Booking Protection purchased' : ''}</p>
-      ${commissionHtml}
       <p style="color:#746F82;font-size:12px;">Booking reference: ${bookingId}</p>
     </div>`;
 
@@ -173,11 +165,8 @@ async function sendSalesCommissionNotification({ cohort, commission, bookingId }
       <h2>Commission update — ${commission.repCode}</h2>
       <p><strong>${cohort.programmeName}</strong> — ${cohort.label}</p>
       ${commission.eligible
-        ? `<p><strong>RM ${(commission.commissionAmount / 100).toLocaleString('en-MY', { minimumFractionDigits: 2 })}</strong> for ${commission.eligibleDelegateCount} eligible delegate(s)${commission.payoutType === 'seeding' ? ' (seeding fee — event hadn\u2019t yet crossed the attendance threshold)' : ` at ${Math.round(commission.rate * 100)}%`}.</p>
-           ${commission.deepDiveFloorApplied ? '<p>Deep Dive floor applied.</p>' : ''}
-           ${commission.capacityBonusApplied ? '<p>Capacity-fill bonus applied \u2014 this sale pushed the event past 80% full.</p>' : ''}
-           ${commission.firstTimeCompanyBonusAmount ? `<p>First-time company bonus: RM ${(commission.firstTimeCompanyBonusAmount / 100).toLocaleString('en-MY', { minimumFractionDigits: 2 })} (${commission.firstTimeCompanies.join(', ')})</p>` : ''}
-           <p>Cumulative eligible delegates sold: <strong>${commission.repCumulativeAfter}</strong></p>`
+        ? `<p><strong>RM ${(commission.commissionAmount / 100).toLocaleString('en-MY', { minimumFractionDigits: 2 })}</strong> for ${commission.seatCount} delegate(s) at ${Math.round(commission.totalRate * 100)}% (${Math.round(commission.companyTierRate * 100)}% company tier + ${Math.round(commission.workshopBonusRate * 100)}% workshop-volume bonus).</p>
+           <p>Cumulative delegates sold into this cohort: <strong>${commission.repCumulativeInCohortAfter}</strong></p>`
         : `<p>No commission on this booking: ${commission.reason}</p>`}
       <p style="color:#746F82;font-size:12px;">Booking reference: ${bookingId}</p>
     </div>`;
