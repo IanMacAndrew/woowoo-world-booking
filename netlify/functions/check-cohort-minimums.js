@@ -1,9 +1,9 @@
 // Scheduled daily (see netlify.toml). Checks every cohort right as it
-// enters its Fire Sale phase: if it hasn't hit its minimum delegate count,
+// enters its Final Call phase: if it hasn't hit its minimum delegate count,
 // email every Booking Contact who bought into it, and notify sales@ so a
 // human can action the merge/reschedule rescue plan. Fires once per
-// cohort (idempotent via a stored flag), not once per day of the Fire
-// Sale window.
+// cohort (idempotent via a stored flag), not once per day of the Final
+// Call window.
 const { getStore } = require('./_blobs');
 const { cohortsData, getProgramme, salePhase } = require('./_pricing');
 const { sendMinimumNotMetEmail, sendOpsMinimumNotMetNotification } = require('./_email');
@@ -25,7 +25,7 @@ exports.handler = async () => {
 
   for (const cohort of cohortsData.cohorts) {
     const phase = salePhase(cohort);
-    if (phase !== 'fire-sale') continue;
+    if (phase !== 'final-call') continue;
 
     const alreadyAlerted = await store.get(`minimum-alert-sent:${cohort.id}`);
     if (alreadyAlerted) continue;

@@ -669,7 +669,7 @@ const state = { cohorts: [], seats: {}, selectedCohortId: null, rules: null };
 function updatePromoBanner(){
   const el = document.getElementById('promo-banner');
   if (!el) return;
-  el.innerHTML = 'Early-bird pricing runs until 20 days before each session, followed by a 5-day, 50% off Fire Sale — <strong>sales close 15 days before every date</strong>';
+  el.innerHTML = 'Early-bird pricing runs until 20 days before each session, followed by a 5-day, 50% off Final Call — <strong>sales close 15 days before every date</strong>';
 }
 updatePromoBanner();
 
@@ -707,17 +707,17 @@ function isCohortListed(cohort){
 }
 function salePhaseFor(cohort){
   const ebEnds = (state.rules && state.rules.earlyBirdEndsDaysOut) ?? 20;
-  const fsEnds = (state.rules && state.rules.fireSaleEndsDaysOut) ?? 15;
+  const fcEnds = (state.rules && state.rules.finalCallEndsDaysOut) ?? 15;
   const d = daysUntilStart(cohort);
   if (d >= ebEnds) return 'early-bird';
-  if (d >= fsEnds) return 'fire-sale';
+  if (d >= fcEnds) return 'final-call';
   return 'closed';
 }
 function earlyBirdActiveFor(cohort){
   return salePhaseFor(cohort) === 'early-bird';
 }
-function fireSaleActiveFor(cohort){
-  return salePhaseFor(cohort) === 'fire-sale';
+function finalCallActiveFor(cohort){
+  return salePhaseFor(cohort) === 'final-call';
 }
 
 function earlyBirdCutoffDate(cohort){
@@ -726,10 +726,10 @@ function earlyBirdCutoffDate(cohort){
   const cutoff = new Date(Date.UTC(y, m - 1, d) - ebEnds * 24 * 60 * 60 * 1000);
   return cutoff.toISOString().slice(0, 10);
 }
-function fireSaleEndDate(cohort){
-  const fsEnds = (state.rules && state.rules.fireSaleEndsDaysOut) ?? 15;
+function finalCallEndDate(cohort){
+  const fcEnds = (state.rules && state.rules.finalCallEndsDaysOut) ?? 15;
   const [y, m, d] = cohort.startDate.split('-').map(Number);
-  const end = new Date(Date.UTC(y, m - 1, d) - fsEnds * 24 * 60 * 60 * 1000);
+  const end = new Date(Date.UTC(y, m - 1, d) - fcEnds * 24 * 60 * 60 * 1000);
   return end.toISOString().slice(0, 10);
 }
 
@@ -743,7 +743,7 @@ function fmtEbDate(dateStr){
 function renderProgrammeEbNote(elId, pct){
   const el = document.getElementById(elId);
   if(!el) return;
-  el.innerHTML = `<div class="eb-banner" style="margin-bottom:20px; border:1px solid var(--line); padding:10px 16px; font-size:13px;">Early-bird pricing (${pct}% off) runs until 20 days before each session. A 5-day, flat 50% off Fire Sale follows, then sales close 15 days before that date.</div>`;
+  el.innerHTML = `<div class="eb-banner" style="margin-bottom:20px; border:1px solid var(--line); padding:10px 16px; font-size:13px;">Early-bird pricing (${pct}% off) runs until 20 days before each session. A 5-day, flat 50% off Final Call follows, then sales close 15 days before that date.</div>`;
 }
 
 function renderAllEbBanners(){
@@ -778,9 +778,9 @@ function renderCohortList(programme, elId, track){
     if (phase === 'early-bird') {
       phaseLabel = `Early-bird until ${fmtEbDate(earlyBirdCutoffDate(c))}`;
       phaseTag = `<span class="earlybird-tag">Early-bird active</span>`;
-    } else if (phase === 'fire-sale') {
-      phaseLabel = `Fire Sale — 50% off, ends ${fmtEbDate(fireSaleEndDate(c))}`;
-      phaseTag = `<span class="earlybird-tag" style="background:#c0392b;">Fire Sale — 50% off</span>`;
+    } else if (phase === 'final-call') {
+      phaseLabel = `Final Call — 50% off, ends ${fmtEbDate(finalCallEndDate(c))}`;
+      phaseTag = `<span class="earlybird-tag" style="background:#c0392b;">Final Call — 50% off</span>`;
     } else {
       phaseLabel = 'Sales closed for this date';
       phaseTag = '';
@@ -872,16 +872,16 @@ function updatePrice(){
   const base = programme.basePrice;
   const phase = salePhaseFor(c);
   const earlyBird = phase === 'early-bird';
-  const fireSale = phase === 'fire-sale';
+  const finalCall = phase === 'final-call';
   const tiers = programme.seatTiers || state.rules.seatTiers;
   const tier = tiers.find(t => seatCount >= t.min && seatCount <= t.max);
   const seatDiscount = tier ? tier.discount : 0;
 
-  const fireSaleDiscount = state.rules.fireSaleDiscount ?? 0.5;
+  const finalCallDiscount = state.rules.finalCallDiscount ?? 0.5;
   const ebAmount = earlyBird
     ? Math.round(base * programme.earlyBirdDiscount)
-    : fireSale
-      ? Math.round(base * fireSaleDiscount)
+    : finalCall
+      ? Math.round(base * finalCallDiscount)
       : 0;
   const seatAmount = seatDiscount > 0 ? Math.round(base * seatDiscount) : 0;
 
@@ -910,7 +910,7 @@ function updatePrice(){
   const lines = [];
   lines.push(`${fmtRM(base)} base rate`);
   if(earlyBird) lines.push(`- ${fmtRM(ebAmount)} Early-bird (${ebPct}%)`);
-  if(fireSale) lines.push(`- ${fmtRM(ebAmount)} Fire Sale (50% off)`);
+  if(finalCall) lines.push(`- ${fmtRM(ebAmount)} Final Call (50% off)`);
   if(seatDiscount > 0) lines.push(`- ${fmtRM(seatAmount)} multi-seat discount (${Math.round(seatDiscount*100)}%, ${seatCount} delegates)`);
   if(venueSurcharge > 0) lines.push(`+ ${fmtRM(venueSurcharge)} venue upgrade (${venue.name})`);
   lines.push(`${fmtRM(perSeat)} per delegate × ${seatCount} = ${fmtRM(total)}`);

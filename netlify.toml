@@ -38,6 +38,11 @@
   to = "/how-the-sales-code-works.html"
   status = 200
 
+[[redirects]]
+  from = "/how-commissions-work"
+  to = "/how-commissions-work.html"
+  status = 200
+
 [functions."send-sales-reports"]
   schedule = "0 1 * * *"
 
@@ -48,4 +53,7 @@
   schedule = "0 3 * * *"
 
 [functions."issue-self-credits"]
+  schedule = "0 4 * * *"
+
+[functions."release-commission-payouts"]
   schedule = "0 4 * * *"

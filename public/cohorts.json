@@ -2819,6 +2819,6 @@
   ],
   "minDaysToList": 40,
   "earlyBirdEndsDaysOut": 20,
-  "fireSaleEndsDaysOut": 15,
-  "fireSaleDiscount": 0.5
+  "finalCallEndsDaysOut": 15,
+  "finalCallDiscount": 0.5
 }
