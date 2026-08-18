@@ -43,6 +43,11 @@
   to = "/how-commissions-work.html"
   status = 200
 
+[[redirects]]
+  from = "/sign-up"
+  to = "/sign-up.html"
+  status = 200
+
 [functions."send-sales-reports"]
   schedule = "0 1 * * *"
 

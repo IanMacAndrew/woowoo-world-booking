@@ -230,4 +230,25 @@ async function sendOpsMinimumNotMetNotification({ cohort, booked, minSeats, book
   });
 }
 
-module.exports = { sendEmail, sendConfirmationEmail, sendOpsNotification, sendDelegateFormLinkEmail, sendOpsAwaitingDelegatesNotification, sendSalesCommissionNotification, sendMinimumNotMetEmail, sendOpsMinimumNotMetNotification, sendOpsRosterWriteFailedAlert };
+async function sendSalesAgentWelcomeEmail({ legalName, email, salesCode, kind, onboardingUrl }) {
+  const roleLabel = kind === 'booking_contact' ? 'Company Booking Contact' : 'Sales Rep';
+  const html = `
+    <div style="font-family:sans-serif;color:#1C0333;">
+      <h2>Welcome — your ${roleLabel} code is active</h2>
+      <p>Hi ${legalName || 'there'}, your agreement is on file and your sales code <strong>${salesCode}</strong> is now active. Use it at checkout on any booking to earn Rewards.</p>
+      <p>See <a href="https://book.woowoo.world/how-commissions-work">How Commissions &amp; Rewards Work</a> for the full structure and worked examples.</p>
+      <h3 style="margin-top:24px;">One more step — get paid automatically</h3>
+      <p>To receive Rewards by bank transfer, add your Malaysian bank details directly with Stripe, WooWoo World's payment processor. This link takes you straight to Stripe's own secure form — <strong>WooWoo World never sees or stores what you enter there.</strong></p>
+      <p style="margin:24px 0;"><a href="${onboardingUrl}" style="background:#C79529;color:#1C0333;padding:12px 20px;text-decoration:none;font-weight:bold;border-radius:4px;">Add your bank details</a></p>
+      <p style="color:#746F82;font-size:12px;">This link is personal to you and may expire — if it doesn't work, visit book.woowoo.world/sign-up and use the "Skip for now" \u2192 return later option, or contact sales@woowoo.world for a fresh link.</p>
+      <p style="color:#746F82;font-size:12px;">You can skip this for now; your code stays active either way, you'll just need another arrangement to be paid until it's connected.</p>
+    </div>`;
+
+  return sendEmail({
+    to: email,
+    subject: `Welcome to WooWoo World Rewards — your code ${salesCode} is active`,
+    html
+  });
+}
+
+module.exports = { sendEmail, sendConfirmationEmail, sendOpsNotification, sendDelegateFormLinkEmail, sendOpsAwaitingDelegatesNotification, sendSalesCommissionNotification, sendMinimumNotMetEmail, sendOpsMinimumNotMetNotification, sendOpsRosterWriteFailedAlert, sendSalesAgentWelcomeEmail };
