@@ -23,16 +23,26 @@
 //      details anywhere.
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
-async function createConnectAccount({ email, name, kind }) {
+async function createConnectAccount({ email, name, kind, country }) {
   // kind: 'sales_rep' | 'booking_contact' — stored in metadata only, no
   // behavioural difference to Stripe.
+  //
+  // country: ISO 3166-1 alpha-2 (e.g. 'MY', 'GB', 'US'), from the sign-up
+  // form — the agreement is usable worldwide, so this can't be hardcoded
+  // to Malaysia. Only Malaysia's availability under this controller
+  // configuration ("Stripe collects fees and owns loss liability") has
+  // actually been checked against Stripe's own docs for this build —
+  // verify a given country works before onboarding a real person from
+  // it; a few countries have different requirements or aren't eligible
+  // for this exact configuration at all.
   const account = await stripe.accounts.create({
-    country: 'MY',
+    country: country || 'MY',
     email,
     controller: {
       // Stripe collects fees / owns negative-balance risk on this
       // account — the configuration confirmed generally available for
-      // Malaysia (see _stripe-connect.js header comment).
+      // Malaysia (see _stripe-connect.js header comment). Not
+      // individually re-checked for every other country.
       fees: { payer: 'application' },
       losses: { responsibility: 'stripe' },
       // Gives the account holder their own hosted Stripe dashboard —

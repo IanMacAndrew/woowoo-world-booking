@@ -47,7 +47,7 @@
   <h1>Sign Up for Rewards</h1>
 </header>
 <main>
-  <div class="draft-banner">DRAFT — this agreement is pending legal review and is not yet in a final, legally binding form. Do not treat anything below as final terms.</div>
+  <div class="draft-banner" style="background:#E7F3EE; border-color:#1F7A54; color:#1F7A54;">Approved by WooWoo World. (Not legal advice — Claude drafted this wording; a qualified lawyer's sign-off is still worth getting before this scales to real money at volume.)</div>
 
   <div id="step-contract" class="step active">
     <div class="card">
@@ -67,16 +67,26 @@
       <label for="salesCode">Choose your sales code</label>
       <input type="text" id="salesCode" placeholder="e.g. your initials, 3-12 letters/numbers" style="text-transform:uppercase;">
 
+      <label for="country">Country (for bank details / payouts)</label>
+      <select id="country">
+        <option value="MY">Malaysia</option>
+        <option value="GB">United Kingdom</option>
+        <option value="US">United States</option>
+        <option value="SG">Singapore</option>
+        <option value="AU">Australia</option>
+        <option value="OTHER">Other — I'll confirm by email</option>
+      </select>
+
       <h2 style="font-size:18px; margin:22px 0 8px;">2. Read the agreement</h2>
       <div class="contract-box" id="contractText">
         <h3>WooWoo World — Sales Rep / Booking Contact Rewards Agreement</h3>
-        <p><strong>Parties.</strong> This agreement is between WooWoo World Sdn Bhd (Company No. 202501029350 (1630762-X)), of <span class="placeholder">[registered business address to be inserted]</span> ("WooWoo World"), and the individual named in this sign-up form ("you").</p>
+        <p><strong>Parties.</strong> This agreement is between WooWoo World Sdn Bhd (Company No. 202501029350 (1630762-X)), of SO-26-02, Menara 1, No. 3, Jalan Bangsar, KL Eco City, 59200 Kuala Lumpur, W.P. Kuala Lumpur, Malaysia ("WooWoo World"), and the individual named in this sign-up form ("you"), wherever in the world you are based.</p>
 
         <p><strong>1. What this agreement covers.</strong> This agreement governs your eligibility to earn Sales Rep commission or Booking Contact rebate rewards ("Rewards") on bookings made through book.woowoo.world using your sales code, as described in WooWoo World's current <a href="/docs/WooWoo%20World%20-%20How%20Commissions%20and%20Rewards%20Work.pdf" target="_blank">How Commissions &amp; Rewards Work</a> document, which is incorporated into this agreement by reference and may be updated by WooWoo World from time to time.</p>
 
         <p><strong>2. Activation.</strong> Your sales code is not active, and no Reward accrues on any booking, until you have completed this sign-up (including acceptance of this agreement) and — where you choose to be paid by bank transfer — completed Stripe's own onboarding for your connected payout account.</p>
 
-        <p><strong>3. Payment method and your bank details.</strong> If you choose bank transfer, you will provide your Malaysian bank account details directly to Stripe, WooWoo World's payment processor, through Stripe's own secure onboarding flow. WooWoo World does not collect, store, or have access to your bank account details at any point. WooWoo World only sees Stripe's confirmation that a payout account exists and is ready to receive funds.</p>
+        <p><strong>3. Payment method and your bank details.</strong> If you choose bank transfer, you will provide your bank account details directly to Stripe, WooWoo World's payment processor, through Stripe's own secure onboarding flow for your country. WooWoo World does not collect, store, or have access to your bank account details at any point. WooWoo World only sees Stripe's confirmation that a payout account exists and is ready to receive funds.</p>
 
         <p><strong>4. Timing and conditions.</strong> Rewards are calculated at the time of a qualifying sale but are not payable until released, and may be voided, exactly as set out in the current How Commissions &amp; Rewards Work document. You acknowledge that a pending Reward is not a guaranteed payment.</p>
 
@@ -86,7 +96,7 @@
 
         <p><strong>7. Governing law.</strong> This agreement is governed by the laws of Malaysia.</p>
 
-        <p style="margin-top:14px; font-style:italic;">This is a draft for internal review. Final wording, and confirmation of the registered business address above, is pending before this is issued as a binding agreement.</p>
+        <p style="margin-top:14px; font-style:italic;">This agreement is drafted in plain English for use by Sales Reps and Booking Contacts anywhere in the world.</p>
       </div>
 
       <div class="checkline">
@@ -129,6 +139,7 @@ document.getElementById('submitContract').addEventListener('click', async () => 
   const legalName = document.getElementById('legalName').value.trim();
   const email = document.getElementById('email').value.trim();
   const salesCode = document.getElementById('salesCode').value.trim().toUpperCase();
+  const country = document.getElementById('country').value;
   const agreed = document.getElementById('agree').checked;
   const msgEl = document.getElementById('contractMsg');
   msgEl.innerHTML = '';
@@ -139,7 +150,7 @@ document.getElementById('submitContract').addEventListener('click', async () => 
     const res = await fetch('/.netlify/functions/sales-agent-signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'accept-contract', kind, legalName, email, salesCode, agreed })
+      body: JSON.stringify({ action: 'accept-contract', kind, legalName, email, salesCode, country, agreed })
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Something went wrong');
