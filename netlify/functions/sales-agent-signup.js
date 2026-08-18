@@ -13,6 +13,12 @@
 //   "active" (contract accepted) without ever completing this step,
 //   they'd just need another way to be paid until they do.
 //
+// Malaysia only, deliberately — HRD Corp itself only deals with
+// Malaysian and Malaysia-registered companies, so every Sales Rep and
+// Booking Contact here is Malaysia-based. Don't add a country field or
+// any worldwide handling; that's a future, separate decision if WooWoo
+// World ever operates outside Malaysia.
+//
 // CONTRACT_VERSION bump this whenever the contract wording changes —
 // old acceptances stay valid for what they actually agreed to, but a
 // version bump can be used to prompt re-acceptance if the terms
@@ -39,7 +45,7 @@ exports.handler = async (event) => {
   const store = getStore('bookings');
 
   if (body.action === 'accept-contract') {
-    const { salesCode, kind, legalName, email, country, agreed } = body;
+    const { salesCode, kind, legalName, email, agreed } = body;
 
     if (!salesCode || !CODE_PATTERN.test(salesCode)) {
       return { statusCode: 400, body: JSON.stringify({ error: 'Sales code must be 3-12 letters/numbers, e.g. your initials.' }) };
@@ -68,7 +74,6 @@ exports.handler = async (event) => {
       kind,
       legalName: legalName.trim(),
       email: email.trim().toLowerCase(),
-      country: (country && country !== 'OTHER') ? country : null,
       contractVersion: CONTRACT_VERSION,
       contractAcceptedAt: new Date().toISOString(),
       contractAcceptedIp: event.headers['x-nf-client-connection-ip'] || event.headers['client-ip'] || null,
@@ -83,22 +88,12 @@ exports.handler = async (event) => {
     // might close before finishing). The in-browser "Connect bank" button
     // on the next step re-uses the same connect-bank action to generate a
     // fresh link if this one expires or the email doesn't land.
-    //
-    // If the person picked "Other" (country not in the short list), skip
-    // Stripe account creation for now — country is required to create a
-    // Connect account, and every country needs individually confirming
-    // against Stripe's own availability before this is safe to run
-    // unattended. Contract acceptance still succeeds either way.
     let onboardingUrl = null;
-    if (!record.country) {
-      return { statusCode: 200, body: JSON.stringify({ ok: true, salesCode, status: record.status, onboardingUrl: null, needsManualCountry: true }) };
-    }
     try {
       const account = await createConnectAccount({
         email: record.email,
         name: record.legalName,
         kind: record.kind,
-        country: record.country,
       });
       record.stripeAccountId = account.id;
       record.status = 'bank_connected';
@@ -140,14 +135,10 @@ exports.handler = async (event) => {
 
     try {
       if (!record.stripeAccountId) {
-        if (!record.country) {
-          return { statusCode: 400, body: JSON.stringify({ error: `We need to confirm your country before setting up payouts — email sales@woowoo.world with the country you'll receive payments in.` }) };
-        }
         const account = await createConnectAccount({
           email: record.email,
           name: record.legalName,
           kind: record.kind,
-          country: record.country,
         });
         record.stripeAccountId = account.id;
         record.status = 'bank_connected';
