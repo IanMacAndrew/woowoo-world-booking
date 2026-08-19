@@ -1,24 +1,27 @@
 const { getStore: getStoreRaw } = require('@netlify/blobs');
 
-// Netlify is supposed to auto-inject Blobs credentials into every function
-// invocation, but this has been unreliable in practice (see
-// https://answers.netlify.com/t/missingblobsenvironmenterror-on-fresh-sites/164777
-// and several other open reports of the same thing on otherwise-correctly-
-// configured sites). Passing siteID/token explicitly is the documented,
-// reliable workaround — see https://docs.netlify.com/build/data-and-storage/netlify-blobs/
-//
-// Requires two environment variables set in Netlify (Project configuration
-// > Environment variables):
-//   NETLIFY_SITE_ID    — this site's Project ID (Project configuration > General)
-//   NETLIFY_BLOBS_TOKEN — a Personal Access Token (User settings > Applications)
+// Netlify is *supposed* to auto-inject Blobs credentials into every function
+// invocation. This project previously worked around that with an explicit
+// siteID/token (see git history), because of a documented reliability issue
+// with automatic config — but that manual path is now the one producing
+// unexplained 401s (Netlify Blobs rejecting a freshly-regenerated, correctly
+// -scoped, "All scopes" Personal Access Token), even though nothing else
+// about it looks wrong. Flipping the priority: try automatic config FIRST,
+// fall back to the manual siteID/token only if that fails. This is a live
+// diagnostic as much as a fix — if automatic config also 401s, the problem
+// isn't the token at all; if it works, the manual path itself was the bug.
 function getStore(name) {
-  const siteID = process.env.NETLIFY_SITE_ID;
-  const token = process.env.NETLIFY_BLOBS_TOKEN;
-  if (siteID && token) {
-    return getStoreRaw({ name, siteID, token });
+  try {
+    return getStoreRaw(name);
+  } catch (err) {
+    const siteID = process.env.NETLIFY_SITE_ID;
+    const token = process.env.NETLIFY_BLOBS_TOKEN;
+    if (siteID && token) {
+      console.warn('Automatic Blobs config failed, falling back to explicit siteID/token:', err.message);
+      return getStoreRaw({ name, siteID, token });
+    }
+    throw err;
   }
-  // Fall back to automatic config in case it starts working / for netlify dev.
-  return getStoreRaw(name);
 }
 
 module.exports = { getStore };
