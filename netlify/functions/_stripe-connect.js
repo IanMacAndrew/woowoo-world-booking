@@ -26,9 +26,23 @@
 //   4. Confirm the account shows `payouts_enabled: true` afterwards, and
 //      that WooWoo's own Dashboard/logs never show the entered bank
 //      details anywhere.
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+// Stripe client is constructed lazily (not at module load time) so that a
+// missing STRIPE_SECRET_KEY throws a clear, catchable error from inside a
+// request handler's try/catch, instead of crashing this whole module at
+// require() time with an opaque platform-level failure before any of our
+// own error handling gets a chance to run.
+let _stripe = null;
+function getStripe() {
+  if (_stripe) return _stripe;
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY is not set for this deploy context — check the environment variable is scoped to it in Netlify.');
+  }
+  _stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+  return _stripe;
+}
 
 async function createConnectAccount({ email, name, kind }) {
+  const stripe = getStripe();
   // kind: 'sales_rep' | 'booking_contact' — stored in metadata only, no
   // behavioural difference to Stripe.
   //
@@ -56,6 +70,7 @@ async function createConnectAccount({ email, name, kind }) {
 }
 
 async function createOnboardingLink({ accountId, refreshUrl, returnUrl }) {
+  const stripe = getStripe();
   const link = await stripe.accountLinks.create({
     account: accountId,
     refresh_url: refreshUrl,
@@ -66,6 +81,7 @@ async function createOnboardingLink({ accountId, refreshUrl, returnUrl }) {
 }
 
 async function getAccountStatus(accountId) {
+  const stripe = getStripe();
   const account = await stripe.accounts.retrieve(accountId);
   return {
     payoutsEnabled: !!account.payouts_enabled,
@@ -78,6 +94,7 @@ async function getAccountStatus(accountId) {
 // The actual movement to their bank happens on Stripe's own payout
 // schedule from there — WooWoo's part ends at this transfer.
 async function payoutReleasedCommission({ accountId, amountCents, currency, description }) {
+  const stripe = getStripe();
   return stripe.transfers.create({
     amount: amountCents,
     currency: currency || 'myr',
