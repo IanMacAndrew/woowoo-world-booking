@@ -12,20 +12,36 @@
 //
 // IMPORTANT — verify before going live: this uses "controller properties"
 // (Stripe's current-recommended replacement for the deprecated Standard/
-// Express/Custom account types) rather than `type: 'express'`. The exact
-// combination below is our best-effort reading of Stripe's own migration
-// docs as of this build, matched to what's confirmed generally available
-// for Malaysia (Stripe collects fees and owns loss liability — the
-// platform-owns-liability configuration is still preview-only for
-// Malaysia). This has NOT been exercised against a real Stripe test
-// account yet — do that before connecting a single real bank account:
-//   1. Use a Stripe TEST secret key.
-//   2. Run createConnectAccount() end to end for one throwaway signup.
-//   3. Complete the returned onboarding link with Stripe's test-mode
-//      Malaysia bank details.
-//   4. Confirm the account shows `payouts_enabled: true` afterwards, and
-//      that WooWoo's own Dashboard/logs never show the entered bank
-//      details anywhere.
+// Express/Custom account types) rather than `type: 'express'`.
+//
+// CORRECTED after a real test run surfaced two bugs in the original
+// version of this file:
+//   1. Wrong field name — Stripe's actual parameter is
+//      controller.losses.payments, not controller.losses.responsibility
+//      (a typo in the original research-derived guess).
+//   2. A real conflict, not just a typo: Stripe requires
+//      stripe_dashboard.type: 'express' to be paired with BOTH
+//      fees.payer AND losses.payments set to 'application' (platform-
+//      owned). But Malaysia only has Stripe-owns-fees-and-losses
+//      generally available — the platform-owned configuration is
+//      preview-only there (see below). Express dashboard was therefore
+//      never a valid combination for a Malaysia account on the
+//      generally-available path, regardless of the typo.
+//
+// Fix: stripe_dashboard.type: 'full' (the controller-properties
+// equivalent of the old "Standard" account type) pairs correctly with
+// Stripe owning both fees and losses, which IS generally available for
+// Malaysia — and still gives the account holder their own full Stripe
+// dashboard to enter bank details into directly, which is what actually
+// matters for "WooWoo never sees bank details."
+//
+// STILL TO VERIFY end-to-end: this combination has not yet been
+// confirmed to complete a real (test-mode) onboarding link successfully
+// — only that account creation itself now uses valid parameter names
+// and a Stripe-documented-valid combination. Run the full flow once
+// more (throwaway test signup, complete Stripe's test-mode Malaysia
+// bank details, confirm `payouts_enabled: true`) before trusting this
+// with a real bank account.
 // Stripe client is constructed lazily (not at module load time) so that a
 // missing STRIPE_SECRET_KEY throws a clear, catchable error from inside a
 // request handler's try/catch, instead of crashing this whole module at
@@ -52,15 +68,21 @@ async function createConnectAccount({ email, name, kind }) {
     country: 'MY',
     email,
     controller: {
-      // Stripe collects fees / owns negative-balance risk on this
-      // account — the configuration confirmed generally available for
-      // Malaysia (see file header comment).
-      fees: { payer: 'application' },
-      losses: { responsibility: 'stripe' },
-      // Gives the account holder their own hosted Stripe dashboard —
+      // Stripe collects fees AND owns negative-balance risk — the
+      // combination confirmed generally available for Malaysia (see
+      // file header). Both must be 'stripe' together, or 'application'
+      // together — Stripe rejects a mix.
+      fees: { payer: 'stripe' },
+      losses: { payments: 'stripe' },
+      // 'full' = the account holder gets their own complete Stripe
+      // dashboard (equivalent to the old "Standard" account type) —
       // this is what lets THEM enter and manage their own bank details
-      // directly with Stripe, never through anything WooWoo built.
-      stripe_dashboard: { type: 'express' },
+      // directly with Stripe, never through anything WooWoo built. Only
+      // combination that's both valid for fees/losses='stripe' AND
+      // gives real dashboard access (the alternative, 'none', would
+      // mean no dashboard at all, forcing WooWoo to collect bank
+      // details itself instead — exactly what we're avoiding).
+      stripe_dashboard: { type: 'full' },
       requirement_collection: 'stripe',
     },
     business_type: 'individual',
