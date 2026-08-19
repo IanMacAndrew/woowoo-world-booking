@@ -14,26 +14,33 @@
 // (Stripe's current-recommended replacement for the deprecated Standard/
 // Express/Custom account types) rather than `type: 'express'`.
 //
-// CORRECTED after a real test run surfaced two bugs in the original
-// version of this file:
+// CORRECTED after two real test runs surfaced three bugs in the
+// original version of this file:
 //   1. Wrong field name — Stripe's actual parameter is
 //      controller.losses.payments, not controller.losses.responsibility
 //      (a typo in the original research-derived guess).
-//   2. A real conflict, not just a typo: Stripe requires
-//      stripe_dashboard.type: 'express' to be paired with BOTH
-//      fees.payer AND losses.payments set to 'application' (platform-
-//      owned). But Malaysia only has Stripe-owns-fees-and-losses
-//      generally available — the platform-owned configuration is
-//      preview-only there (see below). Express dashboard was therefore
-//      never a valid combination for a Malaysia account on the
-//      generally-available path, regardless of the typo.
+//   2. stripe_dashboard.type: 'express' requires BOTH fees.payer AND
+//      losses.payments set to 'application' (platform-owned). Malaysia
+//      only has Stripe-owns-fees-and-losses generally available (the
+//      platform-owned configuration is preview-only there) — so
+//      'express' was never valid for a Malaysia account on the
+//      generally-available path, independent of the typo.
+//   3. controller.fees.payer's valid values are 'application' or
+//      'account' — NOT 'stripe'. ('stripe' is only a valid value in
+//      the newer, differently-named Accounts v2 API's
+//      defaults.responsibilities.fees_collector field; confusing the
+//      two APIs' terminology produced a second wrong value here, only
+//      caught via the real 400 error quoting this field's actual
+//      valid set.)
 //
-// Fix: stripe_dashboard.type: 'full' (the controller-properties
-// equivalent of the old "Standard" account type) pairs correctly with
-// Stripe owning both fees and losses, which IS generally available for
-// Malaysia — and still gives the account holder their own full Stripe
-// dashboard to enter bank details into directly, which is what actually
-// matters for "WooWoo never sees bank details."
+// Fix: the exact values Stripe's own controller-properties migration
+// doc gives for "Standard account behavior equivalent" —
+//   fees: { payer: 'account' }, losses: { payments: 'stripe' },
+//   stripe_dashboard: { type: 'full' }, requirement_collection: 'stripe'
+// — which both matches what's generally available for Malaysia, and
+// still gives the account holder their own full Stripe dashboard to
+// enter bank details into directly, which is what actually matters
+// for "WooWoo never sees bank details."
 //
 // STILL TO VERIFY end-to-end: this combination has not yet been
 // confirmed to complete a real (test-mode) onboarding link successfully
@@ -68,20 +75,26 @@ async function createConnectAccount({ email, name, kind }) {
     country: 'MY',
     email,
     controller: {
-      // Stripe collects fees AND owns negative-balance risk — the
-      // combination confirmed generally available for Malaysia (see
-      // file header). Both must be 'stripe' together, or 'application'
-      // together — Stripe rejects a mix.
-      fees: { payer: 'stripe' },
+      // Exact values for "Standard account behavior equivalent", taken
+      // directly from Stripe's own controller-properties migration doc
+      // (docs.stripe.com/connect/migrate-to-controller-properties):
+      //   losses: { payments: "stripe" }, fees: { payer: "account" },
+      //   stripe_dashboard: { type: "full" }, requirement_collection: "stripe"
+      // NOTE: fees.payer's valid values are 'application' or 'account'
+      // — NOT 'stripe'. ('stripe' is only a valid value in the newer,
+      // differently-named Accounts v2 API's defaults.responsibilities
+      // .fees_collector field — confirmed the hard way, via a real
+      // 400 error quoting the actual valid set for this v1 field.)
+      // 'account' here means the connected account itself is billed
+      // for Stripe's fees — the correct v1 equivalent of "Stripe
+      // collects fees", which is what's generally available for
+      // Malaysia (see file header).
+      fees: { payer: 'account' },
       losses: { payments: 'stripe' },
       // 'full' = the account holder gets their own complete Stripe
       // dashboard (equivalent to the old "Standard" account type) —
       // this is what lets THEM enter and manage their own bank details
-      // directly with Stripe, never through anything WooWoo built. Only
-      // combination that's both valid for fees/losses='stripe' AND
-      // gives real dashboard access (the alternative, 'none', would
-      // mean no dashboard at all, forcing WooWoo to collect bank
-      // details itself instead — exactly what we're avoiding).
+      // directly with Stripe, never through anything WooWoo built.
       stripe_dashboard: { type: 'full' },
       requirement_collection: 'stripe',
     },
