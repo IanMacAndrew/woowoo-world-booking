@@ -3,6 +3,17 @@
   functions = "netlify/functions"
   command = "echo 'No build step needed'"
 
+[build.environment]
+  # SETUP.md intentionally shows what a Stripe key LOOKS like
+  # ("sk_live_...", "sk_test_...") as setup documentation -- it never
+  # contains a real one. Without this, Netlify's secret scanner can
+  # false-positive on that placeholder text if it happens to exactly
+  # match a real (but too-short/misconfigured) env var value -- which
+  # is itself worth checking if this scan ever fires for real: make
+  # sure STRIPE_SECRET_KEY's Deploy Previews value is an actual key,
+  # not literally the placeholder text from this file.
+  SECRETS_SCAN_OMIT_PATHS = "SETUP.md"
+
 [[redirects]]
   from = "/booking-confirmed"
   to = "/booking-confirmed.html"
