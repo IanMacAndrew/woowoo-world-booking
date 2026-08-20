@@ -10,50 +10,38 @@
 // Contact here is Malaysia-based. Country is hardcoded to 'MY' below,
 // deliberately. Worldwide support is a future, separate decision.
 //
-// IMPORTANT — verify before going live: this uses "controller properties"
-// (Stripe's current-recommended replacement for the deprecated Standard/
-// Express/Custom account types) rather than `type: 'express'`.
+// REWRITTEN to use Stripe's Accounts v2 API (POST /v2/core/accounts),
+// per Stripe's own current guidance — a real, live error from this
+// exact endpoint told us in plain language: "Stripe no longer
+// recommends Accounts v1 for new Connect integrations... For agent-
+// based integrations, use Stripe's current best-practices skill:
+// npx skills add stripe/ai." That skill's Connect reference reframed
+// the whole problem correctly: WooWoo never charges anything on a
+// rep's account, so this is a pure payout relationship — Stripe's
+// "Recipient" configuration, not the "Merchant"/SaaS-style "Standard
+// account equivalent" the previous version of this file was built
+// around (which is why three rounds of v1 controller-properties
+// parameter fixes never quite got there — right general direction,
+// wrong account model entirely).
 //
-// CORRECTED after two real test runs surfaced three bugs in the
-// original version of this file:
-//   1. Wrong field name — Stripe's actual parameter is
-//      controller.losses.payments, not controller.losses.responsibility
-//      (a typo in the original research-derived guess).
-//   2. stripe_dashboard.type: 'express' requires BOTH fees.payer AND
-//      losses.payments set to 'application' (platform-owned). Malaysia
-//      only has Stripe-owns-fees-and-losses generally available (the
-//      platform-owned configuration is preview-only there) — so
-//      'express' was never valid for a Malaysia account on the
-//      generally-available path, independent of the typo.
-//   3. controller.fees.payer's valid values are 'application' or
-//      'account' — NOT 'stripe'. ('stripe' is only a valid value in
-//      the newer, differently-named Accounts v2 API's
-//      defaults.responsibilities.fees_collector field; confusing the
-//      two APIs' terminology produced a second wrong value here, only
-//      caught via the real 400 error quoting this field's actual
-//      valid set.)
+// Config used, matching the skill's Recipient guidance:
+//   dashboard: 'express'                         — lightweight, cobranded
+//   defaults.responsibilities.fees_collector:    'application'
+//   defaults.responsibilities.losses_collector:  'application'
+//   configuration.recipient.capabilities.stripe_balance.stripe_transfers
+//                                                 — requested: true
+// Every field name and nesting level below was checked against the
+// actual TypeScript definitions shipped in stripe-node 22.5.0 (see
+// package.json — the previously-installed ^17.0.0 predates v2 support
+// entirely, which is a separate reason the old code never had a
+// chance of working), not inferred from prose documentation.
 //
-// Fix: the exact values Stripe's own controller-properties migration
-// doc gives for "Standard account behavior equivalent" —
-//   fees: { payer: 'account' }, losses: { payments: 'stripe' },
-//   stripe_dashboard: { type: 'full' }, requirement_collection: 'stripe'
-// — which both matches what's generally available for Malaysia, and
-// still gives the account holder their own full Stripe dashboard to
-// enter bank details into directly, which is what actually matters
-// for "WooWoo never sees bank details."
-//
-// STILL TO VERIFY end-to-end: this combination has not yet been
-// confirmed to complete a real (test-mode) onboarding link successfully
-// — only that account creation itself now uses valid parameter names
-// and a Stripe-documented-valid combination. Run the full flow once
-// more (throwaway test signup, complete Stripe's test-mode Malaysia
-// bank details, confirm `payouts_enabled: true`) before trusting this
-// with a real bank account.
-// Stripe client is constructed lazily (not at module load time) so that a
-// missing STRIPE_SECRET_KEY throws a clear, catchable error from inside a
-// request handler's try/catch, instead of crashing this whole module at
-// require() time with an opaque platform-level failure before any of our
-// own error handling gets a chance to run.
+// STILL TO VERIFY end-to-end: parameter names/shapes are now confirmed
+// against real SDK types, but the full onboarding-link-completion flow
+// hasn't yet been watched succeed against a live (test-mode) account.
+// Test again — throwaway signup, Stripe's test-mode Malaysia bank
+// details, confirm the recipient capability status reaches 'active' —
+// before trusting this with a real bank account.
 let _stripe = null;
 function getStripe() {
   if (_stripe) return _stripe;
@@ -66,39 +54,29 @@ function getStripe() {
 
 async function createConnectAccount({ email, name, kind }) {
   const stripe = getStripe();
-  // kind: 'sales_rep' | 'booking_contact' — stored in metadata only, no
-  // behavioural difference to Stripe.
-  //
-  // Malaysia only, deliberately (see sales-agent-signup.js header) —
-  // country is hardcoded, not collected from the sign-up form.
-  const account = await stripe.accounts.create({
-    country: 'MY',
-    email,
-    controller: {
-      // Exact values for "Standard account behavior equivalent", taken
-      // directly from Stripe's own controller-properties migration doc
-      // (docs.stripe.com/connect/migrate-to-controller-properties):
-      //   losses: { payments: "stripe" }, fees: { payer: "account" },
-      //   stripe_dashboard: { type: "full" }, requirement_collection: "stripe"
-      // NOTE: fees.payer's valid values are 'application' or 'account'
-      // — NOT 'stripe'. ('stripe' is only a valid value in the newer,
-      // differently-named Accounts v2 API's defaults.responsibilities
-      // .fees_collector field — confirmed the hard way, via a real
-      // 400 error quoting the actual valid set for this v1 field.)
-      // 'account' here means the connected account itself is billed
-      // for Stripe's fees — the correct v1 equivalent of "Stripe
-      // collects fees", which is what's generally available for
-      // Malaysia (see file header).
-      fees: { payer: 'account' },
-      losses: { payments: 'stripe' },
-      // 'full' = the account holder gets their own complete Stripe
-      // dashboard (equivalent to the old "Standard" account type) —
-      // this is what lets THEM enter and manage their own bank details
-      // directly with Stripe, never through anything WooWoo built.
-      stripe_dashboard: { type: 'full' },
-      requirement_collection: 'stripe',
+  const account = await stripe.v2.core.accounts.create({
+    contact_email: email,
+    display_name: name || undefined,
+    identity: {
+      country: 'MY',
+      entity_type: 'individual',
     },
-    business_type: 'individual',
+    dashboard: 'express',
+    defaults: {
+      responsibilities: {
+        fees_collector: 'application',
+        losses_collector: 'application',
+      },
+    },
+    configuration: {
+      recipient: {
+        capabilities: {
+          stripe_balance: {
+            stripe_transfers: { requested: true },
+          },
+        },
+      },
+    },
     metadata: { kind, woowooName: name || '' },
   });
   return account;
@@ -106,28 +84,46 @@ async function createConnectAccount({ email, name, kind }) {
 
 async function createOnboardingLink({ accountId, refreshUrl, returnUrl }) {
   const stripe = getStripe();
-  const link = await stripe.accountLinks.create({
+  const link = await stripe.v2.core.accountLinks.create({
     account: accountId,
-    refresh_url: refreshUrl,
-    return_url: returnUrl,
-    type: 'account_onboarding',
+    use_case: {
+      type: 'account_onboarding',
+      account_onboarding: {
+        configurations: ['recipient'],
+        refresh_url: refreshUrl,
+        return_url: returnUrl,
+      },
+    },
   });
   return link.url;
 }
 
 async function getAccountStatus(accountId) {
   const stripe = getStripe();
-  const account = await stripe.accounts.retrieve(accountId);
+  const account = await stripe.v2.core.accounts.retrieve(accountId, {
+    include: ['configuration.recipient'],
+  });
+  const status = account.configuration
+    && account.configuration.recipient
+    && account.configuration.recipient.capabilities
+    && account.configuration.recipient.capabilities.stripe_balance
+    && account.configuration.recipient.capabilities.stripe_balance.stripe_transfers
+    && account.configuration.recipient.capabilities.stripe_balance.stripe_transfers.status;
   return {
-    payoutsEnabled: !!account.payouts_enabled,
-    detailsSubmitted: !!account.details_submitted,
-    requirementsCurrentlyDue: (account.requirements && account.requirements.currently_due) || [],
+    transfersActive: status === 'active',
+    rawStatus: status || null,
   };
 }
 
 // Pays out released commission to a connected account's Stripe balance.
 // The actual movement to their bank happens on Stripe's own payout
-// schedule from there — WooWoo's part ends at this transfer.
+// schedule from there — WooWoo's part ends at this transfer. This
+// stays on the v1 Transfers API deliberately: the Recipient
+// configuration's stripe_balance.stripe_transfers capability exists
+// specifically to let a v2 account receive v1 /v1/transfers into its
+// balance (v1 Transfers isn't being deprecated the way v1 Account
+// creation is — Stripe's own skill guidance confirms this is still
+// the correct payout mechanism for a Recipient account).
 async function payoutReleasedCommission({ accountId, amountCents, currency, description }) {
   const stripe = getStripe();
   return stripe.transfers.create({
