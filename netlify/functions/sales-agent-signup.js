@@ -1,4 +1,4 @@
-// Called from public/sign-up.html. Two-step flow in one endpoint:
+// Called from public/sign-up.html.
 //
 //   Step 1 (action: 'accept-contract') — records contract acceptance
 //   (typed legal name, checkbox, timestamp, IP, and the contract's own
@@ -8,10 +8,16 @@
 //   check still needs wiring in (not done yet as of this build).
 //
 //   Step 2 (action: 'connect-bank') — creates a Stripe Connect account
-//   for that code (if one doesn't already exist) and returns a hosted
-//   onboarding link. Optional: a rep or Booking Contact can be
-//   "active" (contract accepted) without ever completing this step,
-//   they'd just need another way to be paid until they do.
+//   for that code and returns a hosted onboarding link. DELIBERATELY
+//   NOT called automatically from accept-contract, and not wired into
+//   the UI (public/sign-up.html doesn't call it right now). Automated
+//   bank payouts via Stripe Connect turned into its own multi-hour
+//   debugging project on a single night and got pulled out of the
+//   critical path entirely so contract sign-up could ship without
+//   depending on it -- reps and Booking Contacts are paid manually
+//   (see send-sales-reports.js) until this gets picked up as its own
+//   piece of work. The endpoint is left working and unit-testable so
+//   that work doesn't start from zero, it's just not user-facing yet.
 //
 // Malaysia only, deliberately — HRD Corp itself only deals with
 // Malaysian and Malaysia-registered companies, so every Sales Rep and
@@ -83,53 +89,33 @@ exports.handler = async (event) => {
         contractVersion: CONTRACT_VERSION,
         contractAcceptedAt: new Date().toISOString(),
         contractAcceptedIp: event.headers['x-nf-client-connection-ip'] || event.headers['client-ip'] || null,
-        status: 'contract_signed', // contract_signed -> bank_connected
+        status: 'active', // active -> bank_connected, once Connect is wired back in
         stripeAccountId: null,
       };
       await store.setJSON(key, record);
 
-      // Create the Stripe Connect account and a first onboarding link right
-      // away, and email it — per instruction, the onboarding link goes out
-      // by email immediately, not only shown in-browser (which the person
-      // might close before finishing). The in-browser "Connect bank" button
-      // on the next step re-uses the same connect-bank action to generate a
-      // fresh link if this one expires or the email doesn't land.
-      let onboardingUrl = null;
+      // No Stripe Connect attempt here (see file header) — the code is
+      // fully active the moment the contract is on file. Payment method
+      // is sorted out separately, manually, for now.
       try {
-        const account = await createConnectAccount({
-          email: record.email,
-          name: record.legalName,
-          kind: record.kind,
-        });
-        record.stripeAccountId = account.id;
-        record.status = 'bank_connected';
-        await store.setJSON(key, record);
-
-        onboardingUrl = await createOnboardingLink({
-          accountId: account.id,
-          refreshUrl: `${process.env.URL || ''}/sign-up?code=${salesCode}&step=bank`,
-          returnUrl: `${process.env.URL || ''}/sign-up?code=${salesCode}&step=done`,
-        });
-
         await sendSalesAgentWelcomeEmail({
           legalName: record.legalName,
           email: record.email,
           salesCode,
           kind,
-          onboardingUrl,
         });
       } catch (err) {
-        // Contract acceptance itself still succeeded and the code is active
-        // either way — a Stripe/email hiccup here shouldn't block that.
-        // The person can still connect their bank later from the "Connect
-        // bank" button (or the ops team can chase up manually).
-        console.error('Stripe Connect account creation or welcome email failed for', salesCode, err);
+        // Contract acceptance itself still succeeded and the code is
+        // active either way — an email hiccup here shouldn't block that.
+        console.error('Welcome email failed for', salesCode, err);
       }
 
-      return { statusCode: 200, body: JSON.stringify({ ok: true, salesCode, status: record.status, onboardingUrl }) };
+      return { statusCode: 200, body: JSON.stringify({ ok: true, salesCode, status: record.status }) };
     }
 
     if (body.action === 'connect-bank') {
+      // Not called from the UI right now (see file header) — left
+      // working for when automated payouts get picked back up.
       const { salesCode, returnUrl, refreshUrl } = body;
       if (!salesCode) return { statusCode: 400, body: JSON.stringify({ error: 'Missing salesCode' }) };
 

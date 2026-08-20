@@ -97,30 +97,17 @@
     </div>
   </div>
 
-  <div id="step-bank" class="step">
-    <div class="card">
-      <h2 style="font-size:18px; margin-bottom:10px;">3. Add your bank details (optional)</h2>
-      <p style="font-size:14px; color:#5C566B; margin-bottom:16px;">Your agreement is on file and we've emailed you a bank-connection link too, in case you want to finish this later. To continue now, use the button below — it takes you to Stripe's own secure form, which WooWoo World never sees. You can also skip this and come back anytime.</p>
-      <button id="connectBank">Continue to Stripe</button>
-      <button id="skipBank" class="secondary">Skip for now</button>
-      <div id="bankMsg"></div>
-    </div>
-  </div>
-
   <div id="step-done" class="step">
     <div class="card">
       <h2 style="font-size:18px;">You're all set</h2>
       <p style="font-size:14px; color:#5C566B; margin-top:8px;">Your sales code is active. Use it at checkout on any booking to earn Rewards under the terms above.</p>
+      <p style="font-size:14px; color:#5C566B; margin-top:8px;">We're setting up automatic bank payouts — for now, Rewards are paid out manually and we'll be in touch directly about payment details. No action needed from you.</p>
     </div>
   </div>
 </main>
 
 <script>
-const params = new URLSearchParams(location.search);
 const goStep = (id) => { document.querySelectorAll('.step').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); };
-
-if (params.get('step') === 'bank') goStep('step-bank');
-if (params.get('step') === 'done') goStep('step-done');
 
 document.getElementById('submitContract').addEventListener('click', async () => {
   const kind = document.getElementById('kind').value;
@@ -151,34 +138,13 @@ document.getElementById('submitContract').addEventListener('click', async () => 
       throw new Error(`HTTP ${res.status}: ${rawText.slice(0, 200) || '(empty response)'}`);
     }
     if (!res.ok) throw new Error(data.error || `HTTP ${res.status} with no error message in the response`);
-    window.__salesCode = salesCode;
-    goStep('step-bank');
+    goStep('step-done');
   } catch (err) {
     msgEl.innerHTML = `<div class="msg error">${err.message}</div>`;
   } finally {
     btn.disabled = false;
   }
 });
-
-document.getElementById('connectBank').addEventListener('click', async () => {
-  const salesCode = window.__salesCode || document.getElementById('salesCode').value.trim().toUpperCase();
-  const msgEl = document.getElementById('bankMsg');
-  msgEl.innerHTML = '';
-  try {
-    const res = await fetch('/.netlify/functions/sales-agent-signup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'connect-bank', salesCode })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Something went wrong');
-    window.location.href = data.onboardingUrl;
-  } catch (err) {
-    msgEl.innerHTML = `<div class="msg error">${err.message}</div>`;
-  }
-});
-
-document.getElementById('skipBank').addEventListener('click', () => goStep('step-done'));
 </script>
 </body>
 </html>
