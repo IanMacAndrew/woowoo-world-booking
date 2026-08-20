@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign Up — Sales Rep / Booking Contact Rewards — WooWoo World</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1C0333; --paper:#F4F2F8; --paper-dim:#E9ECF2;
+    --brass:#C79529; --brass-dark:#97711F; --line:#D4D6DC; --warn:#A33A3A;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--paper); color:var(--ink); font-family:'Inter',sans-serif; line-height:1.65;}
+  h1,h2{font-family:'Newsreader',serif;}
+  header{max-width:680px; margin:0 auto; padding:48px 24px 24px;}
+  .eyebrow{font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.14em; text-transform:uppercase; color:var(--brass-dark); margin-bottom:14px;}
+  h1{font-size:clamp(26px,4vw,34px); font-weight:500; font-style:italic;}
+  main{max-width:680px; margin:0 auto; padding:0 24px 96px;}
+  .draft-banner{background:#FBE8E8; border:1px solid var(--warn); color:var(--warn); font-size:13px; font-weight:600; padding:12px 16px; border-radius:8px; margin-bottom:28px;}
+  .card{background:#fff; border:1px solid var(--line); border-radius:12px; padding:26px 28px; margin-bottom:20px;}
+  label{display:block; font-size:13px; font-weight:600; margin:14px 0 5px;}
+  input[type=text], input[type=email]{width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:6px; font-size:15px; font-family:inherit;}
+  select{width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:6px; font-size:15px; font-family:inherit; background:#fff;}
+  .contract-box{max-height:340px; overflow-y:auto; border:1px solid var(--line); border-radius:8px; padding:16px 18px; background:var(--paper-dim); font-size:13.5px; color:#3A3450; margin:14px 0;}
+  .contract-box h3{font-size:14px; margin:14px 0 4px;}
+  .contract-box p{margin-bottom:8px;}
+  .placeholder{background:#FFF3CD; padding:1px 5px; border-radius:3px; font-weight:600;}
+  .checkline{display:flex; align-items:flex-start; gap:10px; margin:16px 0;}
+  .checkline input{margin-top:3px;}
+  .checkline label{font-size:13.5px; font-weight:400; margin:0;}
+  button{background:var(--ink); color:#fff; border:none; padding:13px 22px; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer; width:100%;}
+  button:disabled{background:#9C97AA; cursor:not-allowed;}
+  button.secondary{background:transparent; color:var(--brass-dark); border:1px solid var(--brass); margin-top:10px;}
+  .msg{font-size:13.5px; padding:10px 14px; border-radius:6px; margin-top:12px;}
+  .msg.error{background:#FBE8E8; color:var(--warn); word-break:break-word; white-space:pre-wrap;}
+  .msg.ok{background:#E7F3EE; color:#1F7A54;}
+  .step{display:none;}
+  .step.active{display:block;}
+  a{color:var(--brass-dark);}
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">WooWoo World · Sales Team</div>
+  <h1>Sign Up for Rewards</h1>
+</header>
+<main>
+  <div class="draft-banner" style="background:#E7F3EE; border-color:#1F7A54; color:#1F7A54;">Reviewed and approved for Malaysia by WooWoo World's legal counsel.</div>
+
+  <div id="step-contract" class="step active">
+    <div class="card">
+      <h2 style="font-size:18px; margin-bottom:10px;">1. Who's signing up?</h2>
+      <label for="kind">I am a</label>
+      <select id="kind">
+        <option value="sales_rep">Sales Rep</option>
+        <option value="booking_contact">Company Booking Contact</option>
+      </select>
+
+      <label for="legalName">Full legal name</label>
+      <input type="text" id="legalName" placeholder="As it appears on your bank account / ID">
+
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="you@example.com">
+
+      <label for="salesCode">Choose your sales code</label>
+      <input type="text" id="salesCode" placeholder="e.g. your initials, 3-12 letters/numbers" style="text-transform:uppercase;">
+
+      <h2 style="font-size:18px; margin:22px 0 8px;">2. Read the agreement</h2>
+      <div class="contract-box" id="contractText">
+        <h3>WooWoo World — Sales Rep / Booking Contact Rewards Agreement</h3>
+        <p><strong>Parties.</strong> This agreement is between WooWoo World Sdn Bhd (Company No. 202501029350 (1630762-X)), of SO-26-02, Menara 1, No. 3, Jalan Bangsar, KL Eco City, 59200 Kuala Lumpur, W.P. Kuala Lumpur, Malaysia ("WooWoo World"), and the individual named in this sign-up form ("you").</p>
+
+        <p><strong>1. What this agreement covers.</strong> This agreement governs your eligibility to earn Sales Rep commission or Booking Contact rebate rewards ("Rewards") on bookings made through book.woowoo.world using your sales code, as described in WooWoo World's current <a href="/docs/WooWoo%20World%20-%20How%20Commissions%20and%20Rewards%20Work.pdf" target="_blank">How Commissions &amp; Rewards Work</a> document, which is incorporated into this agreement by reference and may be updated by WooWoo World from time to time.</p>
+
+        <p><strong>2. Activation.</strong> Your sales code is not active, and no Reward accrues on any booking, until you have completed this sign-up (including acceptance of this agreement) and — where you choose to be paid by bank transfer — completed Stripe's own onboarding for your connected payout account.</p>
+
+        <p><strong>3. Payment method and your bank details.</strong> If you choose bank transfer, you will provide your Malaysian bank account details directly to Stripe, WooWoo World's payment processor, through Stripe's own secure onboarding flow. WooWoo World does not collect, store, or have access to your bank account details at any point. WooWoo World only sees Stripe's confirmation that a payout account exists and is ready to receive funds.</p>
+
+        <p><strong>4. Timing and conditions.</strong> Rewards are calculated at the time of a qualifying sale but are not payable until released, and may be voided, exactly as set out in the current How Commissions &amp; Rewards Work document. You acknowledge that a pending Reward is not a guaranteed payment.</p>
+
+        <p><strong>5. Your responsibilities.</strong> You are responsible for the accuracy of the information you provide, and for any tax obligations arising from Rewards you receive. This agreement does not create an employment relationship between you and WooWoo World.</p>
+
+        <p><strong>6. Termination.</strong> Either party may deactivate a sales code at any time. Deactivation does not affect Rewards already released before deactivation, but stops further Rewards from accruing.</p>
+
+        <p><strong>7. Governing law.</strong> This agreement is governed by the laws of Malaysia.</p>
+      </div>
+
+      <div class="checkline">
+        <input type="checkbox" id="agree">
+        <label for="agree">I have read and agree to the terms above.</label>
+      </div>
+
+      <button id="submitContract">Sign and Continue</button>
+      <div id="contractMsg"></div>
+    </div>
+  </div>
+
+  <div id="step-done" class="step">
+    <div class="card">
+      <h2 style="font-size:18px;">You're all set</h2>
+      <p style="font-size:14px; color:#5C566B; margin-top:8px;">Your sales code is active. Use it at checkout on any booking to earn Rewards under the terms above.</p>
+      <p style="font-size:14px; color:#5C566B; margin-top:8px;">We're setting up automatic bank payouts — for now, Rewards are paid out manually and we'll be in touch directly about payment details. No action needed from you.</p>
+    </div>
+  </div>
+</main>
+
+<script>
+const goStep = (id) => { document.querySelectorAll('.step').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); };
+
+document.getElementById('submitContract').addEventListener('click', async () => {
+  const kind = document.getElementById('kind').value;
+  const legalName = document.getElementById('legalName').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const salesCode = document.getElementById('salesCode').value.trim().toUpperCase();
+  const agreed = document.getElementById('agree').checked;
+  const msgEl = document.getElementById('contractMsg');
+  msgEl.innerHTML = '';
+
+  const btn = document.getElementById('submitContract');
+  btn.disabled = true;
+  try {
+    const res = await fetch('/.netlify/functions/sales-agent-signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'accept-contract', kind, legalName, email, salesCode, agreed })
+    });
+    const rawText = await res.text();
+    let data;
+    try {
+      data = JSON.parse(rawText);
+    } catch (parseErr) {
+      // Response wasn't JSON at all (e.g. a 404/502 platform page instead
+      // of our function actually running) -- show the raw status and body
+      // instead of masking it, so this doesn't dead-end at a generic
+      // message again.
+      throw new Error(`HTTP ${res.status}: ${rawText.slice(0, 200) || '(empty response)'}`);
+    }
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status} with no error message in the response`);
+    goStep('step-done');
+  } catch (err) {
+    msgEl.innerHTML = `<div class="msg error">${err.message}</div>`;
+  } finally {
+    btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>

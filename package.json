@@ -4,7 +4,7 @@
   "private": true,
   "description": "Booking system for Strategic AI Transformation Bootcamp and Masterclass",
   "dependencies": {
-    "stripe": "^17.0.0",
+    "stripe": "^22.5.0",
     "@netlify/blobs": "^8.1.0",
     "pdf-lib": "^1.17.1"
   }

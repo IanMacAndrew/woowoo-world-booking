@@ -31,6 +31,7 @@ async function buildSaleSection(commission) {
   const notes = [];
   notes.push(`${Math.round(commission.companyTierRate * 100)}% company tier (${commission.seatCount} delegate${commission.seatCount === 1 ? '' : 's'})`);
   if (commission.workshopBonusRate > 0) notes.push(`+${Math.round(commission.workshopBonusRate * 100)}% workshop-volume bonus (${commission.repCumulativeInCohortAfter} cumulative in this cohort)`);
+  if (commission.minimumFillBonusRate > 0) notes.push(`+${Math.round(commission.minimumFillBonusRate * 100)}% minimum-fill team bonus (cohort confirmed)`);
 
   return `
     <div style="border-top:0.5px solid #D4D6DC;padding-top:12px;margin-bottom:12px;">
@@ -61,18 +62,19 @@ async function sendReportForRep(repCode, commissions, periodStart, periodEnd) {
   const html = `
     <div style="font-family:sans-serif;color:#1C0333;max-width:640px;">
       <p style="text-align:center;font-size:12px;color:#97711F;margin:0 0 4px;">WooWoo World</p>
-      <h2 style="text-align:center;margin:0 0 4px;">Sales report for ${repDisplayName(repCode)}</h2>
-      <p style="text-align:center;font-size:13px;color:#5C566B;margin:0 0 20px;">Period: ${fmt(periodStart)} \u2013 ${fmt(periodEnd)}</p>
+      <h2 style="text-align:center;margin:0 0 4px;">Sales payout for ${repDisplayName(repCode)}</h2>
+      <p style="text-align:center;font-size:13px;color:#5C566B;margin:0 0 4px;">Period: ${fmt(periodStart)} \u2013 ${fmt(periodEnd)}</p>
+      <p style="text-align:center;font-size:11px;color:#8F8A9C;margin:0 0 20px;">Released this period — every cohort below has confirmed its minimum go-ahead headcount.</p>
       ${sections.join('')}
       <div style="border-top:1px solid #1C0333;padding-top:12px;display:flex;justify-content:space-between;">
-        <strong>Total this period</strong>
+        <strong>Total payable this period</strong>
         <strong>${money(total)}</strong>
       </div>
     </div>`;
 
   return sendEmail({
     to: cohortsData.salesReportRecipient || 'sales@woowoo.world',
-    subject: `Sales report for ${repDisplayName(repCode)} — ${fmt(periodStart)} to ${fmt(periodEnd)}`,
+    subject: `Sales payout for ${repDisplayName(repCode)} — ${fmt(periodStart)} to ${fmt(periodEnd)}`,
     html
   });
 }
@@ -93,15 +95,20 @@ exports.handler = async () => {
   }
   const periodEnd = new Date(periodStart.getTime() + PERIOD_DAYS * MS_PER_DAY);
 
+  // Windowed on payoutDecidedAt (when release-commission-payouts.js
+  // released it), NOT on when the sale was made — a commission only
+  // becomes payable once its cohort is confirmed to have hit minimum,
+  // which can be well after the sale itself. 'pending' records (cohort
+  // hasn't closed to sales yet) and 'void' ones (cohort never reached
+  // minimum) are never included in a payable total here.
   const { blobs } = await store.list({ prefix: 'commission-by-rep:' });
   const byRep = {};
   for (const b of blobs) {
-    const parts = b.key.split(':'); // commission-by-rep:{repCode}:{computedAt}:{bookingId}
-    const repCode = parts[1];
-    const computedAt = new Date(parts[2]);
-    if (computedAt < periodStart || computedAt >= periodEnd) continue;
     const record = await store.get(b.key, { type: 'json' });
-    if (!record) continue;
+    if (!record || record.payoutStatus !== 'released' || !record.payoutDecidedAt) continue;
+    const decidedAt = new Date(record.payoutDecidedAt);
+    if (decidedAt < periodStart || decidedAt >= periodEnd) continue;
+    const repCode = record.repCode;
     (byRep[repCode] = byRep[repCode] || []).push(record);
   }
 

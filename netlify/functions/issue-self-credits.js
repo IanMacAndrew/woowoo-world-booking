@@ -4,16 +4,17 @@
 // running, not being merged/rescheduled), every booking made with the
 // SELF_CREDIT marker gets an account credit issued and emailed.
 //
-// Credit value mirrors the same company-tier rate a sales rep would earn
-// on an equivalent booking (5% for 1-3 delegates, 10% for 4-6, 15% for
-// 7+) — same money, the booking contact's choice of form (cash-equivalent
-// commission vs. a credit toward a future booking). The workshop-volume
-// bonus layer doesn't apply here since it's designed around a rep's
-// ongoing sales behaviour across multiple bookings into one cohort, not a
-// single self-booking.
+// Credit value mirrors the same commission a sales rep would earn on an
+// equivalent booking: the company-tier rate (5% for 1-3 delegates, 10%
+// for 4-6, 15% for 7+) PLUS the minimum-fill team bonus (+5%) — this
+// function only ever runs once minimum is already confirmed met, so that
+// bonus always applies here, unlike the rep case where it's applied later
+// by release-commission-payouts.js. The workshop-volume bonus layer still
+// doesn't apply — it's designed around a rep's ongoing sales behaviour
+// across multiple bookings into one cohort, not a single self-booking.
 const { getStore } = require('./_blobs');
 const { cohortsData, getProgramme, salePhase } = require('./_pricing');
-const { companyTierRate } = require('./_commission');
+const { companyTierRate, MINIMUM_FILL_BONUS_RATE } = require('./_commission');
 const { sendEmail } = require('./_email');
 
 const DEFAULT_MIN_SEATS = 10;
@@ -96,7 +97,7 @@ exports.handler = async () => {
       if (!(roster.status || '').startsWith('paid')) continue;
       if (roster.selfCreditIssued) continue;
 
-      const rate = companyTierRate(roster.pricing.seatCount);
+      const rate = companyTierRate(roster.pricing.seatCount) + MINIMUM_FILL_BONUS_RATE;
       const amountCents = Math.round(roster.pricing.total * rate);
       if (amountCents <= 0) continue;
 

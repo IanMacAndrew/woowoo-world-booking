@@ -166,7 +166,8 @@ async function sendSalesCommissionNotification({ cohort, commission, bookingId }
       <p><strong>${cohort.programmeName}</strong> — ${cohort.label}</p>
       ${commission.eligible
         ? `<p><strong>RM ${(commission.commissionAmount / 100).toLocaleString('en-MY', { minimumFractionDigits: 2 })}</strong> for ${commission.seatCount} delegate(s) at ${Math.round(commission.totalRate * 100)}% (${Math.round(commission.companyTierRate * 100)}% company tier + ${Math.round(commission.workshopBonusRate * 100)}% workshop-volume bonus).</p>
-           <p>Cumulative delegates sold into this cohort: <strong>${commission.repCumulativeInCohortAfter}</strong></p>`
+           <p>Cumulative delegates sold into this cohort: <strong>${commission.repCumulativeInCohortAfter}</strong></p>
+           <p style="color:#746F82;font-size:12px;">This is pending, not yet payable. If this cohort reaches its minimum go-ahead headcount, every one of your sales into it also gets a further +5% minimum-fill team bonus, released together once that's confirmed. If the cohort never reaches minimum and isn't merged into one that does, this commission is void.</p>`
         : `<p>No commission on this booking: ${commission.reason}</p>`}
       <p style="color:#746F82;font-size:12px;">Booking reference: ${bookingId}</p>
     </div>`;
@@ -185,10 +186,10 @@ async function sendMinimumNotMetEmail({ contactEmail, contactName, cohort, booke
       <h2>An update on your ${cohort.programmeName} booking</h2>
       <p>Hi ${contactName || 'there'},</p>
       <p><strong>${cohort.programmeName}</strong> (${cohort.label}${cohort.trackLabel ? ' \u00b7 ' + cohort.trackLabel : ''}) currently has ${booked} of the ${minSeats} delegates it needs to run, ${shortfall} short of that minimum. Your ${seatCount} seat(s) are safe either way \u2014 this is just to give you options while there's still time to act.</p>
-      <p>Two options over the next 5 days, while Fire Sale pricing (50% off) is live:</p>
+      <p>Two options over the next 5 days, while Final Call pricing (50% off) is live:</p>
       <ol>
-        <li><strong>Add more delegates now</strong> at the Fire Sale rate, if you'd like to bring more of your team.</li>
-        <li><strong>Do nothing</strong> \u2014 if the cohort still hasn't reached its minimum once the Fire Sale ends, we'll be in touch with alternative dates${mergeTarget ? ` (most likely ${mergeTarget.label})` : ''}, and your existing price will carry over.</li>
+        <li><strong>Add more delegates now</strong> at the Final Call rate, if you'd like to bring more of your team.</li>
+        <li><strong>Do nothing</strong> \u2014 if the cohort still hasn't reached its minimum once Final Call ends, we'll be in touch with alternative dates${mergeTarget ? ` (most likely ${mergeTarget.label})` : ''}, and your existing price will carry over.</li>
       </ol>
       <p style="color:#746F82;font-size:12px;">Booking reference on file for your seats. Questions? Reply to this email or contact sales@woowoo.world.</p>
     </div>`;
@@ -211,10 +212,10 @@ async function sendOpsMinimumNotMetNotification({ cohort, booked, minSeats, book
 
   const html = `
     <div style="font-family:sans-serif;color:#1C0333;">
-      <h2>Cohort short of minimum — Fire Sale rescue triggered</h2>
+      <h2>Cohort short of minimum — Final Call rescue triggered</h2>
       <p><strong>${cohort.programmeName}</strong> \u2014 ${cohort.label}${cohort.trackLabel ? ' \u00b7 ' + cohort.trackLabel : ''}</p>
-      <p>${booked} of ${minSeats} delegates booked. Booking Contacts have just been emailed with the option to grow their booking during the 5-day Fire Sale.</p>
-      <p><strong>If still short after the Fire Sale ends</strong>, consider merging with ${mergeTarget ? `<strong>${mergeTarget.id}</strong> (${mergeTarget.label})` : 'the next cohort on this track'} \u2014 existing paid delegates keep their original price.</p>
+      <p>${booked} of ${minSeats} delegates booked. Booking Contacts have just been emailed with the option to grow their booking during the 5-day Final Call window.</p>
+      <p><strong>If still short after Final Call ends</strong>, consider merging with ${mergeTarget ? `<strong>${mergeTarget.id}</strong> (${mergeTarget.label})` : 'the next cohort on this track'} \u2014 existing paid delegates keep their original price.</p>
       <table style="font-size:13px;width:100%;border-collapse:collapse;margin-top:12px;">
         <tr style="border-bottom:1px solid #D4D6DC;"><th style="text-align:left;padding:3px 8px 3px 0;">Booking Contact</th><th style="text-align:left;padding:3px 8px;">Email</th><th style="text-align:left;padding:3px 8px;">Seats</th><th style="text-align:left;padding:3px 0;">Sales Rep</th></tr>
         ${contactRows}
@@ -229,4 +230,22 @@ async function sendOpsMinimumNotMetNotification({ cohort, booked, minSeats, book
   });
 }
 
-module.exports = { sendEmail, sendConfirmationEmail, sendOpsNotification, sendDelegateFormLinkEmail, sendOpsAwaitingDelegatesNotification, sendSalesCommissionNotification, sendMinimumNotMetEmail, sendOpsMinimumNotMetNotification, sendOpsRosterWriteFailedAlert };
+async function sendSalesAgentWelcomeEmail({ legalName, email, salesCode, kind }) {
+  const roleLabel = kind === 'booking_contact' ? 'Company Booking Contact' : 'Sales Rep';
+  const html = `
+    <div style="font-family:sans-serif;color:#1C0333;">
+      <h2>Welcome — your ${roleLabel} code is active</h2>
+      <p>Hi ${legalName || 'there'}, your agreement is on file and your sales code <strong>${salesCode}</strong> is now active. Use it at checkout on any booking to earn Rewards.</p>
+      <p>See <a href="https://book.woowoo.world/how-commissions-work">How Commissions &amp; Rewards Work</a> for the full structure and worked examples.</p>
+      <h3 style="margin-top:24px;">Getting paid</h3>
+      <p>We're setting up automatic bank payouts — for now, Rewards are paid out manually. We'll be in touch directly about payment details; no action needed from you.</p>
+    </div>`;
+
+  return sendEmail({
+    to: email,
+    subject: `Welcome to WooWoo World Rewards — your code ${salesCode} is active`,
+    html
+  });
+}
+
+module.exports = { sendEmail, sendConfirmationEmail, sendOpsNotification, sendDelegateFormLinkEmail, sendOpsAwaitingDelegatesNotification, sendSalesCommissionNotification, sendMinimumNotMetEmail, sendOpsMinimumNotMetNotification, sendOpsRosterWriteFailedAlert, sendSalesAgentWelcomeEmail };

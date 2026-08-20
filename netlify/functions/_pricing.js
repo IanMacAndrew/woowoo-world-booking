@@ -16,10 +16,12 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 // no per-cohort window needs setting by hand:
 //
 //   40+ days out : cohort is listed at all (gives reps a full 20-day
-//                   Early-Bird selling window before Fire Sale starts)
+//                   Early-Bird selling window before Final Call starts)
 //   20-39 days out: Early Bird (60% off, uniform across every format)
-//   15-19 days out: Fire Sale — flat 50% off for every format, reps earn
-//                   no commission on Fire Sale sales (see _commission.js)
+//   15-19 days out: Final Call — flat 50% off for every format (renamed
+//                   from "Fire Sale"); reps and the Booking Contact rebate
+//                   now earn commission on Final Call sales too, on the
+//                   same rate stack as Early Bird (see _commission.js)
 //   <15 days out : Closed, no further bookings. This 15-day floor is
 //                   deliberate, not arbitrary — HRD Corp bans any grant
 //                   modification within 14 days of an event, so closing
@@ -28,8 +30,8 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const SALE_PHASES = {
   get MIN_DAYS_TO_LIST() { return cohortsData.minDaysToList ?? 40; },
   get EARLY_BIRD_ENDS_DAYS_OUT() { return cohortsData.earlyBirdEndsDaysOut ?? 20; },
-  get FIRE_SALE_ENDS_DAYS_OUT() { return cohortsData.fireSaleEndsDaysOut ?? 15; },
-  get FIRE_SALE_DISCOUNT() { return cohortsData.fireSaleDiscount ?? 0.5; },
+  get FINAL_CALL_ENDS_DAYS_OUT() { return cohortsData.finalCallEndsDaysOut ?? 15; },
+  get FINAL_CALL_DISCOUNT() { return cohortsData.finalCallDiscount ?? 0.5; },
 };
 
 function daysUntilStart(cohort, now = new Date()) {
@@ -44,11 +46,11 @@ function isCohortListed(cohort, now = new Date()) {
   return daysUntilStart(cohort, now) >= SALE_PHASES.MIN_DAYS_TO_LIST;
 }
 
-// 'early-bird' | 'fire-sale' | 'closed'
+// 'early-bird' | 'final-call' | 'closed'
 function salePhase(cohort, now = new Date()) {
   const d = daysUntilStart(cohort, now);
   if (d >= SALE_PHASES.EARLY_BIRD_ENDS_DAYS_OUT) return 'early-bird';
-  if (d >= SALE_PHASES.FIRE_SALE_ENDS_DAYS_OUT) return 'fire-sale';
+  if (d >= SALE_PHASES.FINAL_CALL_ENDS_DAYS_OUT) return 'final-call';
   return 'closed';
 }
 
@@ -56,8 +58,8 @@ function isEarlyBirdActive(cohort, now = new Date()) {
   return salePhase(cohort, now) === 'early-bird';
 }
 
-function isFireSaleActive(cohort, now = new Date()) {
-  return salePhase(cohort, now) === 'fire-sale';
+function isFinalCallActive(cohort, now = new Date()) {
+  return salePhase(cohort, now) === 'final-call';
 }
 
 function isSaleClosed(cohort, now = new Date()) {
@@ -70,9 +72,9 @@ function earlyBirdCutoffDate(cohort) {
   return cutoff.toISOString().slice(0, 10);
 }
 
-function fireSaleEndDate(cohort) {
+function finalCallEndDate(cohort) {
   const [y, m, d] = cohort.startDate.split('-').map(Number);
-  const end = new Date(Date.UTC(y, m - 1, d) - SALE_PHASES.FIRE_SALE_ENDS_DAYS_OUT * MS_PER_DAY);
+  const end = new Date(Date.UTC(y, m - 1, d) - SALE_PHASES.FINAL_CALL_ENDS_DAYS_OUT * MS_PER_DAY);
   return end.toISOString().slice(0, 10);
 }
 
@@ -112,7 +114,7 @@ function calculatePricing({ cohortId, seatCount, bookingProtection, venueId, now
   // checkout only ever needs at least 1 seat; whether the cohort as a whole
   // has cleared its minimum by the early-bird deadline is checked
   // separately (see checkCohortMinimums in _commission.js) and drives the
-  // fire-sale rescue flow, not checkout eligibility.
+  // final-call rescue flow, not checkout eligibility.
   if (seatCount < 1 || seatCount > maxSeats) {
     throw new Error(`Seat count must be between 1 and ${maxSeats}`);
   }
@@ -120,16 +122,20 @@ function calculatePricing({ cohortId, seatCount, bookingProtection, venueId, now
   const basePerSeat = programme.basePrice;
 
   const earlyBird = phase === 'early-bird';
-  const fireSale = phase === 'fire-sale';
+  const finalCall = phase === 'final-call';
   const seatDiscount = seatTierDiscount(seatCount, programme);
 
-  // Fire Sale is a flat 50% off for every format, replacing (not stacking
+  // Final Call is a flat 50% off for every format, replacing (not stacking
   // with) that format's own early-bird rate — it's a distinct, simpler
-  // clearance mechanism, not an extension of early-bird.
+  // clearance mechanism, not an extension of early-bird. It's deliberately
+  // a smaller discount than Early Bird (50% off vs 60% off) so that waiting
+  // for Final Call costs a delegate more than committing early — the whole
+  // point is to reward paying early, not to make the last-chance window the
+  // cheapest one.
   const earlyBirdAmount = earlyBird
     ? Math.round(basePerSeat * programme.earlyBirdDiscount)
-    : fireSale
-      ? Math.round(basePerSeat * SALE_PHASES.FIRE_SALE_DISCOUNT)
+    : finalCall
+      ? Math.round(basePerSeat * SALE_PHASES.FINAL_CALL_DISCOUNT)
       : 0;
   const seatDiscountAmount = seatDiscount > 0 ? Math.round(basePerSeat * seatDiscount) : 0;
 
@@ -144,7 +150,7 @@ function calculatePricing({ cohortId, seatCount, bookingProtection, venueId, now
   const total = perSeat * seatCount;
 
   // "Heavily Discounted" = total discount off base is 50% or more. Early-bird
-  // alone is exactly 50%, so any booking with early-bird applied is Heavily
+  // alone is 60%, so any booking with early-bird applied is Heavily
   // Discounted regardless of seat-tier stacking; without early-bird, seat
   // tiers alone (max 20%) never reach 50%, so it's always Standard.
   const totalDiscountFraction = basePerSeat > 0 ? (earlyBirdAmount + seatDiscountAmount) / basePerSeat : 0;
@@ -163,7 +169,7 @@ function calculatePricing({ cohortId, seatCount, bookingProtection, venueId, now
     total,
     salePhase: phase,
     earlyBirdApplied: earlyBird,
-    fireSaleApplied: fireSale,
+    finalCallApplied: finalCall,
     earlyBirdAmount,
     seatDiscountApplied: seatDiscount,
     seatDiscountAmount,
@@ -178,7 +184,7 @@ function calculatePricing({ cohortId, seatCount, bookingProtection, venueId, now
 }
 
 module.exports = {
-  getCohort, getProgramme, isEarlyBirdActive, isFireSaleActive, isSaleClosed,
-  salePhase, isCohortListed, daysUntilStart, earlyBirdCutoffDate, fireSaleEndDate,
+  getCohort, getProgramme, isEarlyBirdActive, isFinalCallActive, isSaleClosed,
+  salePhase, isCohortListed, daysUntilStart, earlyBirdCutoffDate, finalCallEndDate,
   seatTierDiscount, getVenue, calculatePricing, cohortsData, SALE_PHASES
 };

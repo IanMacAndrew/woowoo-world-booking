@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How Commissions Work — WooWoo World</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1C0333; --paper:#F4F2F8; --paper-dim:#E9ECF2;
+    --brass:#C79529; --brass-dark:#97711F; --line:#D4D6DC;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--paper); color:var(--ink); font-family:'Inter',sans-serif; line-height:1.65;}
+  h1,h2{font-family:'Newsreader',serif;}
+  header{max-width:780px; margin:0 auto; padding:56px 24px 32px; border-bottom:1px solid var(--line);}
+  .eyebrow{font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.14em; text-transform:uppercase; color:var(--brass-dark); margin-bottom:14px;}
+  h1{font-size:clamp(28px,4vw,40px); font-weight:500; font-style:italic;}
+  main{max-width:780px; margin:0 auto; padding:40px 24px 96px;}
+  section{margin-bottom:40px;}
+  h2{font-size:19px; font-weight:500; margin-bottom:12px; color:var(--brass-dark);}
+  h3{font-size:15px; font-weight:600; margin:16px 0 6px;}
+  p{margin-bottom:10px; font-size:15px; color:#2B2438;}
+  ul, ol{margin:8px 0 12px 22px; font-size:15px; color:#2B2438;}
+  li{margin-bottom:6px;}
+  a{color:var(--brass-dark);}
+  table{width:100%; border-collapse:collapse; margin:14px 0; font-size:13.5px;}
+  th, td{text-align:left; padding:10px 12px; border:1px solid var(--line); vertical-align:top;}
+  th{background:var(--paper-dim); font-family:'IBM Plex Mono',monospace; font-size:10.5px; text-transform:uppercase;}
+  .note{background:var(--paper-dim); border:1px solid var(--line); padding:14px 18px; font-size:13.5px; color:#5C566B; margin:14px 0;}
+  .step{border:1px solid var(--line); border-radius:12px; padding:18px 20px; margin-bottom:12px;}
+  .step h3{margin-top:0;}
+  .tag{display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; padding:2px 8px; border-radius:3px; background:#E9ECF2; color:var(--brass-dark); margin-bottom:8px;}
+  .tag.warn{background:#FBE8E8; color:#A33A3A;}
+  .tag.ok{background:#E7F3EE; color:#1F7A54;}
+  footer{max-width:780px; margin:0 auto; padding:32px 24px 64px; font-size:12px; color:#8F8A9C; border-top:1px solid var(--line);}
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">WooWoo World · Sales Team</div>
+  <h1>How Commissions Work</h1>
+  <p style="margin-top:12px; color:#5C566B; font-size:14px;">The full rep commission structure, current as of this update. Booking for your own company instead? See <a href="/how-the-sales-code-works">How the Sales Code Works</a>. Prefer a downloadable copy? <a href="/docs/WooWoo%20World%20-%20How%20Commissions%20and%20Rewards%20Work.pdf">Download the PDF</a>. Ready to activate a code? <a href="/sign-up">Sign up here</a>.</p>
+</header>
+<main>
+
+  <section>
+    <h2>Three layers, stacked additively</h2>
+    <p>Every booking you make earns commission from up to three layers, added together — never compounded:</p>
+    <table>
+      <tr><th>Layer</th><th>Based on</th><th>Rate</th></tr>
+      <tr><td rowspan="3">(a) Company tier</td><td>1–3 delegates from one company, in one booking</td><td>5%</td></tr>
+      <tr><td>4–6 delegates</td><td>10%</td></tr>
+      <tr><td>7 or more delegates (uncapped above 7 — carries straight through to in-house cohorts up to 20)</td><td>15%</td></tr>
+      <tr><td rowspan="2">(b) Workshop-volume bonus</td><td>Your own cumulative delegate count sold into this ONE cohort reaches 6</td><td>+5%</td></tr>
+      <tr><td>Reaches 12</td><td>+10%</td></tr>
+      <tr><td>(c) Minimum-fill team bonus</td><td>The cohort you sold into is confirmed to have reached its minimum go-ahead headcount — applies to every rep who contributed a sale, on all of their sales in that cohort</td><td>+5%</td></tr>
+    </table>
+    <div class="note">Maximum possible: 15% + 10% + 5% = <strong>30%</strong>. Layer (b) is specific to YOUR cumulative sales into that one cohort — it doesn't count sales other reps made, or your sales into other cohorts. There is no separate maximum-fill bonus.</div>
+  </section>
+
+  <section>
+    <h2>Early Bird and Final Call both count</h2>
+    <p>Commission is earned on sales made during a cohort's Early Bird window <strong>or</strong> its Final Call window (the last-chance 5-day period before sales close, formerly called "Fire Sale"). It is not earned on bookings made after a cohort has closed to sales entirely.</p>
+    <p>Final Call pricing is a flat 50% off list price — a smaller discount than Early Bird's 60% off, deliberately, so waiting for Final Call costs a delegate more than committing early. The commission rate structure is identical either way.</p>
+  </section>
+
+  <section>
+    <h2>Commission is calculated on the actual amount paid</h2>
+    <p>Every rate above applies to the <strong>overall booked price</strong> — what the delegate actually pays after Early Bird / Final Call timing and any multi-seat discount, never the undiscounted list price.</p>
+  </section>
+
+  <section>
+    <h2>When you actually get paid: pending → released or void</h2>
+    <p>Layers (a) and (b) are locked in the moment a booking is paid — you'll get an immediate email showing that rate. But nothing is <em>payable</em> yet at that point:</p>
+
+    <div class="step">
+      <span class="tag">Step 1 — at the sale</span>
+      <h3>Commission calculated, marked "pending"</h3>
+      <p>Layers (a) + (b) are computed and recorded straight away. This is what your at-sale email shows. It's a real, locked-in number — but it isn't released for payment until the cohort's fate is known.</p>
+    </div>
+
+    <div class="step">
+      <span class="tag ok">Step 2a — cohort reaches minimum</span>
+      <h3>Released, with the +5% bonus added</h3>
+      <p>Once a cohort closes to sales and is confirmed to have hit its minimum go-ahead headcount, every pending commission on that cohort gets layer (c)'s +5% added and is marked <strong>released</strong> — payable on the next fortnightly payout.</p>
+    </div>
+
+    <div class="step">
+      <span class="tag warn">Step 2b — cohort doesn't reach minimum</span>
+      <h3>Void, unless rescued</h3>
+      <p>If a cohort closes still short of minimum and isn't merged into one that does run, every pending commission on it is marked <strong>void</strong> — not paid. This is the same rule that gates the Booking Contact's account-credit rebate (see <a href="/how-the-sales-code-works">How the Sales Code Works</a>) — same money, same condition, whichever side of the booking it's on.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Worked example</h2>
+    <p>You sell 3 Deep Dive delegates to one company during Early Bird (total paid: RM1,837.50, after the 5% multi-seat discount that applies at 2-4 delegates).</p>
+    <ul>
+      <li><strong>At the sale:</strong> company tier 5% (1-3 delegates), no workshop bonus yet (this is your first sale into the cohort). Pending commission: RM91.88.</li>
+      <li><strong>If the cohort later reaches its minimum:</strong> +5% minimum-fill bonus added → 10% total → released commission: RM183.75.</li>
+      <li><strong>If the cohort never reaches minimum and isn't merged:</strong> void — RM0.</li>
+    </ul>
+    <p>If you go on to sell another 5 delegates into that <em>same</em> cohort later on, that second booking's company tier is 10% (4-6 delegates, based on that booking alone), and because your cumulative count in this cohort is now 8, the workshop-volume bonus kicks in at +5% too — 15% at the time of that sale, 20% once released.</p>
+  </section>
+
+  <section>
+    <h2>Same rules for a Booking Contact's own rebate</h2>
+    <p>If a company books directly and clears the Sales Code field for an account credit instead of naming a rep, the credit follows the same company-tier rate plus the same +5% minimum-fill bonus — it just doesn't carry the workshop-volume bonus, since that layer is about a rep's ongoing sales behaviour across bookings, not a single company crediting itself. Full detail: <a href="/how-the-sales-code-works">How the Sales Code Works</a>.</p>
+  </section>
+
+  <section>
+    <h2>Questions</h2>
+    <p>Email <a href="mailto:sales@woowoo.world">sales@woowoo.world</a> and we'll help.</p>
+  </section>
+</main>
+<footer>
+  WooWoo World · woowoo.world · woowooworld.co
+</footer>
+</body>
+</html>
