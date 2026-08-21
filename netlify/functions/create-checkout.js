@@ -57,6 +57,28 @@ exports.handler = async (event) => {
 
   const store = getStore('bookings');
 
+  // A typed code (anything other than the untouched house default "ISM"
+  // or a cleared field -> SELF_CREDIT) must belong to someone who's
+  // actually signed the Sales Rep / Booking Contact agreement — see
+  // sales-agent-signup.js. Without this check, anyone could type any
+  // 3-12 char string at checkout and earn commission with no contract
+  // on file. Fails OPEN only on a genuine Blobs outage (matches the
+  // capacity-check precedent below), never on a code that's simply not
+  // found — an unregistered code is a real rejection, not an infra hiccup.
+  if (repCode !== 'ISM' && repCode !== 'SELF_CREDIT') {
+    let agentRecord = null;
+    let agentLookupFailed = false;
+    try {
+      agentRecord = await store.get(`sales-agent:${repCode}`, { type: 'json' });
+    } catch (err) {
+      console.error('Blobs read failed (sales-agent) for', repCode, '— proceeding without the registration check:', err);
+      agentLookupFailed = true;
+    }
+    if (!agentLookupFailed && !agentRecord) {
+      return jsonError(400, `Sales code "${repCode}" isn't registered yet. Sign the Sales Rep / Booking Contact agreement at /sign-up first, or leave this field as "ISM" to book without a rep code.`);
+    }
+  }
+
   // Re-check capacity right before checkout so we never oversell. If the
   // read itself fails (Blobs has proven unreliable), fail OPEN, not closed —
   // a hiccup here should never block a paying customer. Worst case is a
