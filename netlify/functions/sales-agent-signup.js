@@ -8,16 +8,18 @@
 //   check still needs wiring in (not done yet as of this build).
 //
 //   Step 2 (action: 'connect-bank') — creates a Stripe Connect account
-//   for that code and returns a hosted onboarding link. DELIBERATELY
-//   NOT called automatically from accept-contract, and not wired into
-//   the UI (public/sign-up.html doesn't call it right now). Automated
-//   bank payouts via Stripe Connect turned into its own multi-hour
-//   debugging project on a single night and got pulled out of the
-//   critical path entirely so contract sign-up could ship without
-//   depending on it -- reps and Booking Contacts are paid manually
-//   (see send-sales-reports.js) until this gets picked up as its own
-//   piece of work. The endpoint is left working and unit-testable so
-//   that work doesn't start from zero, it's just not user-facing yet.
+//   (Accounts v2, Recipient configuration) for that code and returns a
+//   hosted onboarding link. Wired into the UI as an optional step right
+//   after contract sign-up, and re-triggerable later via the welcome
+//   email's link (public/sign-up.html?code=X&step=bank). Not required —
+//   reps/Booking Contacts who skip it are paid manually (see
+//   send-sales-reports.js) until they connect a bank account.
+//
+//   Step 3 (action: 'account-status') — read-only check of whether a
+//   code's Recipient account has reached an active payout capability
+//   yet. Used by the UI right after Stripe redirects back from hosted
+//   onboarding, since account creation and verification aren't the
+//   same moment.
 //
 // Malaysia only, deliberately — HRD Corp itself only deals with
 // Malaysian and Malaysia-registered companies, so every Sales Rep and
@@ -30,7 +32,7 @@
 // version bump can be used to prompt re-acceptance if the terms
 // materially change.
 const { getStore } = require('./_blobs');
-const { createConnectAccount, createOnboardingLink } = require('./_stripe-connect');
+const { createConnectAccount, createOnboardingLink, getAccountStatus } = require('./_stripe-connect');
 const { sendSalesAgentWelcomeEmail } = require('./_email');
 
 const CONTRACT_VERSION = '2026-08-18-v1';
@@ -114,8 +116,6 @@ exports.handler = async (event) => {
     }
 
     if (body.action === 'connect-bank') {
-      // Not called from the UI right now (see file header) — left
-      // working for when automated payouts get picked back up.
       const { salesCode, returnUrl, refreshUrl } = body;
       if (!salesCode) return { statusCode: 400, body: JSON.stringify({ error: 'Missing salesCode' }) };
 
@@ -147,6 +147,36 @@ exports.handler = async (event) => {
       } catch (err) {
         console.error('Stripe Connect onboarding failed for', salesCode, err);
         return { statusCode: 502, body: JSON.stringify({ error: `Could not start bank connection right now: ${err.message}` }) };
+      }
+    }
+
+    if (body.action === 'account-status') {
+      // Called when the UI needs to know whether a code's Stripe Connect
+      // payout capability is actually active yet — e.g. right after
+      // Stripe redirects back from hosted onboarding. Deliberately
+      // separate from connect-bank: this never creates an account or
+      // spends an onboarding link, it only reads current state.
+      const { salesCode } = body;
+      if (!salesCode) return { statusCode: 400, body: JSON.stringify({ error: 'Missing salesCode' }) };
+
+      const record = await store.get(`sales-agent:${salesCode}`, { type: 'json' }).catch(() => null);
+      if (!record) {
+        return { statusCode: 404, body: JSON.stringify({ error: 'Sales code not found' }) };
+      }
+      if (!record.stripeAccountId) {
+        return { statusCode: 200, body: JSON.stringify({ ok: true, bankConnected: false, transfersActive: false }) };
+      }
+
+      try {
+        const { transfersActive, rawStatus } = await getAccountStatus(record.stripeAccountId);
+        if (transfersActive && record.status !== 'bank_active') {
+          record.status = 'bank_active';
+          await store.setJSON(`sales-agent:${salesCode}`, record);
+        }
+        return { statusCode: 200, body: JSON.stringify({ ok: true, bankConnected: true, transfersActive, rawStatus }) };
+      } catch (err) {
+        console.error('Account status check failed for', salesCode, err);
+        return { statusCode: 502, body: JSON.stringify({ error: `Could not check bank connection status: ${err.message}` }) };
       }
     }
 

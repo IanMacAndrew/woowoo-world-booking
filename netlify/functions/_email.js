@@ -238,7 +238,7 @@ async function sendSalesAgentWelcomeEmail({ legalName, email, salesCode, kind })
       <p>Hi ${legalName || 'there'}, your agreement is on file and your sales code <strong>${salesCode}</strong> is now active. Use it at checkout on any booking to earn Rewards.</p>
       <p>See <a href="https://book.woowoo.world/how-commissions-work">How Commissions &amp; Rewards Work</a> for the full structure and worked examples.</p>
       <h3 style="margin-top:24px;">Getting paid</h3>
-      <p>We're setting up automatic bank payouts — for now, Rewards are paid out manually. We'll be in touch directly about payment details; no action needed from you.</p>
+      <p>Want Rewards paid out automatically? <a href="https://book.woowoo.world/sign-up?code=${encodeURIComponent(salesCode)}&step=bank">Connect a Malaysian bank account via Stripe</a> — Stripe holds your bank details directly, WooWoo World never sees them. Optional: skip this and we'll pay you manually instead.</p>
     </div>`;
 
   return sendEmail({

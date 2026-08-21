@@ -97,17 +97,91 @@
     </div>
   </div>
 
+  <div id="step-bank" class="step">
+    <div class="card">
+      <h2 style="font-size:18px; margin-bottom:10px;">3. Get paid automatically (optional)</h2>
+      <p style="font-size:14px; color:#5C566B;">Connect a Malaysian bank account through Stripe's own secure onboarding so Rewards can be paid out automatically. WooWoo World never collects, sees, or stores your bank details — Stripe holds them directly.</p>
+      <button id="connectBankBtn" style="margin-top:16px;">Connect Bank Account via Stripe</button>
+      <button id="skipBankBtn" class="secondary">Skip — pay me manually for now</button>
+      <div id="bankMsg"></div>
+    </div>
+  </div>
+
   <div id="step-done" class="step">
     <div class="card">
       <h2 style="font-size:18px;">You're all set</h2>
       <p style="font-size:14px; color:#5C566B; margin-top:8px;">Your sales code is active. Use it at checkout on any booking to earn Rewards under the terms above.</p>
-      <p style="font-size:14px; color:#5C566B; margin-top:8px;">We're setting up automatic bank payouts — for now, Rewards are paid out manually and we'll be in touch directly about payment details. No action needed from you.</p>
+      <div id="doneMsg" style="margin-top:8px;"></div>
     </div>
   </div>
 </main>
 
 <script>
 const goStep = (id) => { document.querySelectorAll('.step').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); };
+
+const params = new URLSearchParams(window.location.search);
+let activeCode = params.get('code') || '';
+
+async function callSignup(payload) {
+  const res = await fetch('/.netlify/functions/sales-agent-signup', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  const rawText = await res.text();
+  let data;
+  try {
+    data = JSON.parse(rawText);
+  } catch (parseErr) {
+    // Response wasn't JSON at all (e.g. a 404/502 platform page instead
+    // of our function actually running) -- show the raw status and body
+    // instead of masking it, so this doesn't dead-end at a generic
+    // message again.
+    throw new Error(`HTTP ${res.status}: ${rawText.slice(0, 200) || '(empty response)'}`);
+  }
+  if (!res.ok) throw new Error(data.error || `HTTP ${res.status} with no error message in the response`);
+  return data;
+}
+
+async function startBankConnect(code) {
+  const bankMsg = document.getElementById('bankMsg');
+  bankMsg.innerHTML = '';
+  const btn = document.getElementById('connectBankBtn');
+  btn.disabled = true;
+  try {
+    const data = await callSignup({
+      action: 'connect-bank',
+      salesCode: code,
+      returnUrl: `${window.location.origin}/sign-up?code=${encodeURIComponent(code)}&step=done`,
+      refreshUrl: `${window.location.origin}/sign-up?code=${encodeURIComponent(code)}&step=bank`
+    });
+    window.location.href = data.onboardingUrl;
+  } catch (err) {
+    bankMsg.innerHTML = `<div class="msg error">${err.message}</div>`;
+    btn.disabled = false;
+  }
+}
+
+async function showDoneStatus(code) {
+  const doneMsg = document.getElementById('doneMsg');
+  if (!code) {
+    doneMsg.innerHTML = `<div class="msg ok">We're setting up automatic bank payouts — for now, Rewards are paid out manually and we'll be in touch directly about payment details. No action needed from you.</div>`;
+    return;
+  }
+  doneMsg.innerHTML = `<div class="msg">Checking your bank connection status…</div>`;
+  try {
+    const data = await callSignup({ action: 'account-status', salesCode: code });
+    if (data.transfersActive) {
+      doneMsg.innerHTML = `<div class="msg ok">Bank account connected — automatic payouts are active.</div>`;
+    } else if (data.bankConnected) {
+      doneMsg.innerHTML = `<div class="msg">Bank details submitted — Stripe is still verifying them. This can take a little while; Rewards due before it finishes are paid manually in the meantime.</div>`;
+    } else {
+      doneMsg.innerHTML = `<div class="msg ok">We're setting up automatic bank payouts — for now, Rewards are paid out manually and we'll be in touch directly about payment details. No action needed from you.</div>`;
+    }
+  } catch (err) {
+    doneMsg.innerHTML = `<div class="msg">Thanks — your sign-up is complete. We'll confirm your payout setup shortly.</div>`;
+  }
+}
 
 document.getElementById('submitContract').addEventListener('click', async () => {
   const kind = document.getElementById('kind').value;
@@ -121,30 +195,31 @@ document.getElementById('submitContract').addEventListener('click', async () => 
   const btn = document.getElementById('submitContract');
   btn.disabled = true;
   try {
-    const res = await fetch('/.netlify/functions/sales-agent-signup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'accept-contract', kind, legalName, email, salesCode, agreed })
-    });
-    const rawText = await res.text();
-    let data;
-    try {
-      data = JSON.parse(rawText);
-    } catch (parseErr) {
-      // Response wasn't JSON at all (e.g. a 404/502 platform page instead
-      // of our function actually running) -- show the raw status and body
-      // instead of masking it, so this doesn't dead-end at a generic
-      // message again.
-      throw new Error(`HTTP ${res.status}: ${rawText.slice(0, 200) || '(empty response)'}`);
-    }
-    if (!res.ok) throw new Error(data.error || `HTTP ${res.status} with no error message in the response`);
-    goStep('step-done');
+    await callSignup({ action: 'accept-contract', kind, legalName, email, salesCode, agreed });
+    activeCode = salesCode;
+    goStep('step-bank');
   } catch (err) {
     msgEl.innerHTML = `<div class="msg error">${err.message}</div>`;
   } finally {
     btn.disabled = false;
   }
 });
+
+document.getElementById('connectBankBtn').addEventListener('click', () => startBankConnect(activeCode));
+document.getElementById('skipBankBtn').addEventListener('click', () => {
+  goStep('step-done');
+  showDoneStatus('');
+});
+
+// Returning from Stripe's hosted onboarding (or from the welcome email's
+// bank-connect link) — the code travels via ?code=, not app state.
+if (params.get('step') === 'bank' && activeCode) {
+  goStep('step-bank');
+  startBankConnect(activeCode);
+} else if (params.get('step') === 'done' && activeCode) {
+  goStep('step-done');
+  showDoneStatus(activeCode);
+}
 </script>
 </body>
 </html>
