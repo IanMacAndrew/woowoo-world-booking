@@ -3,7 +3,7 @@ const crypto = require('crypto');
 const { getStore } = require('./_blobs');
 const { getCohort } = require('./_pricing');
 const { sendDelegateFormLinkEmail, sendOpsAwaitingDelegatesNotification, sendSalesCommissionNotification } = require('./_email');
-const { calculateAndRecordCommission } = require('./_commission');
+const { calculateAndRecordCommission, checkAndRecordAccountOwnership } = require('./_commission');
 
 exports.handler = async (event) => {
   const sig = event.headers['stripe-signature'];
@@ -73,6 +73,25 @@ exports.handler = async (event) => {
           await sendSalesCommissionNotification({ cohort: baseCohortForCommission, commission, bookingId }).catch((err) =>
             console.error('Commission notification email failed for booking', bookingId, err)
           );
+        }
+
+        // Account ownership: runs independently of the normal commission
+        // check above (which returns non-eligible for ISM/SELF_CREDIT) —
+        // this either claims ownership (rep sale, no active owner yet) or
+        // pays an existing owner (ISM/SELF_CREDIT sale into an owned
+        // company). See _commission.js for the full rule.
+        try {
+          await checkAndRecordAccountOwnership({
+            bookingId,
+            cohortId,
+            repCode,
+            companyName,
+            seatCount: seatCountNum,
+            revenue,
+            createdAt: (roster && roster.createdAt) || new Date().toISOString()
+          });
+        } catch (err) {
+          console.error('Account ownership check failed for booking', bookingId, err);
         }
       } else {
         console.error('No revenue figure available (roster missing, no fallback) — skipping commission calc for booking', bookingId);

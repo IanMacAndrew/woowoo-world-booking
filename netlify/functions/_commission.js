@@ -62,6 +62,113 @@ const WORKSHOP_BONUS_TIERS = [
 
 const MINIMUM_FILL_BONUS_RATE = 0.05;
 
+// ============================================================
+// Account Ownership (expansion sales)
+// ============================================================
+// A rep who lands the FIRST paid booking from a company becomes that
+// company's Account Owner for 12 months from that sale. The payoff:
+// if a LATER booking from the same company comes in under ISM (house
+// default) or SELF_CREDIT — i.e. no other rep's code involved — the
+// owner earns the company-tier rate (5/10/15%, seat-count-based, NO
+// workshop-bonus or minimum-fill layer) on that booking.
+//
+// Deliberately does NOT fire, and never competes, when a DIFFERENT
+// rep's code is used on a later booking — that rep just earns their
+// own commission normally, no split, no arbitration. The owner is
+// only ever paid in the exact case where otherwise nobody would be —
+// a direct/self-credit booking — which is what makes this a pure
+// incentive to nurture the account rather than a source of channel
+// conflict between reps.
+//
+// Company-name matching starts deliberately simple: lowercase, trim,
+// collapse internal whitespace. No fuzzy matching yet — revisit only
+// if reps report real false misses ("Acme Sdn Bhd" vs "ACME").
+const ACCOUNT_OWNERSHIP_WINDOW_DAYS = 365;
+
+function normalizeCompanyName(name) {
+  if (!name) return null;
+  const normalized = name.trim().toLowerCase().replace(/\s+/g, ' ');
+  return normalized || null;
+}
+
+// Called on every paid booking, regardless of whether it's a rep sale,
+// ISM, or SELF_CREDIT — the two branches below are mutually exclusive
+// per booking (a booking either CLAIMS ownership or PAYS an existing
+// owner; it can never do both, since a rep-coded booking and an
+// ISM/SELF_CREDIT booking are different bookings by definition).
+async function checkAndRecordAccountOwnership({
+  bookingId, cohortId, repCode, companyName, seatCount, revenue, createdAt
+}) {
+  const result = { ownershipClaimed: false, ownershipOverridePaid: false };
+
+  const normalized = normalizeCompanyName(companyName);
+  if (!normalized) return result; // Can't track ownership without a company name.
+
+  const store = getStore('bookings');
+  const ownerKey = `company-owner:${normalized}`;
+  const existing = await store.get(ownerKey, { type: 'json' });
+  const now = new Date(createdAt || Date.now());
+  const existingActive = existing && new Date(existing.expiresAt) > now;
+
+  const isRepSale = repCode && repCode !== 'ISM' && repCode !== 'SELF_CREDIT';
+
+  if (isRepSale) {
+    // Claim ownership only if nobody holds an active claim already — first
+    // claimer keeps it until expiry, including against the same rep
+    // re-selling (a no-op, not an extension of the window).
+    if (!existingActive) {
+      const expiresAt = new Date(now.getTime() + ACCOUNT_OWNERSHIP_WINDOW_DAYS * 24 * 60 * 60 * 1000);
+      await store.setJSON(ownerKey, {
+        ownerCode: repCode,
+        companyName,
+        normalizedCompanyName: normalized,
+        firstSaleBookingId: bookingId,
+        firstSaleDate: now.toISOString(),
+        expiresAt: expiresAt.toISOString(),
+      });
+      result.ownershipClaimed = true;
+    }
+    return result;
+  }
+
+  // ISM / SELF_CREDIT booking — pay the active owner, if any.
+  if (!existingActive) return result;
+
+  const cohort = getCohort(cohortId);
+  const phase = salePhase(cohort, now);
+  if (phase !== 'early-bird' && phase !== 'final-call') return result;
+
+  const companyRate = companyTierRate(seatCount);
+  const amount = Math.round(revenue * companyRate);
+
+  const record = {
+    bookingId,
+    cohortId,
+    repCode: existing.ownerCode,
+    companyName: companyName || null,
+    seatCount,
+    revenue,
+    salePhaseAtSale: phase,
+    companyTierRate: companyRate,
+    workshopBonusRate: 0,
+    minimumFillBonusRate: 0,
+    totalRate: companyRate,
+    commissionAmount: amount,
+    payoutStatus: 'pending',
+    recordType: 'ownership-override',
+    ownershipTriggerBookingRepCode: repCode, // the ISM/SELF_CREDIT booking that triggered this
+    computedAt: now.toISOString(),
+  };
+  const primaryKey = `commission:${bookingId}:ownership-override`;
+  await store.setJSON(primaryKey, record);
+  await store.setJSON(`commission-by-rep:${existing.ownerCode}:${record.computedAt}:${bookingId}:ownership-override`, record);
+
+  result.ownershipOverridePaid = true;
+  result.ownerCode = existing.ownerCode;
+  result.commissionAmount = amount;
+  return result;
+}
+
 function companyTierRate(delegateCount) {
   const tier = COMPANY_TIERS.find((t) => delegateCount >= t.min && delegateCount <= t.max);
   return tier ? tier.rate : 0;
@@ -155,6 +262,7 @@ async function calculateAndRecordCommission({
 }
 
 module.exports = {
-  calculateAndRecordCommission, companyTierRate, workshopBonusRate,
-  COMPANY_TIERS, WORKSHOP_BONUS_TIERS, MINIMUM_FILL_BONUS_RATE
+  calculateAndRecordCommission, checkAndRecordAccountOwnership, normalizeCompanyName,
+  companyTierRate, workshopBonusRate,
+  COMPANY_TIERS, WORKSHOP_BONUS_TIERS, MINIMUM_FILL_BONUS_RATE, ACCOUNT_OWNERSHIP_WINDOW_DAYS
 };

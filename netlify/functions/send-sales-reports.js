@@ -29,9 +29,13 @@ async function buildSaleSection(commission) {
     .join('');
 
   const notes = [];
-  notes.push(`${Math.round(commission.companyTierRate * 100)}% company tier (${commission.seatCount} delegate${commission.seatCount === 1 ? '' : 's'})`);
-  if (commission.workshopBonusRate > 0) notes.push(`+${Math.round(commission.workshopBonusRate * 100)}% workshop-volume bonus (${commission.repCumulativeInCohortAfter} cumulative in this cohort)`);
-  if (commission.minimumFillBonusRate > 0) notes.push(`+${Math.round(commission.minimumFillBonusRate * 100)}% minimum-fill team bonus (cohort confirmed)`);
+  if (commission.recordType === 'ownership-override') {
+    notes.push(`Account ownership — ${Math.round(commission.companyTierRate * 100)}% on a direct/self-credit booking from a company you opened`);
+  } else {
+    notes.push(`${Math.round(commission.companyTierRate * 100)}% company tier (${commission.seatCount} delegate${commission.seatCount === 1 ? '' : 's'})`);
+    if (commission.workshopBonusRate > 0) notes.push(`+${Math.round(commission.workshopBonusRate * 100)}% workshop-volume bonus (${commission.repCumulativeInCohortAfter} cumulative in this cohort)`);
+    if (commission.minimumFillBonusRate > 0) notes.push(`+${Math.round(commission.minimumFillBonusRate * 100)}% minimum-fill team bonus (cohort confirmed)`);
+  }
 
   return `
     <div style="border-top:0.5px solid #D4D6DC;padding-top:12px;margin-bottom:12px;">

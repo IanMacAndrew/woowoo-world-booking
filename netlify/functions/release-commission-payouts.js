@@ -44,9 +44,17 @@ exports.handler = async () => {
       if (record.payoutStatus !== 'pending') continue; // already released/void, or never eligible
 
       if (minimumReached) {
-        record.minimumFillBonusRate = MINIMUM_FILL_BONUS_RATE;
-        record.totalRate = record.companyTierRate + record.workshopBonusRate + MINIMUM_FILL_BONUS_RATE;
-        record.commissionAmount = Math.round(record.revenue * record.totalRate);
+        // Ownership-override records (account-ownership expansion payouts)
+        // are deliberately bounded to the company-tier rate alone — no
+        // workshop-bonus, no minimum-fill bonus. They still go through the
+        // same released/void gate as normal commissions (a company that
+        // books but the cohort never runs shouldn't pay out either way),
+        // they just don't pick up the +5% on release.
+        if (record.recordType !== 'ownership-override') {
+          record.minimumFillBonusRate = MINIMUM_FILL_BONUS_RATE;
+          record.totalRate = record.companyTierRate + record.workshopBonusRate + MINIMUM_FILL_BONUS_RATE;
+          record.commissionAmount = Math.round(record.revenue * record.totalRate);
+        }
         record.payoutStatus = 'released';
         record.payoutDecidedAt = new Date().toISOString();
         releasedCount++;
