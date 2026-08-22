@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Refer a Contact — WooWoo World</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1C0333; --paper:#F4F2F8; --paper-dim:#E9ECF2;
+    --brass:#C79529; --brass-dark:#97711F; --line:#D4D6DC; --danger:#9C3B4A; --ok:#2E9E7A;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--paper); color:var(--ink); font-family:'Inter',sans-serif; line-height:1.5;}
+  h1{font-family:'Newsreader',serif; font-style:italic; font-weight:500; font-size:clamp(26px,4vw,34px); margin-bottom:8px;}
+  main{max-width:520px; margin:0 auto; padding:64px 24px 96px;}
+  .eyebrow{font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.14em; text-transform:uppercase; color:var(--brass-dark); margin-bottom:14px;}
+  .sub{color:#5C566B; font-size:14px; margin-bottom:32px;}
+  .card{background:#fff; border:1px solid var(--line); border-radius:8px; padding:28px;}
+  label{display:block; font-size:12px; text-transform:uppercase; letter-spacing:0.04em; color:#746F82; margin:16px 0 4px;}
+  label:first-child{margin-top:0;}
+  input{width:100%; padding:11px; border:1px solid #C3C0CC; font-size:14px; box-sizing:border-box; font-family:inherit;}
+  .hint{font-size:12px; color:#8F8A9C; margin-top:4px;}
+  button{margin-top:24px; width:100%; padding:14px; background:var(--ink); color:#fff; border:none; font-size:14px; font-weight:600; cursor:pointer; border-radius:6px;}
+  button:hover{background:#2E0A52;}
+  button:disabled{opacity:0.6; cursor:default;}
+  .msg{margin-top:16px; padding:14px 16px; border-radius:6px; font-size:14px;}
+  .msg.error{background:#F3DCE0; color:var(--danger);}
+  .msg.ok{background:#E3F1EC; color:var(--ok);}
+</style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">WooWoo World · Sales</div>
+  <h1>Refer a contact</h1>
+  <p class="sub">Log a warm intro from a client's C-suite to someone deeper in their organisation. If that contact's company books within 90 days, you get a flat referral bonus — even if the eventual sale comes through direct/self-credit rather than your own code.</p>
+
+  <div class="card">
+    <label for="salesCode">Your sales code</label>
+    <input type="text" id="salesCode" placeholder="e.g. ABC123" style="text-transform:uppercase;">
+
+    <label for="contactName">Contact's name</label>
+    <input type="text" id="contactName" placeholder="e.g. Sarah Lim">
+
+    <label for="companyName">Company name</label>
+    <input type="text" id="companyName" placeholder="Exactly as it'll appear on their booking, if you know it">
+
+    <label for="department">Department / role (optional)</label>
+    <input type="text" id="department" placeholder="e.g. Head of HR">
+
+    <label for="note">Note (optional)</label>
+    <input type="text" id="note" placeholder="Anything useful for context">
+
+    <button id="submitBtn">Log referral</button>
+    <div id="msg"></div>
+  </div>
+</main>
+<script>
+document.getElementById('submitBtn').addEventListener('click', async () => {
+  const salesCode = document.getElementById('salesCode').value.trim().toUpperCase();
+  const contactName = document.getElementById('contactName').value.trim();
+  const companyName = document.getElementById('companyName').value.trim();
+  const department = document.getElementById('department').value.trim();
+  const note = document.getElementById('note').value.trim();
+  const msgEl = document.getElementById('msg');
+  const btn = document.getElementById('submitBtn');
+  msgEl.innerHTML = '';
+
+  if (!salesCode || !contactName || !companyName) {
+    msgEl.innerHTML = '<div class="msg error">Sales code, contact name, and company name are all required.</div>';
+    return;
+  }
+
+  btn.disabled = true;
+  try {
+    const res = await fetch('/.netlify/functions/log-referral', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ salesCode, contactName, companyName, department, note })
+    });
+    const rawText = await res.text();
+    let data;
+    try {
+      data = JSON.parse(rawText);
+    } catch (parseErr) {
+      throw new Error(`HTTP ${res.status}: ${rawText.slice(0, 200) || '(empty response)'}`);
+    }
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    msgEl.innerHTML = '<div class="msg ok">Logged. If this contact\'s company books within 90 days, it\'ll be flagged for your bonus.</div>';
+    document.getElementById('contactName').value = '';
+    document.getElementById('companyName').value = '';
+    document.getElementById('department').value = '';
+    document.getElementById('note').value = '';
+  } catch (err) {
+    msgEl.innerHTML = `<div class="msg error">${err.message}</div>`;
+  } finally {
+    btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>

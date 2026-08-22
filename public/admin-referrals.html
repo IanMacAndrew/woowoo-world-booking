@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Referral Bonus Review — Internal</title>
+<style>
+  body{font-family:system-ui,sans-serif; max-width:900px; margin:60px auto; padding:0 20px; color:#1C0333;}
+  h1{font-size:20px; margin-bottom:6px;}
+  p.note{color:#746F82; font-size:13px; margin-bottom:24px;}
+  label{display:block; font-size:12px; text-transform:uppercase; letter-spacing:0.04em; color:#746F82; margin:14px 0 4px;}
+  input{padding:10px; border:1px solid #C3C0CC; font-size:14px; box-sizing:border-box;}
+  button{padding:8px 14px; background:#C79529; color:#1C0333; border:none; font-size:13px; cursor:pointer; font-weight:600;}
+  button.reject{background:#F3DCE0; color:#9C3B4A;}
+  button:hover{opacity:0.85;}
+  table{width:100%; border-collapse:collapse; margin-top:20px; font-size:13px;}
+  th{text-align:left; padding:8px 10px; border-bottom:2px solid #1C0333; text-transform:uppercase; font-size:11px; color:#746F82;}
+  td{padding:10px; border-bottom:1px solid #E9ECF2; vertical-align:top;}
+  .status-matched{color:#97711F; font-weight:600;}
+  .status-paid{color:#2E9E7A; font-weight:600;}
+  .status-rejected{color:#9C3B4A; font-weight:600;}
+  .status-open{color:#8F8A9C;}
+  .status-expired{color:#8F8A9C;}
+  .actions button{margin-right:6px;}
+  #loadBtn{margin-top:16px;}
+</style>
+</head>
+<body>
+  <h1>Referral bonus review</h1>
+  <p class="note">Internal tool. Shows every logged referral. Mark a matched one paid or rejected once you've verified it against the actual booking.</p>
+
+  <label for="secret">Admin secret</label>
+  <input type="password" id="secret" autocomplete="off" style="width:280px;">
+  <button id="loadBtn">Load referrals</button>
+
+  <div id="content"></div>
+
+  <script>
+    let cachedSecret = '';
+
+    async function load() {
+      cachedSecret = document.getElementById('secret').value;
+      const contentEl = document.getElementById('content');
+      contentEl.innerHTML = '<p>Loading…</p>';
+      try {
+        const res = await fetch('/.netlify/functions/manage-referral', {
+          headers: { 'x-admin-secret': cachedSecret }
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          contentEl.innerHTML = `<p style="color:#9C3B4A;">${data.error || 'Failed — check the admin secret.'}</p>`;
+          return;
+        }
+        render(data.referrals);
+      } catch (e) {
+        contentEl.innerHTML = '<p style="color:#9C3B4A;">Network error.</p>';
+      }
+    }
+
+    function render(referrals) {
+      const contentEl = document.getElementById('content');
+      if (!referrals || referrals.length === 0) {
+        contentEl.innerHTML = '<p>No referrals logged yet.</p>';
+        return;
+      }
+      const rows = referrals.map((r) => `
+        <tr>
+          <td>${r.repCode}</td>
+          <td>${r.contactName}${r.department ? ` (${r.department})` : ''}</td>
+          <td>${r.companyName}</td>
+          <td>${new Date(r.submittedAt).toISOString().slice(0, 10)}</td>
+          <td class="status-${r.status}">${r.status}${r.matchedBookingCreatedAt ? `<br><span style="font-weight:400;color:#8F8A9C;">booked ${new Date(r.matchedBookingCreatedAt).toISOString().slice(0, 10)} under ${r.matchedBookingRepCode}</span>` : ''}</td>
+          <td class="actions">
+            ${r.status === 'matched' ? `
+              <button onclick="resolve('${r.id}','paid',this)">Mark paid</button>
+              <button class="reject" onclick="resolve('${r.id}','rejected',this)">Reject</button>
+            ` : ''}
+          </td>
+        </tr>
+      `).join('');
+      contentEl.innerHTML = `
+        <table>
+          <thead><tr><th>Rep</th><th>Contact</th><th>Company</th><th>Referred</th><th>Status</th><th></th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    }
+
+    async function resolve(referralId, newStatus, btn) {
+      btn.disabled = true;
+      try {
+        const res = await fetch('/.netlify/functions/manage-referral', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-admin-secret': cachedSecret },
+          body: JSON.stringify({ referralId, newStatus })
+        });
+        if (!res.ok) {
+          const data = await res.json();
+          alert(data.error || 'Failed to update.');
+          btn.disabled = false;
+          return;
+        }
+        load();
+      } catch (e) {
+        alert('Network error.');
+        btn.disabled = false;
+      }
+    }
+
+    document.getElementById('loadBtn').addEventListener('click', load);
+  </script>
+</body>
+</html>

@@ -236,7 +236,7 @@ async function sendSalesAgentWelcomeEmail({ legalName, email, salesCode, kind })
     <div style="font-family:sans-serif;color:#1C0333;">
       <h2>Welcome — your ${roleLabel} code is active</h2>
       <p>Hi ${legalName || 'there'}, your agreement is on file and your sales code <strong>${salesCode}</strong> is now active. Use it at checkout on any booking to earn Rewards.</p>
-      <p>See <a href="https://book.woowoo.world/how-commissions-work">How Commissions &amp; Rewards Work</a> for the full structure and worked examples.</p>
+      <p>See <a href="https://book.woowoo.world/how-commissions-work">How Commissions &amp; Rewards Work</a> for the full structure and worked examples. <a href="https://book.woowoo.world/leaderboard">See which live cohorts are closest to a bonus tier</a>, and <a href="https://book.woowoo.world/refer">log a warm-intro referral</a> if a client's C-suite contact points you toward someone else in their org — that's worth a flat bonus if it converts, even on a direct/self-credit booking.</p>
       <h3 style="margin-top:24px;">Getting paid</h3>
       <p>Rewards are paid out manually for now — we'll be in touch directly about payment details. No action needed from you.</p>
     </div>`;
