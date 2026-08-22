@@ -1,3 +1,15 @@
+// STATUS AS OF THIS COMMIT: BLOCKED, waiting on Stripe Support.
+// Four different live configuration attempts each produced a
+// different, seemingly-contradictory error (full sequence logged
+// below) — the last one ("This account configuration is not
+// supported") was generic enough to signal this needs a definitive
+// answer from Stripe directly rather than more guessing from outside.
+// A support request with the full error history has been sent.
+// DO NOT keep trying new field combinations here without a fresh,
+// specific error or a real answer from Stripe pointing at one — the
+// four attempts below already covered every combination the
+// documentation implied should be plausible.
+//
 // Stripe Connect helper — onboards a Sales Rep or Booking Contact as a
 // connected account purely to RECEIVE payouts. WooWoo never collects,
 // stores, or even sees their bank details: the account holder enters
