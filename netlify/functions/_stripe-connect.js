@@ -36,30 +36,34 @@
 // entirely, which is a separate reason the old code never had a
 // chance of working), not inferred from prose documentation.
 //
-// losses_collector is 'stripe', not 'application', BECAUSE OF MALAYSIA
-// SPECIFICALLY: per Stripe's own support page ("Connect availability
-// for businesses located in Malaysia"), a Malaysia-based platform
-// creating Malaysia connected accounts can only generally use "Connect
-// where Stripe collects fees and owns loss liability" (Managed Risk,
-// losses_collector: 'stripe'). The platform-owns-the-loss model
-// (losses_collector: 'application', what this file used until this
-// pass) is preview-only for Malaysia and requires Stripe Support to
-// invite you in. This is what the live "card_payments required"
-// error and the Dashboard force-substituting Payments for Transfers
-// were both actually pointing at. fees_collector stays 'application'
-// since Stripe's own docs only restrict the other direction
-// (losses_collector: 'application' requires fees_collector:
-// 'application' too) and these accounts never process charges/fees
-// at all — but if account creation rejects that combination during
-// testing, try fees_collector: 'stripe' next.
+// losses_collector is 'application', matching what Stripe's own live API
+// error required for this exact account (confirmed twice, empirically:
+// 'stripe' was rejected outright with "Losses collector can only be
+// 'application' for the set of configurations this account has").
+// A separate Stripe support page on Malaysia availability suggested
+// Managed Risk ('stripe') was the only generally-available path — that
+// turned out not to hold for this account/config combination, so don't
+// re-introduce 'stripe' without a fresh live error actually asking for
+// it again. Trust the live API response over general docs when they
+// conflict; this file has now been wrong in both directions once.
 //
-// One real open question this doesn't resolve: Stripe Managed Risk can
-// carry its own fees depending on your account's economic model
-// (revenue share vs buy-rate) per Stripe's Managed Risk pricing page.
-// Whether that applies to a pure-payout, zero-charge-volume recipient
-// account like these isn't confirmed — worth a direct question to
-// Stripe Support or your account rep before this carries real money,
-// not assumed either way here.
+// merchant.capabilities.card_payments is requested alongside the
+// recipient capability because Stripe's own error said so verbatim:
+// "The stripe_balance.stripe_transfers capability cannot be requested
+// without the configuration.merchant.capabilities.card_payments
+// capability." This does NOT mean reps will ever process card
+// payments — WooWoo never sends them a charge, never uses on_behalf_of,
+// never routes a customer payment through their account. It's a
+// capability grant Stripe requires be present on the account, unused
+// in practice. If this card_payments capability ever shows as
+// "pending"/incomplete in a way that blocks the stripe_transfers side
+// from activating, that's the next thing to dig into — for now this
+// matches the literal instruction in Stripe's live error.
+//
+// fees_collector stays 'application' per Stripe's documented rule that
+// losses_collector: 'application' requires fees_collector: 'application'
+// too — the two aren't independent once merchant/card_payments is in
+// play.
 //
 // STILL TO VERIFY end-to-end: parameter names/shapes are confirmed
 // against real SDK types, and losses_collector is now backed by an
@@ -92,10 +96,15 @@ async function createConnectAccount({ email, name, kind }) {
     defaults: {
       responsibilities: {
         fees_collector: 'application',
-        losses_collector: 'stripe',
+        losses_collector: 'application',
       },
     },
     configuration: {
+      merchant: {
+        capabilities: {
+          card_payments: { requested: true },
+        },
+      },
       recipient: {
         capabilities: {
           stripe_balance: {
