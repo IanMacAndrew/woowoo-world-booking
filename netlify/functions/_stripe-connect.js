@@ -1,88 +1,49 @@
-// STATUS AS OF THIS COMMIT: BLOCKED, waiting on Stripe Support.
-// Four different live configuration attempts each produced a
-// different, seemingly-contradictory error (full sequence logged
-// below) — the last one ("This account configuration is not
-// supported") was generic enough to signal this needs a definitive
-// answer from Stripe directly rather than more guessing from outside.
-// A support request with the full error history has been sent.
-// DO NOT keep trying new field combinations here without a fresh,
-// specific error or a real answer from Stripe pointing at one — the
-// four attempts below already covered every combination the
-// documentation implied should be plausible.
+// RESOLUTION: Accounts v1 API, NOT v2. Confirmed directly by Stripe
+// Support after four different v2 attempts each hit a different wall
+// (full history below, kept for the record — don't re-litigate
+// without a fresh reason to). Support's answer: use the v1 Accounts
+// API with tos_acceptance.service_agreement: 'recipient' and ONLY
+// capabilities.transfers requested (no card_payments anywhere) — this
+// is a real, working, documented v1 pattern (confirmed against a
+// genuine Stripe API exchange: POST /v1/accounts with exactly this
+// shape returned a valid account ID). This sidesteps the whole
+// merchant/card_payments/Malaysia-loss-liability tangle entirely,
+// because v1's recipient agreement type never requests card_payments
+// in the first place — that's the whole point of it.
 //
-// Stripe Connect helper — onboards a Sales Rep or Booking Contact as a
-// connected account purely to RECEIVE payouts. WooWoo never collects,
-// stores, or even sees their bank details: the account holder enters
-// those directly into Stripe's own hosted onboarding form. Our backend
-// only ever holds a Stripe account ID and later calls stripe.transfers
-// .create() against it — the bank transfer itself is entirely Stripe's.
+// v1 Account fields used here, confirmed against the real stripe-node
+// 22.5.0 type definitions (resources/Accounts.d.ts, NOT the V2/Core
+// ones this file used before):
+//   type: 'express'
+//   country: 'MY'
+//   business_type: 'individual'
+//   capabilities.transfers.requested: true    (transfers ONLY)
+//   tos_acceptance.service_agreement: 'recipient'
 //
-// Malaysia only — HRD Corp itself only deals with Malaysian and
-// Malaysia-registered companies, so every Sales Rep and Booking
-// Contact here is Malaysia-based. Country is hardcoded to 'MY' below,
-// deliberately. Worldwide support is a future, separate decision.
-//
-// REWRITTEN to use Stripe's Accounts v2 API (POST /v2/core/accounts),
-// per Stripe's own current guidance — a real, live error from this
-// exact endpoint told us in plain language: "Stripe no longer
-// recommends Accounts v1 for new Connect integrations... For agent-
-// based integrations, use Stripe's current best-practices skill:
-// npx skills add stripe/ai." That skill's Connect reference reframed
-// the whole problem correctly: WooWoo never charges anything on a
-// rep's account, so this is a pure payout relationship — Stripe's
-// "Recipient" configuration, not the "Merchant"/SaaS-style "Standard
-// account equivalent" the previous version of this file was built
-// around (which is why three rounds of v1 controller-properties
-// parameter fixes never quite got there — right general direction,
-// wrong account model entirely).
-//
-// Config used, matching the skill's Recipient guidance:
-//   dashboard: 'express'                         — lightweight, cobranded
-//   defaults.responsibilities.fees_collector:    'application'
-//   defaults.responsibilities.losses_collector:  'stripe'   (see note below)
-//   configuration.recipient.capabilities.stripe_balance.stripe_transfers
-//                                                 — requested: true
-// Every field name and nesting level below was checked against the
-// actual TypeScript definitions shipped in stripe-node 22.5.0 (see
-// package.json — the previously-installed ^17.0.0 predates v2 support
-// entirely, which is a separate reason the old code never had a
-// chance of working), not inferred from prose documentation.
-//
-// RESOLVED, empirically, across three live errors — trust this over
-// any prose doc if they ever conflict again:
-//   1. losses_collector:'application' + recipient-only -> Stripe:
+// FULL ERROR HISTORY from the v2 attempts before this rewrite, kept
+// for context on why v1 was the right call:
+//   1. v2, losses_collector:'application', recipient-only -> Stripe:
 //      "requires configuration.merchant.capabilities.card_payments"
-//   2. losses_collector:'stripe' + recipient-only (fees_collector
+//   2. v2, losses_collector:'stripe', recipient-only (fees_collector
 //      still 'application') -> Stripe: "can only be application for
 //      the set of configurations this account has"
-//   3. losses_collector:'application' + fees_collector:'application' +
-//      merchant.card_payments + recipient.stripe_transfers -> Stripe:
-//      "Platforms in MY cannot create accounts where the platform is
-//      loss-liable, due to risk control measures" (links the same
-//      Malaysia support page cited below)
-// The actual required combination, matching that support page's own
-// title verbatim ("Connect where Stripe collects fees AND owns loss
-// liability is available for Malaysia businesses") is BOTH collectors
-// set to 'stripe' together, not just losses_collector alone — that's
-// the gap in every attempt before this one. This is a blanket
-// Malaysia-platform rule, unrelated to actual risk: these accounts
-// never process a charge, so there's nothing for Stripe to actually
-// be liable for in practice, but the rule applies regardless of that.
-// Source: https://support.stripe.com/questions/connect-availability-for-businesses-located-in-malaysia
+//   3. v2, losses_collector:'application', fees_collector:
+//      'application', merchant.card_payments + recipient.transfers ->
+//      Stripe: "Platforms in MY cannot create accounts where the
+//      platform is loss-liable, due to risk control measures"
+//   4. v2, both collectors 'stripe', same capabilities as #3 ->
+//      Stripe: "This account configuration is not supported"
+// All four were v2-specific dead ends caused by v2 apparently forcing
+// a merchant/card_payments capability onto MY recipient accounts one
+// way or another, regardless of loss-liability configuration. v1's
+// recipient agreement type doesn't have this problem because it
+// refuses to let you request card_payments on a recipient-agreement
+// account at all — it was never in the equation to begin with.
 //
-// merchant.capabilities.card_payments stays requested alongside the
-// recipient capability per error #1 above — WooWoo never actually
-// charges or routes a payment through a rep's account, this is a
-// capability grant Stripe requires be present, unused in practice.
-//
-// STILL TO VERIFY end-to-end: parameter names/shapes are confirmed
-// against real SDK types, and losses_collector is now backed by an
-// explicit Stripe support-page citation for Malaysia rather than
-// assumption — but the full onboarding-link-completion flow still
-// hasn't been watched succeed against a live (test-mode) account.
-// Test again — throwaway signup, Stripe's test-mode Malaysia bank
-// details, confirm the recipient capability status reaches 'active' —
-// before trusting this with a real bank account.
+// STILL TO VERIFY end-to-end: this v1 shape is confirmed correct
+// against real type definitions and a genuine working example from
+// Stripe's own records, but hasn't yet been watched succeed against
+// THIS account in test mode. Test again before trusting real money.
 let _stripe = null;
 function getStripe() {
   if (_stripe) return _stripe;
@@ -95,33 +56,16 @@ function getStripe() {
 
 async function createConnectAccount({ email, name, kind }) {
   const stripe = getStripe();
-  const account = await stripe.v2.core.accounts.create({
-    contact_email: email,
-    display_name: name || undefined,
-    identity: {
-      country: 'MY',
-      entity_type: 'individual',
+  const account = await stripe.accounts.create({
+    type: 'express',
+    country: 'MY',
+    email: email || undefined,
+    business_type: 'individual',
+    capabilities: {
+      transfers: { requested: true },
     },
-    dashboard: 'express',
-    defaults: {
-      responsibilities: {
-        fees_collector: 'stripe',
-        losses_collector: 'stripe',
-      },
-    },
-    configuration: {
-      merchant: {
-        capabilities: {
-          card_payments: { requested: true },
-        },
-      },
-      recipient: {
-        capabilities: {
-          stripe_balance: {
-            stripe_transfers: { requested: true },
-          },
-        },
-      },
+    tos_acceptance: {
+      service_agreement: 'recipient',
     },
     metadata: { kind, woowooName: name || '' },
   });
@@ -130,31 +74,19 @@ async function createConnectAccount({ email, name, kind }) {
 
 async function createOnboardingLink({ accountId, refreshUrl, returnUrl }) {
   const stripe = getStripe();
-  const link = await stripe.v2.core.accountLinks.create({
+  const link = await stripe.accountLinks.create({
     account: accountId,
-    use_case: {
-      type: 'account_onboarding',
-      account_onboarding: {
-        configurations: ['recipient'],
-        refresh_url: refreshUrl,
-        return_url: returnUrl,
-      },
-    },
+    refresh_url: refreshUrl,
+    return_url: returnUrl,
+    type: 'account_onboarding',
   });
   return link.url;
 }
 
 async function getAccountStatus(accountId) {
   const stripe = getStripe();
-  const account = await stripe.v2.core.accounts.retrieve(accountId, {
-    include: ['configuration.recipient'],
-  });
-  const status = account.configuration
-    && account.configuration.recipient
-    && account.configuration.recipient.capabilities
-    && account.configuration.recipient.capabilities.stripe_balance
-    && account.configuration.recipient.capabilities.stripe_balance.stripe_transfers
-    && account.configuration.recipient.capabilities.stripe_balance.stripe_transfers.status;
+  const account = await stripe.accounts.retrieve(accountId);
+  const status = account.capabilities && account.capabilities.transfers;
   return {
     transfersActive: status === 'active',
     rawStatus: status || null,
@@ -163,13 +95,10 @@ async function getAccountStatus(accountId) {
 
 // Pays out released commission to a connected account's Stripe balance.
 // The actual movement to their bank happens on Stripe's own payout
-// schedule from there — WooWoo's part ends at this transfer. This
-// stays on the v1 Transfers API deliberately: the Recipient
-// configuration's stripe_balance.stripe_transfers capability exists
-// specifically to let a v2 account receive v1 /v1/transfers into its
-// balance (v1 Transfers isn't being deprecated the way v1 Account
-// creation is — Stripe's own skill guidance confirms this is still
-// the correct payout mechanism for a Recipient account).
+// schedule from there — WooWoo's part ends at this transfer. v1
+// Transfers (destination: accountId) works directly against a v1
+// Account with the transfers capability active — the same API,
+// unaffected by the account-creation rewrite above.
 async function payoutReleasedCommission({ accountId, amountCents, currency, description }) {
   const stripe = getStripe();
   return stripe.transfers.create({
