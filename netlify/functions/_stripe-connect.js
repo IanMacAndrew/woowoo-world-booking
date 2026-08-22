@@ -27,7 +27,7 @@
 // Config used, matching the skill's Recipient guidance:
 //   dashboard: 'express'                         — lightweight, cobranded
 //   defaults.responsibilities.fees_collector:    'application'
-//   defaults.responsibilities.losses_collector:  'application'
+//   defaults.responsibilities.losses_collector:  'stripe'   (see note below)
 //   configuration.recipient.capabilities.stripe_balance.stripe_transfers
 //                                                 — requested: true
 // Every field name and nesting level below was checked against the
@@ -36,9 +36,36 @@
 // entirely, which is a separate reason the old code never had a
 // chance of working), not inferred from prose documentation.
 //
-// STILL TO VERIFY end-to-end: parameter names/shapes are now confirmed
-// against real SDK types, but the full onboarding-link-completion flow
-// hasn't yet been watched succeed against a live (test-mode) account.
+// losses_collector is 'stripe', not 'application', BECAUSE OF MALAYSIA
+// SPECIFICALLY: per Stripe's own support page ("Connect availability
+// for businesses located in Malaysia"), a Malaysia-based platform
+// creating Malaysia connected accounts can only generally use "Connect
+// where Stripe collects fees and owns loss liability" (Managed Risk,
+// losses_collector: 'stripe'). The platform-owns-the-loss model
+// (losses_collector: 'application', what this file used until this
+// pass) is preview-only for Malaysia and requires Stripe Support to
+// invite you in. This is what the live "card_payments required"
+// error and the Dashboard force-substituting Payments for Transfers
+// were both actually pointing at. fees_collector stays 'application'
+// since Stripe's own docs only restrict the other direction
+// (losses_collector: 'application' requires fees_collector:
+// 'application' too) and these accounts never process charges/fees
+// at all — but if account creation rejects that combination during
+// testing, try fees_collector: 'stripe' next.
+//
+// One real open question this doesn't resolve: Stripe Managed Risk can
+// carry its own fees depending on your account's economic model
+// (revenue share vs buy-rate) per Stripe's Managed Risk pricing page.
+// Whether that applies to a pure-payout, zero-charge-volume recipient
+// account like these isn't confirmed — worth a direct question to
+// Stripe Support or your account rep before this carries real money,
+// not assumed either way here.
+//
+// STILL TO VERIFY end-to-end: parameter names/shapes are confirmed
+// against real SDK types, and losses_collector is now backed by an
+// explicit Stripe support-page citation for Malaysia rather than
+// assumption — but the full onboarding-link-completion flow still
+// hasn't been watched succeed against a live (test-mode) account.
 // Test again — throwaway signup, Stripe's test-mode Malaysia bank
 // details, confirm the recipient capability status reaches 'active' —
 // before trusting this with a real bank account.
@@ -65,7 +92,7 @@ async function createConnectAccount({ email, name, kind }) {
     defaults: {
       responsibilities: {
         fees_collector: 'application',
-        losses_collector: 'application',
+        losses_collector: 'stripe',
       },
     },
     configuration: {
