@@ -68,6 +68,9 @@
 [functions."send-ops-planning-report"]
   schedule = "0 3 * * *"
 
+[functions."send-sales-director-report"]
+  schedule = "0 3 * * *"
+
 [functions."issue-self-credits"]
   schedule = "0 4 * * *"
 

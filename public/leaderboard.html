@@ -2,67 +2,114 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Sales Leaderboard — WooWoo World</title>
+<title>Leaderboard & Cohort Progress — WooWoo World</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --ink:#1C0333; --paper:#F4F2F8; --paper-dim:#E9ECF2;
-    --brass:#C79529; --brass-dark:#97711F; --line:#D4D6DC;
+    --brass:#C79529; --brass-dark:#97711F; --line:#D4D6DC; --ok:#2E9E7A;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
   body{background:var(--paper); color:var(--ink); font-family:'Inter',sans-serif; line-height:1.5;}
   h1{font-family:'Newsreader',serif; font-style:italic; font-weight:500;}
-  main{max-width:640px; margin:0 auto; padding:64px 24px 96px;}
+  h2{font-family:'Newsreader',serif; font-weight:500; font-size:22px; margin:40px 0 6px;}
+  main{max-width:760px; margin:0 auto; padding:64px 24px 96px;}
   .eyebrow{font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.14em; text-transform:uppercase; color:var(--brass-dark); margin-bottom:14px;}
   h1{font-size:clamp(28px,4vw,38px); margin-bottom:8px;}
-  .sub{color:#5C566B; font-size:14px; margin-bottom:32px;}
-  table{width:100%; border-collapse:collapse; background:var(--paper);}
+  .sub{color:#5C566B; font-size:14px; margin-bottom:8px;}
+  table{width:100%; border-collapse:collapse; background:var(--paper); margin-top:16px;}
   th{
     text-align:left; font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.05em;
     text-transform:uppercase; color:#8F8A9C; padding:10px 16px; border-bottom:2px solid var(--ink);
   }
-  td{padding:14px 16px; border-bottom:1px solid var(--line); font-size:15px;}
+  td{padding:14px 16px; border-bottom:1px solid var(--line); font-size:15px; vertical-align:top;}
   tr:first-child td{background:var(--brass); color:var(--ink); font-weight:600;}
   .rank{font-family:'IBM Plex Mono',monospace; color:#8F8A9C; width:40px;}
   tr:first-child .rank{color:var(--ink);}
   .empty{color:#8F8A9C; font-size:14px; padding:32px 0;}
+  .cohort-card{background:#fff; border:1px solid var(--line); border-radius:8px; padding:20px 22px; margin-top:14px;}
+  .cohort-card h3{font-size:16px; font-weight:600; margin-bottom:4px;}
+  .cohort-meta{font-family:'IBM Plex Mono',monospace; font-size:11px; color:#8F8A9C; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:14px;}
+  .stat-row{display:flex; gap:24px; flex-wrap:wrap; margin-bottom:14px;}
+  .stat{font-size:14px;}
+  .stat .num{font-family:'IBM Plex Mono',monospace; font-size:20px; font-weight:500;}
+  .stat .num.ok{color:var(--ok);}
+  .rep-progress{font-size:13px; color:#5C566B; border-top:1px solid var(--line); padding-top:12px;}
+  .rep-progress-row{display:flex; justify-content:space-between; padding:3px 0;}
 </style>
 </head>
 <body>
 <main>
   <div class="eyebrow">WooWoo World · Sales</div>
-  <h1>Leaderboard</h1>
-  <p class="sub">Ranked by total delegates sold, across all cohorts.</p>
-  <div id="content"><p class="empty">Loading…</p></div>
+  <h1>Leaderboard & Cohort Progress</h1>
+  <p class="sub">Ranked by total delegates sold, plus which live cohorts are closest to a bonus threshold.</p>
+
+  <h2>Leaderboard</h2>
+  <p class="sub">Total delegates sold, across all cohorts.</p>
+  <div id="leaderboard-content"><p class="empty">Loading…</p></div>
+
+  <h2>Cohort Progress</h2>
+  <p class="sub">Every currently-open cohort. The minimum-fill bonus (+5%) is shared — one sale from it benefits every rep who sold into that cohort. The workshop-volume bonus (+5% / +10% at 6 / 12) is each rep's own count in that cohort, not shared — shown per rep below.</p>
+  <div id="cohort-content"><p class="empty">Loading…</p></div>
 </main>
 <script>
 (async () => {
-  const el = document.getElementById('content');
+  const lbEl = document.getElementById('leaderboard-content');
+  const cpEl = document.getElementById('cohort-content');
   try {
     const res = await fetch('/.netlify/functions/leaderboard');
     const data = await res.json();
+
     if (!data.standings || data.standings.length === 0) {
-      el.innerHTML = '<p class="empty">No qualifying sales recorded yet.</p>';
-      return;
+      lbEl.innerHTML = '<p class="empty">No qualifying sales recorded yet.</p>';
+    } else {
+      const rows = data.standings.map((s, i) => `
+        <tr>
+          <td class="rank">${i + 1}</td>
+          <td>${s.repCode}</td>
+          <td>${s.totalDelegates}</td>
+          <td>${s.cohortsSoldInto}</td>
+          <td>${s.bestSingleCohortCount} (+${Math.round(s.bestSingleCohortBonusRate * 100)}%)</td>
+        </tr>
+      `).join('');
+      lbEl.innerHTML = `
+        <table>
+          <thead><tr><th></th><th>Sales Rep</th><th>Total Delegates</th><th>Cohorts</th><th>Best Single Cohort</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
     }
-    const rows = data.standings.map((s, i) => `
-      <tr>
-        <td class="rank">${i + 1}</td>
-        <td>${s.repCode}</td>
-        <td>${s.totalDelegates}</td>
-        <td>${s.cohortsSoldInto}</td>
-        <td>${s.bestSingleCohortCount} (+${Math.round(s.bestSingleCohortBonusRate * 100)}%)</td>
-      </tr>
-    `).join('');
-    el.innerHTML = `
-      <table>
-        <thead><tr><th></th><th>Sales Rep</th><th>Total Delegates</th><th>Cohorts</th><th>Best Single Cohort</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    `;
+
+    if (!data.cohortProgress || data.cohortProgress.length === 0) {
+      cpEl.innerHTML = '<p class="empty">No cohorts currently open for sale.</p>';
+    } else {
+      cpEl.innerHTML = data.cohortProgress.map((c) => {
+        const repRows = c.repProgress.length
+          ? c.repProgress.map((r) => `
+              <div class="rep-progress-row">
+                <span>${r.repCode} — ${r.count} delegate${r.count === 1 ? '' : 's'} (+${Math.round(r.currentBonusRate * 100)}%)</span>
+                <span>${r.nextTier ? `${r.nextTier.delegatesNeeded} more to +${r.nextTier.threshold === 6 ? '5' : '10'}%` : 'Top tier reached'}</span>
+              </div>
+            `).join('')
+          : '<div class="rep-progress-row"><span>No sales yet in this cohort</span></div>';
+
+        return `
+          <div class="cohort-card">
+            <h3>${c.programmeName} — ${c.label}</h3>
+            <div class="cohort-meta">${c.salePhase === 'early-bird' ? 'Early Bird' : 'Final Call'}</div>
+            <div class="stat-row">
+              <div class="stat">Booked<br><span class="num">${c.booked}</span></div>
+              <div class="stat">Minimum needed<br><span class="num ${c.minimumReached ? 'ok' : ''}">${c.minimumReached ? 'Reached ✓' : c.delegatesToMinimum}</span></div>
+            </div>
+            <div class="rep-progress">${repRows}</div>
+          </div>
+        `;
+      }).join('');
+    }
   } catch (e) {
-    el.innerHTML = '<p class="empty">Could not load the leaderboard — please refresh.</p>';
+    lbEl.innerHTML = '<p class="empty">Could not load — please refresh.</p>';
+    cpEl.innerHTML = '';
   }
 })();
 </script>
