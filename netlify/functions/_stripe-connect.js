@@ -1,3 +1,18 @@
+// STATUS AS OF THIS COMMIT: built and technically correct, but NOT
+// wired into the UI. The remaining wall isn't code — it's a genuine
+// Stripe account-level gate: Malaysia platforms need Stripe's own
+// approval (a preview program) before ANY loss-liable connected
+// account can be created, in v1 or v2, regardless of configuration.
+// Confirmed the hard way: the v1 rewrite below, built exactly per
+// Stripe Support's own direction, hit the identical "Platforms in MY
+// cannot create accounts where the platform is loss-liable" error
+// that v2 attempt #3 hit. That's not a code bug to fix by trying
+// again — only Stripe granting account-level approval unblocks this.
+// Decision: ship with manual payouts (sign-up.html has no bank-connect
+// step, welcome email has no bank-connect link) and leave this file
+// working and ready for whenever that approval comes through, rather
+// than keep guessing at configurations that were never the problem.
+//
 // RESOLUTION: Accounts v1 API, NOT v2. Confirmed directly by Stripe
 // Support after four different v2 attempts each hit a different wall
 // (full history below, kept for the record — don't re-litigate
