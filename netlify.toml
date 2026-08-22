@@ -59,6 +59,16 @@
   to = "/sign-up.html"
   status = 200
 
+[[redirects]]
+  from = "/refer"
+  to = "/refer.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin-referrals"
+  to = "/admin-referrals.html"
+  status = 200
+
 [functions."send-sales-reports"]
   schedule = "0 1 * * *"
 
@@ -69,6 +79,9 @@
   schedule = "0 3 * * *"
 
 [functions."send-sales-director-report"]
+  schedule = "0 3 * * *"
+
+[functions."send-referral-bonus-report"]
   schedule = "0 3 * * *"
 
 [functions."issue-self-credits"]
