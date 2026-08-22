@@ -36,34 +36,32 @@
 // entirely, which is a separate reason the old code never had a
 // chance of working), not inferred from prose documentation.
 //
-// losses_collector is 'application', matching what Stripe's own live API
-// error required for this exact account (confirmed twice, empirically:
-// 'stripe' was rejected outright with "Losses collector can only be
-// 'application' for the set of configurations this account has").
-// A separate Stripe support page on Malaysia availability suggested
-// Managed Risk ('stripe') was the only generally-available path — that
-// turned out not to hold for this account/config combination, so don't
-// re-introduce 'stripe' without a fresh live error actually asking for
-// it again. Trust the live API response over general docs when they
-// conflict; this file has now been wrong in both directions once.
+// RESOLVED, empirically, across three live errors — trust this over
+// any prose doc if they ever conflict again:
+//   1. losses_collector:'application' + recipient-only -> Stripe:
+//      "requires configuration.merchant.capabilities.card_payments"
+//   2. losses_collector:'stripe' + recipient-only (fees_collector
+//      still 'application') -> Stripe: "can only be application for
+//      the set of configurations this account has"
+//   3. losses_collector:'application' + fees_collector:'application' +
+//      merchant.card_payments + recipient.stripe_transfers -> Stripe:
+//      "Platforms in MY cannot create accounts where the platform is
+//      loss-liable, due to risk control measures" (links the same
+//      Malaysia support page cited below)
+// The actual required combination, matching that support page's own
+// title verbatim ("Connect where Stripe collects fees AND owns loss
+// liability is available for Malaysia businesses") is BOTH collectors
+// set to 'stripe' together, not just losses_collector alone — that's
+// the gap in every attempt before this one. This is a blanket
+// Malaysia-platform rule, unrelated to actual risk: these accounts
+// never process a charge, so there's nothing for Stripe to actually
+// be liable for in practice, but the rule applies regardless of that.
+// Source: https://support.stripe.com/questions/connect-availability-for-businesses-located-in-malaysia
 //
-// merchant.capabilities.card_payments is requested alongside the
-// recipient capability because Stripe's own error said so verbatim:
-// "The stripe_balance.stripe_transfers capability cannot be requested
-// without the configuration.merchant.capabilities.card_payments
-// capability." This does NOT mean reps will ever process card
-// payments — WooWoo never sends them a charge, never uses on_behalf_of,
-// never routes a customer payment through their account. It's a
-// capability grant Stripe requires be present on the account, unused
-// in practice. If this card_payments capability ever shows as
-// "pending"/incomplete in a way that blocks the stripe_transfers side
-// from activating, that's the next thing to dig into — for now this
-// matches the literal instruction in Stripe's live error.
-//
-// fees_collector stays 'application' per Stripe's documented rule that
-// losses_collector: 'application' requires fees_collector: 'application'
-// too — the two aren't independent once merchant/card_payments is in
-// play.
+// merchant.capabilities.card_payments stays requested alongside the
+// recipient capability per error #1 above — WooWoo never actually
+// charges or routes a payment through a rep's account, this is a
+// capability grant Stripe requires be present, unused in practice.
 //
 // STILL TO VERIFY end-to-end: parameter names/shapes are confirmed
 // against real SDK types, and losses_collector is now backed by an
@@ -95,8 +93,8 @@ async function createConnectAccount({ email, name, kind }) {
     dashboard: 'express',
     defaults: {
       responsibilities: {
-        fees_collector: 'application',
-        losses_collector: 'application',
+        fees_collector: 'stripe',
+        losses_collector: 'stripe',
       },
     },
     configuration: {
