@@ -155,6 +155,61 @@
   }
   .coming-soon p{color:#746F82; font-size:14px; margin-top:6px; max-width:52ch;}
 
+  /* Flashing neon "coming soon" badge — Bootcamp & Drive Time Briefing */
+  .neon-badge{
+    display:inline-block;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    font-weight:700;
+    padding:6px 14px;
+    border-radius:999px;
+    color:#39ff88;
+    background:#0d0d14;
+    border:1px solid #39ff88;
+    text-shadow:0 0 4px #39ff88, 0 0 10px #39ff88;
+    box-shadow:0 0 6px rgba(57,255,136,0.6), 0 0 18px rgba(57,255,136,0.35), inset 0 0 6px rgba(57,255,136,0.25);
+    animation:neon-flicker 1.6s infinite alternate;
+  }
+  @keyframes neon-flicker{
+    0%,19%,21%,23%,54%,56%,100%{
+      opacity:1;
+      box-shadow:0 0 6px rgba(57,255,136,0.6), 0 0 18px rgba(57,255,136,0.35), inset 0 0 6px rgba(57,255,136,0.25);
+    }
+    20%,22%,55%{
+      opacity:0.35;
+      box-shadow:none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .neon-badge{ animation:none; }
+  }
+
+  /* Scarcity / urgency tag on individual cohort cards */
+  .urgent-tag{
+    display:inline-block;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.03em;
+    padding:3px 10px;
+    border-radius:999px;
+    background:#c0392b;
+    color:#fff;
+    margin-left:6px;
+  }
+  .lastcall-tag{
+    display:inline-block;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.03em;
+    padding:3px 10px;
+    border-radius:999px;
+    background:var(--ink);
+    color:var(--brass);
+    margin-left:6px;
+  }
+
   /* Course block (Deep Dive) */
   .course-block{margin-bottom:36px; border:1px solid var(--line); background:var(--paper);}
   .course-block-head{
@@ -445,6 +500,11 @@
 
   <!-- FOUR-BOX CTA: the primary way in -->
   <section aria-label="Choose a format" style="padding: 8px 0 48px;">
+    <div style="max-width: 760px; margin: 0 auto 20px; text-align: center; padding: 0 16px;">
+      <span style="display:inline-block; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; padding: 6px 16px; border-radius: 999px; background: #c0392b; color: #fff;">
+        🔥 Booking now through February 2027 — next dates open after our March break
+      </span>
+    </div>
     <div style="max-width: 760px; margin: 0 auto 32px; text-align: center; padding: 0 16px;">
       <p style="font-size: 14px; color: #5C566B; line-height: 1.6;">
         AI sorts two ways: by <strong>capability</strong> (how powerful it is) and by <strong>functionality</strong> (how it works). The primary split by capability is Narrow AI — built for specific tasks — versus Artificial General Intelligence, AGI. Our 1-Day and 2-Day formats focus on Narrow AI: practical, task-level wins you can apply immediately. The Masterclass goes further — re-engineering how your organisation's systems work, to actually adopt AGI. That's why Strategy leads everything we teach: Sales &amp; Marketing, HR Development and Resilience are important, narrow-focused add-ons underneath it, not the main event.
@@ -514,7 +574,7 @@
     <p class="programme-desc">A short, high-level session for leadership teams who need a shared starting point before committing further — sized to fit a commute, offered in a morning or evening slot. Narrow AI focused: what's changing, what it means for the business, and where to focus first.</p>
     <div class="coming-soon">
       <div>
-        <div class="label">Coming soon</div>
+        <span class="neon-badge">⚡ Coming Soon</span>
         <p>Dates and booking will open shortly. Get in touch to register interest.</p>
       </div>
     </div>
@@ -655,7 +715,7 @@
     <p class="programme-desc">The intensive route: one focused week, full immersion, strategy first with AI as the enabler throughout, applied to sales, business development and marketing.</p>
     <div class="coming-soon">
       <div>
-        <div class="label">Coming soon</div>
+        <span class="neon-badge">⚡ Coming Soon</span>
         <p>Cohort dates not yet confirmed. Get in touch to register interest.</p>
       </div>
     </div>
@@ -775,9 +835,10 @@ function renderCohortList(programme, elId, track){
   el.innerHTML = '';
   const progRules = state.rules.programmes[programme] || {};
   const progMax = progRules.maxSeats || state.rules.maxSeats;
-  state.cohorts
-    .filter(c => c.programme === programme && (!track || c.track === track) && isCohortListed(c))
-    .forEach(c => {
+  const listed = state.cohorts
+    .filter(c => c.programme === programme && (!track || c.track === track) && isCohortListed(c));
+  const lastId = listed.length ? listed[listed.length - 1].id : null;
+  listed.forEach(c => {
     const seatInfo = state.seats[c.id] || { remaining: progMax, full:false };
     const phase = salePhaseFor(c);
     const closed = phase === 'closed';
@@ -796,9 +857,16 @@ function renderCohortList(programme, elId, track){
       phaseTag = '';
     }
 
+    let scarcityTag = '';
+    if (!closed && !seatInfo.full && seatInfo.remaining <= 5) {
+      scarcityTag = `<span class="urgent-tag">🔥 Only ${seatInfo.remaining} left</span>`;
+    } else if (c.id === lastId) {
+      scarcityTag = `<span class="lastcall-tag">Last date before our break</span>`;
+    }
+
     div.innerHTML = `
       <div>
-        <span class="cohort-id">${c.id.toUpperCase()}</span>
+        <span class="cohort-id">${c.id.toUpperCase()}</span>${scarcityTag}
         <div class="cohort-dates">${c.label}</div>
         <div class="cohort-track">${c.trackLabel}</div>
       </div>
