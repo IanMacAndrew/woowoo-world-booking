@@ -954,7 +954,10 @@ function renderCohortList(programme, elId, track){
   const listed = state.cohorts
     .filter(c => c.programme === programme && (!track || c.track === track) && isCohortListed(c));
   const lastId = listed.length ? listed[listed.length - 1].id : null;
-  listed.forEach(c => {
+  const VISIBLE_CAP = 3;
+  const visible = listed.slice(0, VISIBLE_CAP);
+  const hiddenCount = listed.length - visible.length;
+  visible.forEach(c => {
     const seatInfo = state.seats[c.id] || { remaining: progMax, full:false };
     const phase = salePhaseFor(c);
     const closed = phase === 'closed';
@@ -998,6 +1001,12 @@ function renderCohortList(programme, elId, track){
     }
     el.appendChild(div);
   });
+  if (hiddenCount > 0) {
+    const note = document.createElement('div');
+    note.style.cssText = 'padding:12px 4px 4px; font-size:12px; color:#746F82;';
+    note.innerHTML = `${hiddenCount} more date${hiddenCount > 1 ? 's' : ''} available — ask your sales rep, or a preferred date can be arranged directly.`;
+    el.appendChild(note);
+  }
 }
 
 function populateVenueSelect(){
