@@ -155,6 +155,35 @@
   }
   .coming-soon p{color:#746F82; font-size:14px; margin-top:6px; max-width:52ch;}
 
+  /* Waitlist capture form on Coming Soon cards */
+  .waitlist-form{display:flex; flex-wrap:wrap; gap:8px; align-items:flex-start; min-width:260px;}
+  .waitlist-form .wl-name,
+  .waitlist-form .wl-email{
+    padding:9px 12px; border:1px solid var(--line); border-radius:6px;
+    font-size:13px; font-family:inherit; background:#fff; color:var(--ink);
+  }
+  .waitlist-form .wl-name{flex:1; min-width:120px;}
+  .waitlist-form .wl-email{flex:1.4; min-width:170px;}
+  .waitlist-form button{
+    padding:9px 18px; border:none; border-radius:6px; background:var(--brass);
+    color:var(--ink); font-weight:700; font-size:13px; cursor:pointer; white-space:nowrap;
+  }
+  .waitlist-form button:disabled{opacity:0.6; cursor:default;}
+  .waitlist-form .wl-status{
+    width:100%; font-size:12px; margin-top:4px; min-height:14px;
+  }
+  .waitlist-form .wl-status.ok{color:#2E9E7A;}
+  .waitlist-form .wl-status.err{color:#c0392b;}
+
+  /* Countdown ticker on early-bird cohort cards */
+  .countdown{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:#c0392b;
+    font-weight:700;
+    margin-top:4px;
+  }
+
   /* Flashing neon "coming soon" badge — Bootcamp & Drive Time Briefing */
   .neon-badge{
     display:inline-block;
@@ -502,7 +531,7 @@
   <section aria-label="Choose a format" style="padding: 8px 0 48px;">
     <div style="max-width: 760px; margin: 0 auto 20px; text-align: center; padding: 0 16px;">
       <span style="display:inline-block; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; padding: 6px 16px; border-radius: 999px; background: #c0392b; color: #fff;">
-        🔥 Booking now through February 2027 — next dates open after our March break
+        🔥 <span id="cohorts-left-count">…</span> cohort dates left before our March break
       </span>
     </div>
     <div style="max-width: 760px; margin: 0 auto 32px; text-align: center; padding: 0 16px;">
@@ -575,8 +604,14 @@
     <div class="coming-soon">
       <div>
         <span class="neon-badge">⚡ Coming Soon</span>
-        <p>Dates and booking will open shortly. Get in touch to register interest.</p>
+        <p>Dates and booking will open shortly.</p>
       </div>
+      <form class="waitlist-form" data-programme="briefing" onsubmit="return submitWaitlist(event)">
+        <input type="text" class="wl-name" placeholder="Name (optional)">
+        <input type="email" class="wl-email" placeholder="you@company.com" required>
+        <button type="submit">Join waitlist</button>
+        <div class="wl-status"></div>
+      </form>
     </div>
   </section>
 
@@ -716,8 +751,14 @@
     <div class="coming-soon">
       <div>
         <span class="neon-badge">⚡ Coming Soon</span>
-        <p>Cohort dates not yet confirmed. Get in touch to register interest.</p>
+        <p>Cohort dates not yet confirmed.</p>
       </div>
+      <form class="waitlist-form" data-programme="bootcamp" onsubmit="return submitWaitlist(event)">
+        <input type="text" class="wl-name" placeholder="Name (optional)">
+        <input type="email" class="wl-email" placeholder="you@company.com" required>
+        <button type="submit">Join waitlist</button>
+        <div class="wl-status"></div>
+      </form>
     </div>
   </section>
 
@@ -751,6 +792,81 @@ async function loadCohorts() {
   renderAllEbBanners();
   await refreshSeats();
   renderAllCohortLists();
+  updateCohortsLeftCounter();
+  startCountdownTicker();
+}
+
+/* ---- "X cohorts left before our break" live counter ---- */
+function updateCohortsLeftCounter(){
+  const el = document.getElementById('cohorts-left-count');
+  if (!el || !state.cohorts.length) return;
+  const remaining = state.cohorts.filter(isCohortListed).length;
+  el.textContent = remaining;
+}
+
+/* ---- Ticking countdown to each cohort's Early-bird cutoff ---- */
+function fmtCountdown(ms){
+  if (ms <= 0) return null;
+  const totalSec = Math.floor(ms / 1000);
+  const d = Math.floor(totalSec / 86400);
+  const h = Math.floor((totalSec % 86400) / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  return `${d}d ${h}h ${m}m ${s}s`;
+}
+
+function tickCountdowns(){
+  document.querySelectorAll('.countdown[data-until]').forEach(el => {
+    const until = new Date(el.dataset.until).getTime();
+    const remaining = until - Date.now();
+    const label = el.dataset.label || 'Early-bird ends in';
+    const fmt = fmtCountdown(remaining);
+    el.textContent = fmt ? `⏳ ${label} ${fmt}` : '';
+  });
+}
+
+let countdownInterval = null;
+function startCountdownTicker(){
+  if (countdownInterval) clearInterval(countdownInterval);
+  tickCountdowns();
+  countdownInterval = setInterval(tickCountdowns, 1000);
+}
+
+/* ---- Waitlist capture (Coming Soon cards) ---- */
+async function submitWaitlist(evt){
+  evt.preventDefault();
+  const form = evt.target;
+  const programme = form.dataset.programme;
+  const emailInput = form.querySelector('.wl-email');
+  const nameInput = form.querySelector('.wl-name');
+  const statusEl = form.querySelector('.wl-status');
+  const btn = form.querySelector('button');
+
+  statusEl.textContent = '';
+  statusEl.className = 'wl-status';
+  btn.disabled = true;
+  btn.textContent = 'Joining…';
+
+  try {
+    const res = await fetch('/.netlify/functions/join-waitlist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ programme, email: emailInput.value, name: nameInput.value })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Something went wrong.');
+    statusEl.textContent = "You're on the list — we'll email you the moment dates open.";
+    statusEl.className = 'wl-status ok';
+    emailInput.value = '';
+    nameInput.value = '';
+    btn.textContent = 'Joined ✓';
+  } catch (err) {
+    statusEl.textContent = err.message || 'Something went wrong — please try again.';
+    statusEl.className = 'wl-status err';
+    btn.disabled = false;
+    btn.textContent = 'Join waitlist';
+  }
+  return false;
 }
 
 async function refreshSeats() {
@@ -845,13 +961,17 @@ function renderCohortList(programme, elId, track){
     const div = document.createElement('div');
     div.className = 'cohort' + (c.id === state.selectedCohortId ? ' selected' : '') + (seatInfo.full || closed ? ' full' : '');
 
-    let phaseLabel, phaseTag;
+    let phaseLabel, phaseTag, countdownHtml = '';
     if (phase === 'early-bird') {
+      const cutoffIso = new Date(earlyBirdCutoffDate(c) + 'T00:00:00+08:00').toISOString();
       phaseLabel = `Early-bird until ${fmtEbDate(earlyBirdCutoffDate(c))}`;
       phaseTag = `<span class="earlybird-tag">Early-bird active</span>`;
+      countdownHtml = `<div class="countdown" data-until="${cutoffIso}" data-label="Early-bird ends in"></div>`;
     } else if (phase === 'final-call') {
+      const endIso = new Date(finalCallEndDate(c) + 'T00:00:00+08:00').toISOString();
       phaseLabel = `Final Call — 50% off, ends ${fmtEbDate(finalCallEndDate(c))}`;
       phaseTag = `<span class="earlybird-tag" style="background:#c0392b;">Final Call — 50% off</span>`;
+      countdownHtml = `<div class="countdown" data-until="${endIso}" data-label="Final Call ends in"></div>`;
     } else {
       phaseLabel = 'Sales closed for this date';
       phaseTag = '';
@@ -870,7 +990,7 @@ function renderCohortList(programme, elId, track){
         <div class="cohort-dates">${c.label}</div>
         <div class="cohort-track">${c.trackLabel}</div>
       </div>
-      <div>${phaseTag}<div style="font-size:11px; color:#8F8A9C; margin-top:4px;">${phaseLabel}</div></div>
+      <div>${phaseTag}<div style="font-size:11px; color:#8F8A9C; margin-top:4px;">${phaseLabel}</div>${countdownHtml}</div>
       <div class="seat-count">${closed ? '' : `<span class="num">${seatInfo.remaining}</span> of ${progMax} seats left`}</div>
     `;
     if (!seatInfo.full && !closed) {
