@@ -3,7 +3,7 @@ const FROM_EMAIL = process.env.FROM_EMAIL || 'bookings@woowoo.world';
 const OPS_NOTIFICATION_EMAIL = process.env.OPS_NOTIFICATION_EMAIL; // set to Omar's inbox
 const SALES_NOTIFICATION_EMAIL = process.env.SALES_NOTIFICATION_EMAIL || 'sales@woowoo.world';
 
-async function sendEmail({ to, subject, html, attachments }) {
+async function sendEmail({ to, subject, html, attachments, from }) {
   if (!RESEND_API_KEY) {
     console.warn('RESEND_API_KEY not set — skipping email send to', to);
     return { skipped: true };
@@ -16,7 +16,7 @@ async function sendEmail({ to, subject, html, attachments }) {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      from: FROM_EMAIL,
+      from: from || FROM_EMAIL,
       to: Array.isArray(to) ? to : [to],
       subject,
       html,

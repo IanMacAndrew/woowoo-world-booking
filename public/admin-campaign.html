@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Klang Valley Campaign — Internal</title>
+<style>
+  body{font-family:system-ui,sans-serif; max-width:1000px; margin:40px auto; padding:0 20px; color:#1C0333;}
+  h1{font-size:20px; margin-bottom:6px;}
+  p.note{color:#746F82; font-size:13px; margin-bottom:20px; max-width:70ch;}
+  label{display:block; font-size:12px; text-transform:uppercase; letter-spacing:0.04em; color:#746F82; margin:14px 0 4px;}
+  input{padding:10px; border:1px solid #C3C0CC; font-size:14px; box-sizing:border-box;}
+  button{padding:8px 14px; background:#C79529; color:#1C0333; border:none; font-size:13px; cursor:pointer; font-weight:600; border-radius:4px;}
+  button:disabled{opacity:0.5; cursor:default;}
+  button:hover:not(:disabled){opacity:0.85;}
+  #loadBtn{margin-top:10px;}
+  details.script{background:#F4F2F8; border:1px solid #E9ECF2; border-radius:8px; padding:16px 20px; margin:20px 0;}
+  details.script summary{cursor:pointer; font-weight:700;}
+  details.script p, details.script li{font-size:13px; line-height:1.6; color:#3A3548;}
+  .card{border:1px solid #E9ECF2; border-radius:8px; padding:16px 18px; margin-bottom:12px;}
+  .card.priority-top{border-color:#C0392B; background:#FDECEC;}
+  .card h3{font-size:15px; margin:0 0 4px;}
+  .meta{font-size:12px; color:#746F82; margin-bottom:8px;}
+  .meta b{color:#1C0333;}
+  .row{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:8px;}
+  .row input[type=email]{flex:1; min-width:220px;}
+  .row input[type=text]{flex:2; min-width:220px;}
+  .status-msg{font-size:12px; margin-top:6px;}
+  .status-msg.ok{color:#2E9E7A;}
+  .status-msg.err{color:#9C3B4A;}
+  .sent-tag{display:inline-block; font-size:11px; font-weight:700; color:#2E9E7A; background:#E6F5EF; padding:2px 8px; border-radius:999px; margin-left:6px;}
+</style>
+</head>
+<body>
+  <h1>Klang Valley closing campaign</h1>
+  <p class="note">108 Bursa ACE Market companies, Klang Valley (03 area code), sorted by revenue. Call first using the script below — capture whatever email they give you, then send the follow-up straight from here. Nothing sends without the admin secret.</p>
+
+  <details class="script">
+    <summary>Call script &amp; objection handling</summary>
+    <p><b>Opener (past gatekeeper):</b> "Hi, this is [Name] calling from WooWoo World — we run Strategy Led AI training for leadership teams, HRD Corp claimable. Could I speak with [CEO/MD name], or whoever leads that decision?"</p>
+    <p><b>Value line (once through):</b> "We're running Strategy Led AI workshops here in Klang Valley — from a 1-day Deep Dive up to a 5-week Masterclass for full organisational AI adoption, fully HRD Corp claimable. I'd love to send you the dates — what's the best email?"</p>
+    <p><b>If busy:</b> "Totally understand — can I send a two-line email so you've got it when you do have a moment?" (still get the email either way)</p>
+    <p><b>If "not interested":</b> "No problem at all — mind if I ask, is that because AI training isn't a priority right now, or you've already got something in place?" (log the answer in Notes)</p>
+    <p><b>If no answer / voicemail:</b> "Hi, this is [Name] from WooWoo World. Quick call about HRD Corp-claimable AI training for your leadership team — I'll follow up by email." Log as "Voicemail — no email captured" and try again in a few days.</p>
+    <p><b>Close:</b> Always try to get a direct email before hanging up — that's what unlocks the personalized follow-up below.</p>
+  </details>
+
+  <label for="secret">Admin secret</label>
+  <input type="password" id="secret" autocomplete="off" style="width:280px;">
+  <button id="loadBtn">Load list</button>
+
+  <div id="content"></div>
+
+  <script>
+    let cachedSecret = '';
+    let targets = [];
+
+    async function load() {
+      cachedSecret = document.getElementById('secret').value;
+      const res = await fetch('/klang-valley-targets.json');
+      const data = await res.json();
+      targets = data.targets;
+      render();
+    }
+
+    function render() {
+      const contentEl = document.getElementById('content');
+      contentEl.innerHTML = targets.map((t, i) => `
+        <div class="card ${i < 20 ? 'priority-top' : ''}" id="card-${t.id}">
+          <h3>#${t.priority} — ${t.company}</h3>
+          <div class="meta">${t.sector || ''}</div>
+          <div class="meta"><b>${t.ceoRaw || 'CEO/MD not listed'}</b> · ${t.phone || 'no phone on file'} · ${t.website ? `<a href="${t.website}" target="_blank">${t.website}</a>` : ''}</div>
+          <div class="meta">Revenue: ${t.revenue ? 'RM ' + t.revenue.toLocaleString() : 'n/a'} · Employees: ${t.employees ?? 'n/a'}</div>
+          <div class="row">
+            <input type="email" placeholder="Email captured during call" id="email-${t.id}">
+            <input type="text" placeholder="Call notes (optional)" id="notes-${t.id}">
+            <button onclick="send('${t.id}', this)">Send follow-up email</button>
+          </div>
+          <div class="status-msg" id="status-${t.id}"></div>
+        </div>
+      `).join('');
+    }
+
+    async function send(targetId, btn) {
+      const email = document.getElementById(`email-${targetId}`).value.trim();
+      const callNotes = document.getElementById(`notes-${targetId}`).value.trim();
+      const statusEl = document.getElementById(`status-${targetId}`);
+      statusEl.textContent = '';
+      statusEl.className = 'status-msg';
+      if (!email) {
+        statusEl.textContent = 'Enter the email captured during the call first.';
+        statusEl.className = 'status-msg err';
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
+      try {
+        const res = await fetch('/.netlify/functions/send-campaign-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-admin-secret': cachedSecret },
+          body: JSON.stringify({ targetId, email, callNotes })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.error || 'Failed to send.');
+        statusEl.textContent = 'Sent ✓';
+        statusEl.className = 'status-msg ok';
+        btn.textContent = 'Sent ✓';
+      } catch (e) {
+        statusEl.textContent = e.message;
+        statusEl.className = 'status-msg err';
+        btn.disabled = false;
+        btn.textContent = 'Send follow-up email';
+      }
+    }
+
+    document.getElementById('loadBtn').addEventListener('click', load);
+  </script>
+</body>
+</html>
