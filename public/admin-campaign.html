@@ -29,6 +29,14 @@
   .status-msg{font-size:12px; margin-top:6px;}
   .status-msg.ok{color:#2E9E7A;}
   .status-msg.err{color:#9C3B4A;}
+  .company-notes{margin-top:10px;}
+  .company-notes textarea{width:100%; box-sizing:border-box; padding:8px 10px; border:1px solid #C3C0CC; font-family:inherit; font-size:13px; resize:vertical; min-height:52px;}
+  .company-notes .row{margin-top:6px; justify-content:flex-end;}
+  .company-notes button{background:#1C0333; color:#fff;}
+  .notes-status{font-size:11px; margin-top:4px; text-align:right;}
+  .notes-status.ok{color:#2E9E7A;}
+  .notes-status.err{color:#9C3B4A;}
+  .notes-saved-at{font-size:11px; color:#8F8A9C; margin-top:4px;}
   .sent-tag{display:inline-block; font-size:11px; font-weight:700; color:#2E9E7A; background:#E6F5EF; padding:2px 8px; border-radius:999px; margin-left:6px;}
 </style>
 </head>
@@ -55,18 +63,35 @@
   <script>
     let cachedSecret = '';
     let targets = [];
+    let companyNotes = {};
 
     async function load() {
       cachedSecret = document.getElementById('secret').value;
       const res = await fetch('/klang-valley-targets.json');
       const data = await res.json();
       targets = data.targets;
+      try {
+        const notesRes = await fetch('/.netlify/functions/list-company-notes', {
+          headers: { 'x-admin-secret': cachedSecret }
+        });
+        const notesData = await notesRes.json();
+        if (notesRes.ok && notesData.ok) companyNotes = notesData.notes || {};
+      } catch (e) {
+        console.error('Failed to load company notes:', e);
+      }
       render();
+    }
+
+    function escapeHtml(s) {
+      return (s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     }
 
     function render() {
       const contentEl = document.getElementById('content');
-      contentEl.innerHTML = targets.map((t, i) => `
+      contentEl.innerHTML = targets.map((t, i) => {
+        const existing = companyNotes[t.id];
+        const savedLine = existing && existing.updatedAt ? `Last saved ${new Date(existing.updatedAt).toLocaleString()}` : '';
+        return `
         <div class="card ${i < 20 ? 'priority-top' : ''}" id="card-${t.id}">
           <h3>#${t.priority} — ${t.company}</h3>
           <div class="meta">${t.sector || ''}</div>
@@ -78,8 +103,18 @@
             <button onclick="send('${t.id}', this)">Send follow-up email</button>
           </div>
           <div class="status-msg" id="status-${t.id}"></div>
+          <div class="company-notes">
+            <label style="font-size:11px; text-transform:uppercase; letter-spacing:0.03em; color:#746F82; display:block; margin-bottom:4px;">Company info (for your next call)</label>
+            <textarea placeholder="e.g. budget signals, who else to loop in, objections raised, best time to call back" id="companynotes-${t.id}">${escapeHtml(existing ? existing.notes : '')}</textarea>
+            <div class="row">
+              <button onclick="saveNotes('${t.id}', this)">Save notes</button>
+            </div>
+            <div class="notes-status" id="notesstatus-${t.id}"></div>
+            <div class="notes-saved-at" id="notessaved-${t.id}">${savedLine}</div>
+          </div>
         </div>
-      `).join('');
+      `;
+      }).join('');
     }
 
     async function send(targetId, btn) {
@@ -112,6 +147,34 @@
         btn.disabled = false;
         btn.textContent = 'Send follow-up email';
       }
+    }
+
+    async function saveNotes(targetId, btn) {
+      const notes = document.getElementById(`companynotes-${targetId}`).value.trim();
+      const statusEl = document.getElementById(`notesstatus-${targetId}`);
+      const savedEl = document.getElementById(`notessaved-${targetId}`);
+      statusEl.textContent = '';
+      statusEl.className = 'notes-status';
+      btn.disabled = true;
+      btn.textContent = 'Saving…';
+      try {
+        const res = await fetch('/.netlify/functions/save-company-notes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-admin-secret': cachedSecret },
+          body: JSON.stringify({ targetId, notes })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.error || 'Failed to save.');
+        statusEl.textContent = 'Saved ✓';
+        statusEl.className = 'notes-status ok';
+        savedEl.textContent = `Last saved ${new Date().toLocaleString()}`;
+        companyNotes[targetId] = { targetId, notes, updatedAt: new Date().toISOString() };
+      } catch (e) {
+        statusEl.textContent = e.message;
+        statusEl.className = 'notes-status err';
+      }
+      btn.disabled = false;
+      btn.textContent = 'Save notes';
     }
 
     document.getElementById('loadBtn').addEventListener('click', load);

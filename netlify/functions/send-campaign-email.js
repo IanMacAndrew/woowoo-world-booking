@@ -28,7 +28,7 @@ function campaignEmailHtml({ target, email, callNotes }) {
       </p>
       ${callNotes ? `<p style="color:#746F82;font-size:13px;">Following up on: ${callNotes}</p>` : ''}
       <p>Happy to answer anything directly — just reply to this email.</p>
-      <p>Best,<br>Omar<br>WooWoo World</p>
+      <p>Best,<br>Omar<br>WooWoo World<br><a href="https://www.woowooworld.co" style="color:#1C0333;">www.woowooworld.co</a></p>
       <hr style="border:none;border-top:1px solid #E9ECF2;margin:24px 0;">
       <p style="color:#8F8A9C;font-size:11px;">
         WooWoo World, Malaysia. You're receiving this because we spoke by phone about AI training for ${target.company}.
