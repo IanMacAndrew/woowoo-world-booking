@@ -449,7 +449,10 @@
     flex-wrap:wrap;
   }
   .protection-label{display:flex; gap:10px; align-items:flex-start; font-size:13px; color:#5C566B; cursor:pointer;}
-  .protection-label input{margin-top:3px; width:auto;}
+  .protection-label input{
+    margin-top:2px; width:19px; height:19px; min-width:19px; flex-shrink:0;
+    accent-color:var(--ink); cursor:pointer;
+  }
   .protection-label a{color:var(--brass-dark);}
   .discount-tier-tag{
     font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.04em; text-transform:uppercase;
@@ -461,7 +464,10 @@
   .consent-row{
     display:flex; gap:10px; align-items:flex-start; margin-top:18px; font-size:13px; color:#5C566B; cursor:pointer;
   }
-  .consent-row input{margin-top:3px; width:auto;}
+  .consent-row input{
+    margin-top:2px; width:19px; height:19px; min-width:19px; flex-shrink:0;
+    accent-color:var(--ink); cursor:pointer;
+  }
   .consent-row a{color:var(--brass-dark);}
 
   #consent-modal-overlay{
