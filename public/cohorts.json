@@ -71,7 +71,7 @@
       "format": "masterclass",
       "basePrice": 875000,
       "earlyBirdDiscount": 0.6,
-      "minSeats": 12,
+      "minSeats": 18,
       "maxSeats": 36,
       "seatTiers": [
         {
@@ -104,13 +104,13 @@
       "format": "deepdive",
       "basePrice": 175000,
       "earlyBirdDiscount": 0.6,
-      "minSeats": 10
+      "minSeats": 18
     },
     "deeperdive": {
       "format": "deeperdive",
       "basePrice": 350000,
       "earlyBirdDiscount": 0.6,
-      "minSeats": 10
+      "minSeats": 18
     }
   },
   "cohorts": [

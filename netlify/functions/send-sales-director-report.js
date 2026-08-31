@@ -17,7 +17,7 @@ const { cohortsData, getProgramme, isCohortListed, salePhase } = require('./_pri
 const { normalizeCompanyName } = require('./_commission');
 const { sendEmail } = require('./_email');
 
-const DEFAULT_MIN_SEATS = 10; // matches check-cohort-minimums.js / send-ops-planning-report.js
+const DEFAULT_MIN_SEATS = 18; // matches check-cohort-minimums.js / send-ops-planning-report.js
 
 exports.handler = async () => {
   const store = getStore('bookings');

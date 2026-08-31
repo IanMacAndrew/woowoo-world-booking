@@ -16,7 +16,7 @@ const { getStore } = require('./_blobs');
 const { cohortsData, getProgramme, salePhase } = require('./_pricing');
 const { MINIMUM_FILL_BONUS_RATE } = require('./_commission');
 
-const DEFAULT_MIN_SEATS = 10;
+const DEFAULT_MIN_SEATS = 18;
 
 exports.handler = async () => {
   const store = getStore('bookings');

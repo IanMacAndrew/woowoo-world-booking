@@ -8,7 +8,7 @@ const { getStore } = require('./_blobs');
 const { cohortsData, getProgramme, salePhase } = require('./_pricing');
 const { sendMinimumNotMetEmail, sendOpsMinimumNotMetNotification } = require('./_email');
 
-const DEFAULT_MIN_SEATS = 10;
+const DEFAULT_MIN_SEATS = 18;
 
 // Suggest the next upcoming cohort on the same programme + track as a
 // starting point for a possible merge -- ops makes the actual call, this

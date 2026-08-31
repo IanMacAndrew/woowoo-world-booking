@@ -17,7 +17,7 @@ const { cohortsData, getProgramme, salePhase } = require('./_pricing');
 const { companyTierRate, MINIMUM_FILL_BONUS_RATE } = require('./_commission');
 const { sendEmail } = require('./_email');
 
-const DEFAULT_MIN_SEATS = 10;
+const DEFAULT_MIN_SEATS = 18;
 
 function randomCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/1/I to avoid confusion

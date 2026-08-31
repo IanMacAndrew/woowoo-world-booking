@@ -2,7 +2,7 @@ const { getStore } = require('./_blobs');
 const { workshopBonusRate, WORKSHOP_BONUS_TIERS } = require('./_commission');
 const { cohortsData, getProgramme, isCohortListed, salePhase } = require('./_pricing');
 
-const DEFAULT_MIN_SEATS = 10; // matches check-cohort-minimums.js's fallback
+const DEFAULT_MIN_SEATS = 18; // matches check-cohort-minimums.js's fallback
 
 // Serves both the rep leaderboard AND the near-threshold cohort-progress
 // view from one data fetch — deliberately one function, richer response,

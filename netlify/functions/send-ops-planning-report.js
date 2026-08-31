@@ -8,7 +8,7 @@ const { cohortsData, getProgramme, daysUntilStart, salePhase } = require('./_pri
 const { sendEmail } = require('./_email');
 
 const REPORT_HORIZON_DAYS = 35; // covers the full e-TRiS submission window with margin
-const DEFAULT_MIN_SEATS = 10;
+const DEFAULT_MIN_SEATS = 18;
 
 function etrisFlag(days) {
   if (days > 30) return null;
