@@ -43,14 +43,17 @@ exports.handler = async () => {
       if (!record || record.cohortId !== cohort.id) continue;
       if (record.payoutStatus !== 'pending') continue; // already released/void, or never eligible
 
+      const indexRepCode = record.recordType === 'manager-override' ? record.managerCode : record.repCode;
+
       if (minimumReached) {
-        // Ownership-override records (account-ownership expansion payouts)
-        // are deliberately bounded to the company-tier rate alone — no
-        // workshop-bonus, no minimum-fill bonus. They still go through the
-        // same released/void gate as normal commissions (a company that
-        // books but the cohort never runs shouldn't pay out either way),
-        // they just don't pick up the +5% on release.
-        if (record.recordType !== 'ownership-override') {
+        // Ownership-override and manager-override records are both
+        // deliberately bounded to their own already-computed rate — no
+        // minimum-fill bonus layer on top (that layer is specific to a
+        // rep's own three-part commission). They still go through the
+        // same released/void gate as normal commissions: a deal that
+        // never actually happens (cohort didn't run) shouldn't pay out
+        // to anyone, override or not.
+        if (record.recordType !== 'ownership-override' && record.recordType !== 'manager-override') {
           record.minimumFillBonusRate = MINIMUM_FILL_BONUS_RATE;
           record.totalRate = record.companyTierRate + record.workshopBonusRate + MINIMUM_FILL_BONUS_RATE;
           record.commissionAmount = Math.round(record.revenue * record.totalRate);
@@ -68,7 +71,9 @@ exports.handler = async () => {
       await store.setJSON(b.key, record);
       // Keep the commission-by-rep secondary index in sync — it's a
       // separate copy of the same record, used by send-sales-reports.js.
-      const repIndexKey = `commission-by-rep:${record.repCode}:${record.computedAt}:${b.key.replace('commission:', '')}`;
+      // For manager-override records this index is keyed by managerCode,
+      // not repCode (see _commission.js).
+      const repIndexKey = `commission-by-rep:${indexRepCode}:${record.computedAt}:${b.key.replace('commission:', '')}`;
       const repIndexRecord = await store.get(repIndexKey, { type: 'json' }).catch(() => null);
       if (repIndexRecord) {
         await store.setJSON(repIndexKey, record);

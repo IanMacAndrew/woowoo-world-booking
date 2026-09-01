@@ -3,7 +3,7 @@ const crypto = require('crypto');
 const { getStore } = require('./_blobs');
 const { getCohort } = require('./_pricing');
 const { sendDelegateFormLinkEmail, sendOpsAwaitingDelegatesNotification, sendSalesCommissionNotification } = require('./_email');
-const { calculateAndRecordCommission, checkAndRecordAccountOwnership } = require('./_commission');
+const { calculateAndRecordCommission, checkAndRecordAccountOwnership, calculateAndRecordManagerOverride } = require('./_commission');
 
 exports.handler = async (event) => {
   const sig = event.headers['stripe-signature'];
@@ -92,6 +92,23 @@ exports.handler = async (event) => {
           });
         } catch (err) {
           console.error('Account ownership check failed for booking', bookingId, err);
+        }
+
+        // Sales Manager override: independent of, and never reducing, the
+        // rep's own commission above. Silently a no-op if the rep has no
+        // manager on file — see _commission.js for the full rule.
+        try {
+          await calculateAndRecordManagerOverride({
+            bookingId,
+            cohortId,
+            repCode,
+            companyName,
+            seatCount: seatCountNum,
+            revenue,
+            createdAt: (roster && roster.createdAt) || new Date().toISOString()
+          });
+        } catch (err) {
+          console.error('Manager override calculation failed for booking', bookingId, err);
         }
       } else {
         console.error('No revenue figure available (roster missing, no fallback) — skipping commission calc for booking', bookingId);

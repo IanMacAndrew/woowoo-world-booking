@@ -31,6 +31,9 @@ async function buildSaleSection(commission) {
   const notes = [];
   if (commission.recordType === 'ownership-override') {
     notes.push(`Account ownership — ${Math.round(commission.companyTierRate * 100)}% on a direct/self-credit booking from a company you opened`);
+  } else if (commission.recordType === 'manager-override') {
+    const tierLabel = { teamLead: 'Team Lead', teamBuilder: 'Team Builder', teamExcellence: 'Team Excellence' }[commission.overrideTier] || commission.overrideTier;
+    notes.push(`Sales Manager override — ${tierLabel} (${Math.round(commission.overrideRate * 100)}%) on a sale by ${commission.triggeringRepCode}, team at ${commission.teamVolumeThisQuarter} delegates this quarter`);
   } else {
     notes.push(`${Math.round(commission.companyTierRate * 100)}% company tier (${commission.seatCount} delegate${commission.seatCount === 1 ? '' : 's'})`);
     if (commission.workshopBonusRate > 0) notes.push(`+${Math.round(commission.workshopBonusRate * 100)}% workshop-volume bonus (${commission.repCumulativeInCohortAfter} cumulative in this cohort)`);
@@ -112,8 +115,8 @@ exports.handler = async () => {
     if (!record || record.payoutStatus !== 'released' || !record.payoutDecidedAt) continue;
     const decidedAt = new Date(record.payoutDecidedAt);
     if (decidedAt < periodStart || decidedAt >= periodEnd) continue;
-    const repCode = record.repCode;
-    (byRep[repCode] = byRep[repCode] || []).push(record);
+    const groupKey = record.recordType === 'manager-override' ? record.managerCode : record.repCode;
+    (byRep[groupKey] = byRep[groupKey] || []).push(record);
   }
 
   const results = [];

@@ -59,12 +59,12 @@ exports.handler = async (event) => {
     const store = getStore('bookings');
 
     if (body.action === 'accept-contract') {
-      const { salesCode, kind, legalName, email, agreed } = body;
+      const { salesCode, kind, legalName, email, agreed, managerCode } = body;
 
       if (!salesCode || !CODE_PATTERN.test(salesCode)) {
         return { statusCode: 400, body: JSON.stringify({ error: 'Sales code must be 3-12 letters/numbers, e.g. your initials.' }) };
       }
-      if (kind !== 'sales_rep' && kind !== 'booking_contact') {
+      if (kind !== 'sales_rep' && kind !== 'sales_manager' && kind !== 'booking_contact') {
         return { statusCode: 400, body: JSON.stringify({ error: 'Unknown signup kind' }) };
       }
       if (!legalName || legalName.trim().length < 2) {
@@ -83,11 +83,29 @@ exports.handler = async (event) => {
         return { statusCode: 409, body: JSON.stringify({ error: `Sales code ${salesCode} is already registered. Choose a different one, or contact sales@woowoo.world if this is yours.` }) };
       }
 
+      // A sales rep may optionally name their Sales Manager at signup — the
+      // manager's own code must already be registered as kind:
+      // 'sales_manager' and active. Managers and Booking Contacts don't
+      // have a managerCode of their own (only reps roll up to a manager).
+      let resolvedManagerCode = null;
+      if (kind === 'sales_rep' && managerCode) {
+        const managerKey = `sales-agent:${managerCode}`;
+        const managerRecord = await store.get(managerKey, { type: 'json' }).catch(() => null);
+        if (!managerRecord || managerRecord.kind !== 'sales_manager') {
+          return { statusCode: 400, body: JSON.stringify({ error: `${managerCode} isn't a registered Sales Manager code. Check with them, or leave this blank and add it later.` }) };
+        }
+        if (managerRecord.status === 'inactive') {
+          return { statusCode: 400, body: JSON.stringify({ error: `${managerCode} is no longer an active Sales Manager.` }) };
+        }
+        resolvedManagerCode = managerCode;
+      }
+
       const record = {
         salesCode,
         kind,
         legalName: legalName.trim(),
         email: email.trim().toLowerCase(),
+        managerCode: resolvedManagerCode,
         contractVersion: CONTRACT_VERSION,
         contractAcceptedAt: new Date().toISOString(),
         contractAcceptedIp: event.headers['x-nf-client-connection-ip'] || event.headers['client-ip'] || null,
@@ -95,6 +113,17 @@ exports.handler = async (event) => {
         stripeAccountId: null,
       };
       await store.setJSON(key, record);
+
+      // Reverse index for the manager override calculation (_commission.js)
+      // to find "every rep on this manager's team" without scanning the
+      // whole sales-agent registry.
+      if (resolvedManagerCode) {
+        await store.setJSON(`manager-team:${resolvedManagerCode}:${salesCode}`, {
+          repCode: salesCode,
+          managerCode: resolvedManagerCode,
+          joinedAt: record.contractAcceptedAt,
+        });
+      }
 
       // No Stripe Connect attempt here (see file header) — the code is
       // fully active the moment the contract is on file. Payment method
@@ -112,7 +141,7 @@ exports.handler = async (event) => {
         console.error('Welcome email failed for', salesCode, err);
       }
 
-      return { statusCode: 200, body: JSON.stringify({ ok: true, salesCode, status: record.status }) };
+      return { statusCode: 200, body: JSON.stringify({ ok: true, salesCode, status: record.status, managerCode: resolvedManagerCode }) };
     }
 
     if (body.action === 'connect-bank') {

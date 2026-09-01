@@ -55,8 +55,14 @@
       <label for="kind">I am a</label>
       <select id="kind">
         <option value="sales_rep">Sales Rep</option>
+        <option value="sales_manager">Sales Manager</option>
         <option value="booking_contact">Company Booking Contact</option>
       </select>
+
+      <div id="managerCodeField" style="display:none;">
+        <label for="managerCode">Your Sales Manager's code <span style="font-weight:400;color:#8F8A9C;">(optional — leave blank if you don't have one yet)</span></label>
+        <input type="text" id="managerCode" placeholder="e.g. their initials" style="text-transform:uppercase;">
+      </div>
 
       <label for="legalName">Full legal name</label>
       <input type="text" id="legalName" placeholder="As it appears on your bank account / ID">
@@ -109,6 +115,14 @@
 <script>
 const goStep = (id) => { document.querySelectorAll('.step').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); };
 
+const kindSelect = document.getElementById('kind');
+const managerCodeField = document.getElementById('managerCodeField');
+const toggleManagerCodeField = () => {
+  managerCodeField.style.display = kindSelect.value === 'sales_rep' ? 'block' : 'none';
+};
+kindSelect.addEventListener('change', toggleManagerCodeField);
+toggleManagerCodeField();
+
 async function callSignup(payload) {
   const res = await fetch('/.netlify/functions/sales-agent-signup', {
     method: 'POST',
@@ -135,6 +149,7 @@ document.getElementById('submitContract').addEventListener('click', async () => 
   const legalName = document.getElementById('legalName').value.trim();
   const email = document.getElementById('email').value.trim();
   const salesCode = document.getElementById('salesCode').value.trim().toUpperCase();
+  const managerCode = document.getElementById('managerCode').value.trim().toUpperCase();
   const agreed = document.getElementById('agree').checked;
   const msgEl = document.getElementById('contractMsg');
   msgEl.innerHTML = '';
@@ -142,7 +157,7 @@ document.getElementById('submitContract').addEventListener('click', async () => 
   const btn = document.getElementById('submitContract');
   btn.disabled = true;
   try {
-    await callSignup({ action: 'accept-contract', kind, legalName, email, salesCode, agreed });
+    await callSignup({ action: 'accept-contract', kind, legalName, email, salesCode, agreed, managerCode: managerCode || undefined });
     goStep('step-done');
   } catch (err) {
     msgEl.innerHTML = `<div class="msg error">${err.message}</div>`;
