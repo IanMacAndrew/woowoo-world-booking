@@ -1,27 +1,27 @@
 const { getStore: getStoreRaw } = require('@netlify/blobs');
 
 // Netlify is *supposed* to auto-inject Blobs credentials into every function
-// invocation. This project previously worked around that with an explicit
-// siteID/token (see git history), because of a documented reliability issue
-// with automatic config — but that manual path is now the one producing
-// unexplained 401s (Netlify Blobs rejecting a freshly-regenerated, correctly
-// -scoped, "All scopes" Personal Access Token), even though nothing else
-// about it looks wrong. Flipping the priority: try automatic config FIRST,
-// fall back to the manual siteID/token only if that fails. This is a live
-// diagnostic as much as a fix — if automatic config also 401s, the problem
-// isn't the token at all; if it works, the manual path itself was the bug.
+// invocation. A previous version of this file tried automatic config first
+// and only fell back to an explicit siteID/token if getStoreRaw() itself
+// threw -- but that can't actually catch the failure mode we're hitting:
+// getStoreRaw() succeeds synchronously either way (it just builds a client),
+// and the 401 only shows up later, asynchronously, the first time something
+// calls .list()/.get()/etc. on the store it returned. So that fallback
+// logic was structurally unable to ever trigger for this error.
+//
+// Reverting to what's actually confirmed to have worked before (see git
+// history): prefer the explicit siteID/token when both are present, and
+// only fall back to automatic config if they're missing. If this still
+// 401s, the explicit token itself has likely gone stale again and needs
+// regenerating in the Netlify dashboard (Site configuration -> Environment
+// variables -> NETLIFY_BLOBS_TOKEN) -- that's happened once before.
 function getStore(name) {
-  try {
-    return getStoreRaw(name);
-  } catch (err) {
-    const siteID = process.env.NETLIFY_SITE_ID;
-    const token = process.env.NETLIFY_BLOBS_TOKEN;
-    if (siteID && token) {
-      console.warn('Automatic Blobs config failed, falling back to explicit siteID/token:', err.message);
-      return getStoreRaw({ name, siteID, token });
-    }
-    throw err;
+  const siteID = process.env.NETLIFY_SITE_ID;
+  const token = process.env.NETLIFY_BLOBS_TOKEN;
+  if (siteID && token) {
+    return getStoreRaw({ name, siteID, token });
   }
+  return getStoreRaw(name);
 }
 
 module.exports = { getStore };
