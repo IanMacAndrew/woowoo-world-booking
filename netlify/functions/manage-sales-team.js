@@ -1,4 +1,4 @@
-const { getStore } = require('./_blobs');
+const { getStore, connect } = require('./_blobs');
 
 // Internal tool: list every registered sales_rep / sales_manager, and
 // assign (or change) which manager a rep reports to. Protected by
@@ -13,6 +13,7 @@ const { getStore } = require('./_blobs');
 // different manager later.
 
 exports.handler = async (event) => {
+  connect(event);
   const adminSecret = event.headers['x-admin-secret'];
   if (!process.env.ADMIN_SECRET || adminSecret !== process.env.ADMIN_SECRET) {
     return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };

@@ -12,13 +12,14 @@
 //     note on the at-sale commission email).
 //
 // Fires once per cohort (idempotent via a stored flag).
-const { getStore } = require('./_blobs');
+const { getStore, connect } = require('./_blobs');
 const { cohortsData, getProgramme, salePhase } = require('./_pricing');
 const { MINIMUM_FILL_BONUS_RATE } = require('./_commission');
 
 const DEFAULT_MIN_SEATS = 18;
 
-exports.handler = async () => {
+exports.handler = async (event) => {
+  connect(event);
   const store = getStore('bookings');
   const results = [];
 

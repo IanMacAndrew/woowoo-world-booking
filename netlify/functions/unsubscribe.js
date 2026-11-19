@@ -1,4 +1,4 @@
-const { getStore } = require('./_blobs');
+const { getStore, connect } = require('./_blobs');
 
 function page(message) {
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Unsubscribed — WooWoo World</title>
@@ -8,6 +8,7 @@ function page(message) {
 }
 
 exports.handler = async (event) => {
+  connect(event);
   const email = ((event.queryStringParameters || {}).email || '').trim().toLowerCase();
   if (!email) {
     return { statusCode: 400, headers: { 'Content-Type': 'text/html' }, body: page('Missing email address.') };

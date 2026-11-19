@@ -1,9 +1,10 @@
-const { getStore } = require('./_blobs');
+const { getStore, connect } = require('./_blobs');
 
 // Returns all saved company notes, keyed by targetId, so the admin console
 // can pre-fill each card with whatever was learned on the last call.
 
 exports.handler = async (event) => {
+  connect(event);
   if (event.httpMethod !== 'GET') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method not allowed' }) };
   }

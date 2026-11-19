@@ -1,4 +1,4 @@
-const { getStore } = require('./_blobs');
+const { getStore, connect } = require('./_blobs');
 
 // Free-text notes about a target company, for use on the NEXT follow-up call —
 // separate from Call notes (which just get folded into the one-off follow-up
@@ -6,6 +6,7 @@ const { getStore } = require('./_blobs');
 // to loop in, budget signals, objections raised, etc.
 
 exports.handler = async (event) => {
+  connect(event);
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method not allowed' }) };
   }

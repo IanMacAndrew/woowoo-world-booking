@@ -1,4 +1,4 @@
-const { getStore } = require('./_blobs');
+const { getStore, connect } = require('./_blobs');
 
 // Internal tool: list referrals awaiting review, and mark one paid or
 // rejected. Protected by ADMIN_SECRET (same pattern as
@@ -6,6 +6,7 @@ const { getStore } = require('./_blobs');
 // just enough to stop this being hit blind.
 
 exports.handler = async (event) => {
+  connect(event);
   const adminSecret = event.headers['x-admin-secret'];
   if (!process.env.ADMIN_SECRET || adminSecret !== process.env.ADMIN_SECRET) {
     return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };

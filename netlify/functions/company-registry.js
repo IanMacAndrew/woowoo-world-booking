@@ -1,4 +1,4 @@
-const { getStore } = require('./_blobs');
+const { getStore, connect } = require('./_blobs');
 
 // Internal tool: view account-ownership records (which rep owns which
 // company for the 12-month expansion-override window — see
@@ -13,6 +13,7 @@ const { getStore } = require('./_blobs');
 // favour of the ownership records that actually matter now.
 
 exports.handler = async (event) => {
+  connect(event);
   if (event.httpMethod !== 'GET') {
     return { statusCode: 405, body: 'Method not allowed' };
   }

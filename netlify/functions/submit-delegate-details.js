@@ -1,9 +1,10 @@
-const { getStore } = require('./_blobs');
+const { getStore, connect } = require('./_blobs');
 const { getCohort } = require('./_pricing');
 const { generateInvoicePdf } = require('./_invoice');
 const { sendConfirmationEmail, sendOpsNotification } = require('./_email');
 
 exports.handler = async (event) => {
+  connect(event);
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method not allowed' };
   }

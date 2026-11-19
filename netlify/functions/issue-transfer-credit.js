@@ -1,4 +1,4 @@
-const { getStore } = require('./_blobs');
+const { getStore, connect } = require('./_blobs');
 
 // Internal tool: staff issue a transfer credit after manually verifying a
 // Deep Dive Stripe payment (Deep Dive uses static Payment Links, so there's
@@ -19,6 +19,7 @@ function randomCode() {
 }
 
 exports.handler = async (event) => {
+  connect(event);
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method not allowed' };
   }

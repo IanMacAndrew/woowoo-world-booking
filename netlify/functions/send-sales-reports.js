@@ -1,4 +1,4 @@
-const { getStore } = require('./_blobs');
+const { getStore, connect } = require('./_blobs');
 const { getCohort, cohortsData } = require('./_pricing');
 const { sendEmail } = require('./_email');
 
@@ -86,7 +86,8 @@ async function sendReportForRep(repCode, commissions, periodStart, periodEnd) {
   });
 }
 
-exports.handler = async () => {
+exports.handler = async (event) => {
+  connect(event);
   const store = getStore('bookings');
 
   const checkpointRaw = await store.get(CHECKPOINT_KEY);

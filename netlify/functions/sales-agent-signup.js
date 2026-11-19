@@ -31,7 +31,7 @@
 // old acceptances stay valid for what they actually agreed to, but a
 // version bump can be used to prompt re-acceptance if the terms
 // materially change.
-const { getStore } = require('./_blobs');
+const { getStore, connect } = require('./_blobs');
 const { createConnectAccount, createOnboardingLink, getAccountStatus } = require('./_stripe-connect');
 const { sendSalesAgentWelcomeEmail } = require('./_email');
 
@@ -39,6 +39,7 @@ const CONTRACT_VERSION = '2026-08-18-v1';
 const CODE_PATTERN = /^[A-Z0-9]{3,12}$/;
 
 exports.handler = async (event) => {
+  connect(event);
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method not allowed' }) };
   }

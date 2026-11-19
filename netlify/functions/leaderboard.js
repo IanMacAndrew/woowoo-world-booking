@@ -1,4 +1,4 @@
-const { getStore } = require('./_blobs');
+const { getStore, connect } = require('./_blobs');
 const { workshopBonusRate, WORKSHOP_BONUS_TIERS } = require('./_commission');
 const { cohortsData, getProgramme, isCohortListed, salePhase } = require('./_pricing');
 
@@ -31,6 +31,7 @@ function nextWorkshopTier(count) {
 }
 
 exports.handler = async (event) => {
+  connect(event);
   if (event.httpMethod !== 'GET') {
     return { statusCode: 405, body: 'Method not allowed' };
   }

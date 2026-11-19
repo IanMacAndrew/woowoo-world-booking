@@ -1,4 +1,4 @@
-const { getStore } = require('./_blobs');
+const { getStore, connect } = require('./_blobs');
 const { sendEmail } = require('./_email');
 const targetData = require('../../data/klang-valley-targets.json');
 
@@ -38,6 +38,7 @@ function campaignEmailHtml({ target, email, callNotes }) {
 }
 
 exports.handler = async (event) => {
+  connect(event);
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method not allowed' }) };
   }

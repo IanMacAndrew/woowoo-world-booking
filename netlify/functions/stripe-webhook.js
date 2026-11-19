@@ -1,11 +1,12 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const crypto = require('crypto');
-const { getStore } = require('./_blobs');
+const { getStore, connect } = require('./_blobs');
 const { getCohort } = require('./_pricing');
 const { sendDelegateFormLinkEmail, sendOpsAwaitingDelegatesNotification, sendSalesCommissionNotification } = require('./_email');
 const { calculateAndRecordCommission, checkAndRecordAccountOwnership, calculateAndRecordManagerOverride } = require('./_commission');
 
 exports.handler = async (event) => {
+  connect(event);
   const sig = event.headers['stripe-signature'];
   let stripeEvent;
 

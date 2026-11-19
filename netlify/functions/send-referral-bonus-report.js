@@ -5,7 +5,7 @@
 // referral to 'matched' and includes it in the email to sales@ for a
 // human to review and pay the flat bonus manually. See log-referral.js
 // for why this stays manual rather than automated.
-const { getStore } = require('./_blobs');
+const { getStore, connect } = require('./_blobs');
 const { normalizeCompanyName } = require('./_commission');
 const { sendEmail } = require('./_email');
 const cohortsData = require('../../cohorts.json');
@@ -13,7 +13,8 @@ const cohortsData = require('../../cohorts.json');
 const REFERRAL_WINDOW_DAYS = 90;
 const REFERRAL_BONUS_AMOUNT_CENTS = cohortsData.referralBonusAmountCents ?? 20000; // RM200 default
 
-exports.handler = async () => {
+exports.handler = async (event) => {
+  connect(event);
   const store = getStore('bookings');
   const now = new Date();
 

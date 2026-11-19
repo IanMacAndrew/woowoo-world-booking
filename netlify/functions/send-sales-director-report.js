@@ -12,14 +12,15 @@
 // ownership issue tells the Sales Director directly, who checks it here
 // against the real underlying data rather than reps self-policing a
 // public client list.
-const { getStore } = require('./_blobs');
+const { getStore, connect } = require('./_blobs');
 const { cohortsData, getProgramme, isCohortListed, salePhase } = require('./_pricing');
 const { normalizeCompanyName } = require('./_commission');
 const { sendEmail } = require('./_email');
 
 const DEFAULT_MIN_SEATS = 18; // matches check-cohort-minimums.js / send-ops-planning-report.js
 
-exports.handler = async () => {
+exports.handler = async (event) => {
+  connect(event);
   const store = getStore('bookings');
   const now = new Date();
 

@@ -1,7 +1,8 @@
-const { getStore } = require('./_blobs');
+const { getStore, connect } = require('./_blobs');
 const { cohortsData, getProgramme } = require('./_pricing');
 
 exports.handler = async (event) => {
+  connect(event);
   const cohortId = event.queryStringParameters && event.queryStringParameters.cohortId;
 
   const store = getStore('bookings');

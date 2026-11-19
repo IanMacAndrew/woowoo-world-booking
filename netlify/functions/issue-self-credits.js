@@ -12,7 +12,7 @@
 // by release-commission-payouts.js. The workshop-volume bonus layer still
 // doesn't apply — it's designed around a rep's ongoing sales behaviour
 // across multiple bookings into one cohort, not a single self-booking.
-const { getStore } = require('./_blobs');
+const { getStore, connect } = require('./_blobs');
 const { cohortsData, getProgramme, salePhase } = require('./_pricing');
 const { companyTierRate, MINIMUM_FILL_BONUS_RATE } = require('./_commission');
 const { sendEmail } = require('./_email');
@@ -65,7 +65,8 @@ async function sendSelfCreditEmail({ contactEmail, contactName, cohort, code, am
   });
 }
 
-exports.handler = async () => {
+exports.handler = async (event) => {
+  connect(event);
   const store = getStore('bookings');
   const creditStore = getStore('transfer-credits');
   const results = [];

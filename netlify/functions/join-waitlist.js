@@ -1,4 +1,4 @@
-const { getStore } = require('./_blobs');
+const { getStore, connect } = require('./_blobs');
 const { sendEmail } = require('./_email');
 
 const OPS_NOTIFICATION_EMAIL = process.env.OPS_NOTIFICATION_EMAIL;
@@ -21,6 +21,7 @@ function isValidEmail(email) {
 }
 
 exports.handler = async (event) => {
+  connect(event);
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method not allowed' }) };
   }

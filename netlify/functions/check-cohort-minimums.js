@@ -4,7 +4,7 @@
 // human can action the merge/reschedule rescue plan. Fires once per
 // cohort (idempotent via a stored flag), not once per day of the Final
 // Call window.
-const { getStore } = require('./_blobs');
+const { getStore, connect } = require('./_blobs');
 const { cohortsData, getProgramme, salePhase } = require('./_pricing');
 const { sendMinimumNotMetEmail, sendOpsMinimumNotMetNotification } = require('./_email');
 
@@ -19,7 +19,8 @@ function suggestMergeTarget(cohort, allCohorts) {
     .sort((a, b) => a.startDate.localeCompare(b.startDate))[0] || null;
 }
 
-exports.handler = async () => {
+exports.handler = async (event) => {
+  connect(event);
   const store = getStore('bookings');
   const results = [];
 

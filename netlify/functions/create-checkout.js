@@ -1,5 +1,5 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const { getStore } = require('./_blobs');
+const { getStore, connect } = require('./_blobs');
 const { calculatePricing, cohortsData, getCohort, getProgramme, getVenue } = require('./_pricing');
 
 function jsonError(statusCode, error) {
@@ -7,6 +7,7 @@ function jsonError(statusCode, error) {
 }
 
 exports.handler = async (event) => {
+  connect(event);
   if (event.httpMethod !== 'POST') {
     return jsonError(405, 'Method not allowed');
   }

@@ -1,4 +1,4 @@
-const { getStore } = require('./_blobs');
+const { getStore, connect } = require('./_blobs');
 const { normalizeCompanyName } = require('./_commission');
 
 // Logs a warm-intro referral: a rep tells us they gave a client's C-suite
@@ -14,6 +14,7 @@ const { normalizeCompanyName } = require('./_commission');
 // claim — matching and payout review happen downstream.
 
 exports.handler = async (event) => {
+  connect(event);
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method not allowed' }) };
   }

@@ -1,4 +1,4 @@
-const { getStore } = require('./_blobs');
+const { getStore, connect } = require('./_blobs');
 
 // One-time (or occasional) cleanup tool: wipes every artifact tied to
 // test sales-rep/manager sign-ups and test bookings made before the
@@ -38,6 +38,7 @@ const PREFIXES = [
 const CONFIRM_PHRASE = 'WIPE ALL TEST SALES DATA';
 
 exports.handler = async (event) => {
+  connect(event);
   const adminSecret = event.headers['x-admin-secret'];
   if (!process.env.ADMIN_SECRET || adminSecret !== process.env.ADMIN_SECRET) {
     return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };

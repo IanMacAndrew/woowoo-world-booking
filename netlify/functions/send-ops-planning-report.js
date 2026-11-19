@@ -3,7 +3,7 @@
 // covers every upcoming cohort with any booked seats, flagged by where it
 // sits in HRD Corp's submission window (20-30 days out: submit; 14-20:
 // awaiting approval; under 14: should already be locked).
-const { getStore } = require('./_blobs');
+const { getStore, connect } = require('./_blobs');
 const { cohortsData, getProgramme, daysUntilStart, salePhase } = require('./_pricing');
 const { sendEmail } = require('./_email');
 
@@ -18,7 +18,8 @@ function etrisFlag(days) {
   return null;
 }
 
-exports.handler = async () => {
+exports.handler = async (event) => {
+  connect(event);
   const store = getStore('bookings');
   const now = new Date();
 
