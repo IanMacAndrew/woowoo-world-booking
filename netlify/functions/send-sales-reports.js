@@ -30,14 +30,19 @@ async function buildSaleSection(commission) {
 
   const notes = [];
   if (commission.recordType === 'ownership-override') {
-    notes.push(`Account ownership — ${Math.round(commission.companyTierRate * 100)}% on a direct/self-credit booking from a company you opened`);
+    notes.push(`Account ownership — ${Math.round(commission.totalRate * 100)}% on a direct/self-credit booking from a company you opened`);
   } else if (commission.recordType === 'manager-override') {
     const tierLabel = { teamLead: 'Team Lead', teamBuilder: 'Team Builder', teamExcellence: 'Team Excellence' }[commission.overrideTier] || commission.overrideTier;
     notes.push(`Sales Manager override — ${tierLabel} (${Math.round(commission.overrideRate * 100)}%) on a sale by ${commission.triggeringRepCode}, team at ${commission.teamVolumeThisQuarter} delegates this quarter`);
   } else {
-    notes.push(`${Math.round(commission.companyTierRate * 100)}% company tier (${commission.seatCount} delegate${commission.seatCount === 1 ? '' : 's'})`);
-    if (commission.workshopBonusRate > 0) notes.push(`+${Math.round(commission.workshopBonusRate * 100)}% workshop-volume bonus (${commission.repCumulativeInCohortAfter} cumulative in this cohort)`);
-    if (commission.minimumFillBonusRate > 0) notes.push(`+${Math.round(commission.minimumFillBonusRate * 100)}% minimum-fill team bonus (cohort confirmed)`);
+    if (commission.rateScheme) {
+      notes.push(`Flat ${Math.round(commission.totalRate * 100)}% (${commission.seatCount} delegate${commission.seatCount === 1 ? '' : 's'})`);
+    } else {
+      // Commission recorded before the flat-rate scheme — keep its original breakdown.
+      notes.push(`${Math.round(commission.companyTierRate * 100)}% company tier (${commission.seatCount} delegate${commission.seatCount === 1 ? '' : 's'})`);
+      if (commission.workshopBonusRate > 0) notes.push(`+${Math.round(commission.workshopBonusRate * 100)}% workshop-volume bonus (${commission.repCumulativeInCohortAfter} cumulative in this cohort)`);
+      if (commission.minimumFillBonusRate > 0) notes.push(`+${Math.round(commission.minimumFillBonusRate * 100)}% minimum-fill team bonus (cohort confirmed)`);
+    }
   }
 
   return `

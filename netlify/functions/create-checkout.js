@@ -1,6 +1,6 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const { getStore, connect } = require('./_blobs');
-const { calculatePricing, cohortsData, getCohort, getProgramme, getVenue } = require('./_pricing');
+const { calculatePricing, cohortsData, getCohort, getProgramme, getVenue, isProgrammeRetired } = require('./_pricing');
 
 function jsonError(statusCode, error) {
   return { statusCode, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error }) };
@@ -52,6 +52,9 @@ exports.handler = async (event) => {
   const cohort = getCohort(cohortId);
   if (!cohort) {
     return jsonError(400, 'Unknown cohort — please refresh the page and select a date again.');
+  }
+  if (isProgrammeRetired(cohort.programme)) {
+    return jsonError(400, 'This programme is no longer offered. Please refresh the page and choose another format.');
   }
   const programme = getProgramme(cohort.programme);
   const maxSeatsForCohort = programme.maxSeats || cohortsData.maxSeats;
@@ -105,7 +108,7 @@ exports.handler = async (event) => {
     return jsonError(400, e.message);
   }
 
-  // Deep Dive → Masterclass transfer credit (see admin-issue-credit.html).
+  // Credit code: Deep Dive → Masterclass transfer credit (see admin-issue-credit.html) or an account credit (see issue-self-credits.js).
   // Applied as a one-time Stripe coupon so it's visible as a clean line item
   // on the actual payment page, rather than silently baked into the price.
   let creditStore, creditRecord, creditAmountApplied = 0;
@@ -180,7 +183,7 @@ exports.handler = async (event) => {
         amount_off: creditAmountApplied,
         currency: pricing.currency,
         duration: 'once',
-        name: `Deep Dive transfer credit (${creditCode})`
+        name: `Credit applied (${creditCode})`
       });
       discounts = [{ coupon: coupon.id }];
     }

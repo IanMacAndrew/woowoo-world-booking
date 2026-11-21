@@ -1,34 +1,22 @@
 const { getStore, connect } = require('./_blobs');
-const { workshopBonusRate, WORKSHOP_BONUS_TIERS } = require('./_commission');
 const { cohortsData, getProgramme, isCohortListed, salePhase } = require('./_pricing');
 
 const DEFAULT_MIN_SEATS = 18; // matches check-cohort-minimums.js's fallback
 
-// Serves both the rep leaderboard AND the near-threshold cohort-progress
-// view from one data fetch — deliberately one function, richer response,
-// rather than two separate endpoints hitting the same stores twice.
+// Serves both the rep leaderboard AND the cohort-progress view from one
+// data fetch — deliberately one function, richer response, rather than two
+// separate endpoints hitting the same stores twice.
 //
-// IMPORTANT ASYMMETRY, worth understanding before reading the numbers
-// below: the minimum-fill team bonus (+5%) is genuinely COHORT-WIDE —
-// once a cohort crosses its minimum, every rep who sold into it gets the
-// bonus on all their sales there. "delegatesToMinimum" reflects that
-// real shared threshold. The workshop-volume bonus (+5%/+10% at 6/12),
-// by contrast, is PER REP — it's a rep's own cumulative count in that one
-// cohort, not a cohort-wide pool. There's no single honest "X away for
-// everyone" number for it, so repProgress lists each rep's own count and
-// their own distance to their own next tier instead of pretending it's
-// shared. Don't collapse this into one misleading cohort-level number.
+// Commission is a flat rate now (see _commission.js), so there are no bonus
+// thresholds to show. Cohort progress is about the one number that still
+// matters to every rep: how close each open cohort is to its minimum
+// headcount, which is what releases commission for everyone who sold into it.
 //
 // No company names anywhere in this response — this endpoint has no
-// access control (same as leaderboard.js always had), and company names
-// are treated as sensitive (see company-registry.js, which gates them
-// behind ADMIN_SECRET). The company-name-inclusive version of this data
-// goes to sales@ by email instead — see send-sales-director-report.js.
-
-function nextWorkshopTier(count) {
-  const next = WORKSHOP_BONUS_TIERS.find((t) => t.min > count);
-  return next ? { threshold: next.min, delegatesNeeded: next.min - count } : null;
-}
+// access control, and company names are treated as sensitive (see
+// company-registry.js, which gates them behind ADMIN_SECRET). The
+// company-name-inclusive version of this data goes to sales@ by email
+// instead — see send-sales-director-report.js.
 
 exports.handler = async (event) => {
   connect(event);
@@ -63,8 +51,7 @@ exports.handler = async (event) => {
       repCode,
       totalDelegates,
       cohortsSoldInto: cohortsByRep[repCode],
-      bestSingleCohortCount: bestCohortByRep[repCode],
-      bestSingleCohortBonusRate: workshopBonusRate(bestCohortByRep[repCode])
+      bestSingleCohortCount: bestCohortByRep[repCode]
     }));
   standings.sort((a, b) => b.totalDelegates - a.totalDelegates);
 
@@ -84,9 +71,7 @@ exports.handler = async (event) => {
     const repProgress = (repCountsByCohort[cohort.id] || [])
       .map(({ repCode, count }) => ({
         repCode,
-        count,
-        currentBonusRate: workshopBonusRate(count),
-        nextTier: nextWorkshopTier(count)
+        count
       }))
       .sort((a, b) => b.count - a.count);
 

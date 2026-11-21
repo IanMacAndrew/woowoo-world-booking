@@ -34,34 +34,6 @@
       "label": ""
     }
   ],
-  "commissionTiers": [
-    {
-      "min": 1,
-      "max": 5,
-      "rate": 0.1
-    },
-    {
-      "min": 6,
-      "max": 14,
-      "rate": 0.15
-    },
-    {
-      "min": 15,
-      "max": 999999,
-      "rate": 0.2
-    }
-  ],
-  "commissionOverageThreshold": 30,
-  "commissionOverageBonus": 0.05,
-  "commissionEarlyBirdBonus": 0.1,
-  "commissionRateCap": 0.25,
-  "commissionSeedingFeePerDelegate": 5000,
-  "commissionWindowDaysBeforeEvent": 10,
-  "commissionMinEventAttendance": 10,
-  "commissionDeepDiveFloorPerDelegate": 15000,
-  "commissionCapacityBonusThreshold": 0.8,
-  "commissionCapacityBonusPerDelegate": 15000,
-  "commissionFirstTimeCompanyBonusPerDelegate": 5000,
   "bookingProtectionFeeRate": 0.08,
   "tokenBonusRate": 1.1,
   "heavilyDiscountedThreshold": 0.5,
@@ -104,13 +76,15 @@
       "format": "deepdive",
       "basePrice": 175000,
       "earlyBirdDiscount": 0.6,
-      "minSeats": 18
+      "minSeats": 18,
+      "retired": true
     },
     "deeperdive": {
       "format": "deeperdive",
       "basePrice": 350000,
       "earlyBirdDiscount": 0.6,
-      "minSeats": 18
+      "minSeats": 18,
+      "retired": true
     }
   },
   "cohorts": [

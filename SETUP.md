@@ -63,7 +63,7 @@ email + PDF invoice to the booking contact, and a roster notification to your in
    | `COMPANY_REG_NO` | your SSM company registration number |
    | `COMPANY_ADDRESS` | your registered business address |
    | `COMPANY_SST_NO` | optional — only if you're SST-registered |
-   | `ADMIN_SECRET` | a password of your choosing, used by `/admin-issue-credit.html` to issue Deep Dive → Masterclass transfer codes. Pick something long and random — anyone with this can issue credits. |
+   | `ADMIN_SECRET` | a password of your choosing, used by `/admin-issue-credit.html` to issue Deep Dive → Masterclass transfer codes (kept for anyone who already paid for a Deep Dive before it was retired). Pick something long and random — anyone with this can issue credits. |
 
 5. Redeploy the site after adding these (Netlify → Deploys → Trigger deploy) so the functions pick up the new variables.
 
@@ -93,7 +93,7 @@ In Netlify → **Domain management**, add `woowoo.world` and/or `woowooworld.co`
 
 ## Known limitations, worth knowing about
 
-- **Deep Dive still uses static Stripe Payment Links**, not this dynamic checkout — so it can't offer Booking Protection or transfer credits itself (only Masterclass can). Migrating Deep Dive onto this same system is the natural next step, planned but not yet done.
+- **The 1-day Deep Dive and 2-day Deeper Dive have been retired (Nov 2026).** They are no longer shown on the site and cannot be booked. Their cohorts stay in `cohorts.json`, marked `"retired": true` on the programme, only so any booking already paid for keeps working (delegate forms, ops reports, payouts). `public/cohorts.json` (what the storefront loads) no longer contains them. Any old Stripe Payment Links for them should be deactivated in Stripe.
 - **Transfer credit codes are reserved at checkout creation, not at payment confirmation** — if someone starts checkout with a code and then abandons it without paying, that code stays locked as "redeemed" rather than releasing automatically (a genuine payment failure does release it). If this happens, you can manually flip a code back to `unused` in Netlify Blobs, or just issue a new one.
 - **No automatic minimum cohort size** — a Masterclass cohort will run with any number of bookings, including just one. Worth deciding if you want a minimum before a cohort is confirmed to run.
 

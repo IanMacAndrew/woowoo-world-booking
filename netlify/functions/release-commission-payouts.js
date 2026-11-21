@@ -3,9 +3,11 @@
 // Contact rebate: once a cohort is fully closed to new sales, check
 // whether it actually reached its minimum go-ahead headcount.
 //
-//   - If YES: every 'pending' commission record for that cohort gets the
-//     minimum-fill team bonus (+5%) added, and is marked 'released' —
-//     payable on the next sales-report cycle.
+//   - If YES: every 'pending' commission record for that cohort is marked
+//     'released' — payable on the next sales-report cycle. Records written
+//     before the flat-rate scheme (Nov 2026; they have no `rateScheme`
+//     field) also get the old minimum-fill bonus (+5%) added, because
+//     that is what they were promised. Flat-rate records never get a bonus.
 //   - If NO and the cohort was never rescued into a merge: every
 //     'pending' record for that cohort is marked 'void' — not paid. The
 //     rep was told this could happen (see the "pending, not yet payable"
@@ -14,7 +16,7 @@
 // Fires once per cohort (idempotent via a stored flag).
 const { getStore, connect } = require('./_blobs');
 const { cohortsData, getProgramme, salePhase } = require('./_pricing');
-const { MINIMUM_FILL_BONUS_RATE } = require('./_commission');
+const { LEGACY_MINIMUM_FILL_BONUS_RATE } = require('./_commission');
 
 const DEFAULT_MIN_SEATS = 18;
 
@@ -47,16 +49,18 @@ exports.handler = async (event) => {
       const indexRepCode = record.recordType === 'manager-override' ? record.managerCode : record.repCode;
 
       if (minimumReached) {
-        // Ownership-override and manager-override records are both
-        // deliberately bounded to their own already-computed rate — no
-        // minimum-fill bonus layer on top (that layer is specific to a
-        // rep's own three-part commission). They still go through the
-        // same released/void gate as normal commissions: a deal that
-        // never actually happens (cohort didn't run) shouldn't pay out
-        // to anyone, override or not.
-        if (record.recordType !== 'ownership-override' && record.recordType !== 'manager-override') {
-          record.minimumFillBonusRate = MINIMUM_FILL_BONUS_RATE;
-          record.totalRate = record.companyTierRate + record.workshopBonusRate + MINIMUM_FILL_BONUS_RATE;
+        // Only LEGACY rep records (written before the flat-rate scheme, so
+        // no rateScheme field) get the old minimum-fill bonus. Flat-rate
+        // records, ownership-override and manager-override records are all
+        // already at their final rate. Every record still goes through the
+        // same released/void gate: a deal that never actually happens
+        // (cohort didn't run) shouldn't pay out to anyone.
+        const isLegacyRepRecord = !record.rateScheme
+          && record.recordType !== 'ownership-override'
+          && record.recordType !== 'manager-override';
+        if (isLegacyRepRecord) {
+          record.minimumFillBonusRate = LEGACY_MINIMUM_FILL_BONUS_RATE;
+          record.totalRate = record.companyTierRate + record.workshopBonusRate + LEGACY_MINIMUM_FILL_BONUS_RATE;
           record.commissionAmount = Math.round(record.revenue * record.totalRate);
         }
         record.payoutStatus = 'released';

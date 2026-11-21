@@ -21,7 +21,7 @@ function campaignEmailHtml({ target, email, callNotes }) {
     <div style="font-family:sans-serif;color:#1C0333;max-width:560px;">
       <p>Hi ${firstName},</p>
       <p>Good speaking with you just now about ${target.company}'s leadership team and where AI fits into your strategy for the year ahead.</p>
-      <p>As mentioned, WooWoo World runs Strategy Led AI workshops here in Klang Valley — HRD Corp claimable, live cohorts with real companies in your own vertical rather than a generic online course. Formats range from a 1-day Deep Dive to a 5-week Masterclass for full organisational re-engineering.</p>
+      <p>As mentioned, WooWoo World runs Strategy Led AI workshops here in Klang Valley — HRD Corp claimable, live cohorts with real companies in your own vertical rather than a generic online course. Our flagship format is a 5-week Masterclass for full organisational re-engineering.</p>
       <p>We're currently booking cohorts through February — a few dates are close to filling.</p>
       <p style="margin:24px 0;">
         <a href="${SITE_URL}" style="background:#C79529;color:#1C0333;padding:12px 22px;text-decoration:none;font-weight:bold;border-radius:6px;">See dates &amp; pricing</a>
