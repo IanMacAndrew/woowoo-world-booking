@@ -10,6 +10,15 @@ function getProgramme(programmeKey) {
   return p;
 }
 
+// A retired programme (the 1-day Deep Dive and 2-day Deeper Dive) is no
+// longer sold. Its cohort records stay in cohorts.json only so that any
+// booking already paid for keeps working (delegate forms, ops reports,
+// minimum-fill checks, commission payouts). Nothing new can be booked.
+function isProgrammeRetired(programmeKey) {
+  const p = cohortsData.programmes[programmeKey];
+  return !!(p && p.retired);
+}
+
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 // Sale lifecycle for every cohort, computed purely from its own startDate —
@@ -43,6 +52,7 @@ function daysUntilStart(cohort, now = new Date()) {
 // A cohort already listed keeps counting down through its own lifecycle
 // as time passes; this only gates first appearance, not ongoing display.
 function isCohortListed(cohort, now = new Date()) {
+  if (isProgrammeRetired(cohort.programme)) return false;
   return daysUntilStart(cohort, now) >= SALE_PHASES.MIN_DAYS_TO_LIST;
 }
 
@@ -92,7 +102,7 @@ function getVenue(venueId) {
 // All prices in cents (Stripe's smallest unit for MYR).
 //
 // IMPORTANT: discounts are ADDITIVE off the base price, not compounded/stacked.
-// This mirrors the 1-Day Deep Dive pricing model exactly — e.g. the early-bird
+// This mirrors the original fixed-price model exactly — e.g. the early-bird
 // discount (60%) and a 10-19 delegate group discount (15%) together take 75%
 // off base, not 1 - (0.4 * 0.85) = 66%. Stacking multiplicatively would
 // silently undercharge/overcharge relative to the published tables, so don't
@@ -100,6 +110,9 @@ function getVenue(venueId) {
 function calculatePricing({ cohortId, seatCount, bookingProtection, venueId, now = new Date() }) {
   const cohort = getCohort(cohortId);
   if (!cohort) throw new Error('Unknown cohort: ' + cohortId);
+  if (isProgrammeRetired(cohort.programme)) {
+    throw new Error('This programme is no longer offered. Please choose another format.');
+  }
 
   const phase = salePhase(cohort, now);
   if (phase === 'closed') {
@@ -186,5 +199,5 @@ function calculatePricing({ cohortId, seatCount, bookingProtection, venueId, now
 module.exports = {
   getCohort, getProgramme, isEarlyBirdActive, isFinalCallActive, isSaleClosed,
   salePhase, isCohortListed, daysUntilStart, earlyBirdCutoffDate, finalCallEndDate,
-  seatTierDiscount, getVenue, calculatePricing, cohortsData, SALE_PHASES
+  seatTierDiscount, getVenue, calculatePricing, cohortsData, SALE_PHASES, isProgrammeRetired
 };

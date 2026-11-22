@@ -165,9 +165,9 @@ async function sendSalesCommissionNotification({ cohort, commission, bookingId }
       <h2>Commission update — ${commission.repCode}</h2>
       <p><strong>${cohort.programmeName}</strong> — ${cohort.label}</p>
       ${commission.eligible
-        ? `<p><strong>RM ${(commission.commissionAmount / 100).toLocaleString('en-MY', { minimumFractionDigits: 2 })}</strong> for ${commission.seatCount} delegate(s) at ${Math.round(commission.totalRate * 100)}% (${Math.round(commission.companyTierRate * 100)}% company tier + ${Math.round(commission.workshopBonusRate * 100)}% workshop-volume bonus).</p>
-           <p>Cumulative delegates sold into this cohort: <strong>${commission.repCumulativeInCohortAfter}</strong></p>
-           <p style="color:#746F82;font-size:12px;">This is pending, not yet payable. If this cohort reaches its minimum go-ahead headcount, every one of your sales into it also gets a further +5% minimum-fill team bonus, released together once that's confirmed. If the cohort never reaches minimum and isn't merged into one that does, this commission is void.</p>`
+        ? `<p><strong>RM ${(commission.commissionAmount / 100).toLocaleString('en-MY', { minimumFractionDigits: 2 })}</strong> for ${commission.seatCount} delegate(s) at a flat ${Math.round(commission.totalRate * 100)}%.</p>
+           ${commission.repCumulativeInCohortAfter != null ? `<p>Cumulative delegates sold into this cohort: <strong>${commission.repCumulativeInCohortAfter}</strong></p>` : ''}
+           <p style="color:#746F82;font-size:12px;">This is pending, not yet payable. It is released once this cohort reaches its minimum go-ahead headcount. If the cohort never reaches minimum and isn't merged into one that does, this commission is void.</p>`
         : `<p>No commission on this booking: ${commission.reason}</p>`}
       <p style="color:#746F82;font-size:12px;">Booking reference: ${bookingId}</p>
     </div>`;
@@ -236,7 +236,7 @@ async function sendSalesAgentWelcomeEmail({ legalName, email, salesCode, kind })
     <div style="font-family:sans-serif;color:#1C0333;">
       <h2>Welcome — your ${roleLabel} code is active</h2>
       <p>Hi ${legalName || 'there'}, your agreement is on file and your sales code <strong>${salesCode}</strong> is now active. Use it at checkout on any booking to earn Rewards.</p>
-      <p>See <a href="https://book.woowoo.world/how-commissions-work">How Commissions &amp; Rewards Work</a> for the full structure and worked examples. <a href="https://book.woowoo.world/leaderboard">See which live cohorts are closest to a bonus tier</a>, and <a href="https://book.woowoo.world/refer">log a warm-intro referral</a> if a client's C-suite contact points you toward someone else in their org — that's worth a flat bonus if it converts, even on a direct/self-credit booking.</p>
+      <p>See <a href="https://book.woowoo.world/how-commissions-work">How Commissions &amp; Rewards Work</a> for the full structure and worked examples. <a href="https://book.woowoo.world/leaderboard">See which live cohorts are closest to their minimum</a>, and <a href="https://book.woowoo.world/refer">log a warm-intro referral</a> if a client's C-suite contact points you toward someone else in their org — that's worth a flat bonus if it converts, even on a direct/self-credit booking.</p>
       <h3 style="margin-top:24px;">Getting paid</h3>
       <p>Rewards are paid out manually for now — we'll be in touch directly about payment details. No action needed from you.</p>
     </div>`;

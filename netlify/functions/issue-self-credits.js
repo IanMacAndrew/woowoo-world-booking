@@ -4,17 +4,13 @@
 // running, not being merged/rescheduled), every booking made with the
 // SELF_CREDIT marker gets an account credit issued and emailed.
 //
-// Credit value mirrors the same commission a sales rep would earn on an
-// equivalent booking: the company-tier rate (5% for 1-3 delegates, 10%
-// for 4-6, 15% for 7+) PLUS the minimum-fill team bonus (+5%) — this
-// function only ever runs once minimum is already confirmed met, so that
-// bonus always applies here, unlike the rep case where it's applied later
-// by release-commission-payouts.js. The workshop-volume bonus layer still
-// doesn't apply — it's designed around a rep's ongoing sales behaviour
-// across multiple bookings into one cohort, not a single self-booking.
+// Credit value mirrors the commission a sales rep earns on an equivalent
+// booking: the flat rep rate (20%) of what was paid. (Before the flat-rate
+// scheme this was 10-20% depending on delegate count; 20% is never lower
+// than that, so no pending credit is reduced.)
 const { getStore, connect } = require('./_blobs');
 const { cohortsData, getProgramme, salePhase } = require('./_pricing');
-const { companyTierRate, MINIMUM_FILL_BONUS_RATE } = require('./_commission');
+const { REP_COMMISSION_RATE } = require('./_commission');
 const { sendEmail } = require('./_email');
 
 const DEFAULT_MIN_SEATS = 18;
@@ -54,7 +50,7 @@ async function sendSelfCreditEmail({ contactEmail, contactName, cohort, code, am
       <p>Hi ${contactName || 'there'},</p>
       <p>${cohort.programmeName} (${cohort.label}) is confirmed to run. As you booked directly rather than through a sales rep, here's your account credit:</p>
       <p style="font-size:22px;font-weight:700;background:#F4F2F8;padding:14px 20px;border-radius:8px;display:inline-block;">${code}</p>
-      <p>Worth <strong>RM ${(amountCents / 100).toLocaleString('en-MY', { minimumFractionDigits: 2 })}</strong> off a future WooWoo World booking — enter it at checkout under "Deep Dive transfer code" (it works across any of our programmes, not just Deep Dive).</p>
+      <p>Worth <strong>RM ${(amountCents / 100).toLocaleString('en-MY', { minimumFractionDigits: 2 })}</strong> off a future WooWoo World booking — enter it at checkout in the "Credit or transfer code" box.</p>
       <p style="color:#746F82;font-size:12px;">Questions? Reply to this email or contact sales@woowoo.world.</p>
     </div>`;
 
@@ -98,7 +94,7 @@ exports.handler = async (event) => {
       if (!(roster.status || '').startsWith('paid')) continue;
       if (roster.selfCreditIssued) continue;
 
-      const rate = companyTierRate(roster.pricing.seatCount) + MINIMUM_FILL_BONUS_RATE;
+      const rate = REP_COMMISSION_RATE;
       const amountCents = Math.round(roster.pricing.total * rate);
       if (amountCents <= 0) continue;
 

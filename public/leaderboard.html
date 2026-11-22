@@ -43,14 +43,14 @@
 <main>
   <div class="eyebrow">WooWoo World · Sales</div>
   <h1>Leaderboard & Cohort Progress</h1>
-  <p class="sub">Ranked by total delegates sold, plus which live cohorts are closest to a bonus threshold.</p>
+  <p class="sub">Ranked by total delegates sold, plus how close each live cohort is to the minimum it needs to run.</p>
 
   <h2>Leaderboard</h2>
   <p class="sub">Total delegates sold, across all cohorts.</p>
   <div id="leaderboard-content"><p class="empty">Loading…</p></div>
 
   <h2>Cohort Progress</h2>
-  <p class="sub">Every currently-open cohort. The minimum-fill bonus (+5%) is shared — one sale from it benefits every rep who sold into that cohort. The workshop-volume bonus (+5% / +10% at 6 / 12) is each rep's own count in that cohort, not shared — shown per rep below.</p>
+  <p class="sub">Every currently-open cohort. Commission on sales into a cohort is paid once that cohort reaches its minimum headcount, so every sale from any rep moves all of them closer. Each rep's own delegate count in the cohort is shown below.</p>
   <div id="cohort-content"><p class="empty">Loading…</p></div>
 </main>
 <script>
@@ -70,7 +70,7 @@
           <td>${s.repCode}</td>
           <td>${s.totalDelegates}</td>
           <td>${s.cohortsSoldInto}</td>
-          <td>${s.bestSingleCohortCount} (+${Math.round(s.bestSingleCohortBonusRate * 100)}%)</td>
+          <td>${s.bestSingleCohortCount}</td>
         </tr>
       `).join('');
       lbEl.innerHTML = `
@@ -88,8 +88,7 @@
         const repRows = c.repProgress.length
           ? c.repProgress.map((r) => `
               <div class="rep-progress-row">
-                <span>${r.repCode} — ${r.count} delegate${r.count === 1 ? '' : 's'} (+${Math.round(r.currentBonusRate * 100)}%)</span>
-                <span>${r.nextTier ? `${r.nextTier.delegatesNeeded} more to +${r.nextTier.threshold === 6 ? '5' : '10'}%` : 'Top tier reached'}</span>
+                <span>${r.repCode} — ${r.count} delegate${r.count === 1 ? '' : 's'}</span>
               </div>
             `).join('')
           : '<div class="rep-progress-row"><span>No sales yet in this cohort</span></div>';

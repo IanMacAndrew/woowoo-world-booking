@@ -1,122 +1,79 @@
 const { getStore } = require('./_blobs');
-const { getCohort, getProgramme, salePhase } = require('./_pricing');
+const { getCohort, salePhase } = require('./_pricing');
 
 // ============================================================
-// Sales Commission Scheme — "Strategy Led AI" two-tier structure
-// (Sales Rep + Sales Manager override), replacing the prior
-// rep-only 10/20/30% scheme.
+// Sales Commission Scheme — flat rate (from Nov 2026)
 // ============================================================
 //
-// Layer (a) + (b) below are computed at the moment of sale, for a sale
-// made during EITHER a cohort's Early-Bird OR Final-Call window (never
-// after sales close):
+// Every sale made during a cohort's Early-Bird OR Final-Call window
+// (never after sales close) earns a FLAT commission on the amount
+// actually paid. There are no company tiers, no workshop-volume bonus
+// and no minimum-fill bonus any more.
 //
-//  (a) Same-company tier — per company, within ONE booking:
-//        1-5 delegates    -> 5%
-//        6-9 delegates    -> 10%
-//        10-15+ delegates -> 15% (uncapped above 15 — also the rate
-//                                 that carries through unchanged for
-//                                 in-house cohorts, up to the
-//                                 20-delegate in-house cap)
+//   ISM (the company owner, house code)  -> 30%
+//   Every other sales rep                -> 20%
 //
-//  (b) Workshop-volume bonus — the rep's CUMULATIVE delegate count sold
-//      into this ONE cohort specifically (not across all their sales
-//      everywhere), stacking additively on top of (a):
-//        6+ delegates  in this cohort -> +3%
-//        12+ delegates in this cohort -> +6%
-//        18+ delegates in this cohort -> +10%
+// ISM-coded bookings now create a pending commission record for ISM, held
+// and voided by exactly the same minimum-delegates rule as any rep (see
+// release-commission-payouts.js) — with ONE exception: if the booking's
+// company has an active Account Owner (below), the owner is paid 20% on
+// that booking and ISM earns nothing on it.
 //
-// Layer (c) is NOT computed at time of sale — it depends on whether the
-// cohort ever actually reaches its minimum (now 18 delegates, uniform
-// across every public format — see programme.minSeats in cohorts.json),
-// which isn't known until later. It's applied retroactively by
-// release-commission-payouts.js:
-//
-//  (c) Minimum-fill team bonus — flat +5%, added to every commission
-//      record in a cohort once that cohort is confirmed to have reached
-//      its minimum go-ahead headcount (18). Applies to ALL of a
-//      contributing rep's sales in that cohort, not just the sale that
-//      tipped it over.
-//
-// Rep ceiling: 15% + 10% + 5% = 30%.
+// Commission is never paid on a booking that goes through the
+// SELF_CREDIT path (Booking Contact chose an account credit instead).
 //
 // C-Suite / HOD exception: private single-company engagements for
 // C-Suite/Dept Heads are bespoke, quoted separately, and sit entirely
-// OFF this rate card — none of the tiers, the 18-delegate minimum, or
-// the manager override below apply to them. Every such deal must clear
-// its own profit floor on its own quote; see MARGIN_REPORT.md for the
-// numbers behind the standard formats.
+// OFF this rate card.
+//
+// LEGACY RECORDS: commission records written before this scheme (no
+// `rateScheme` field) were promised the old three-layer rate. They are
+// NOT recalculated — release-commission-payouts.js still adds the old
+// +5% minimum-fill bonus to those records only, so nobody's already
+// pending commission changes underneath them.
 //
 // ============================================================
-// Sales Manager override (new)
+// Sales Manager override (unchanged)
 // ============================================================
 //
-// Paid independently of, and never reducing, the rep's own commission
-// above — a manager earns this on every sale closed by any rep in
-// their downline, calculated on the same deal value.
+// Paid independently of, and never reducing, the rep's own commission —
+// a manager earns this on every sale closed by any rep in their
+// downline, calculated on the same deal value.
 //
 //   Team Lead       (2+ active reps reporting to this manager) -> 2%
 //   Team Builder    (team's combined delegates this quarter >= 25) -> 3.5%
-//   Team Excellence (team's combined delegates this quarter >= 40,
-//                    OR 3+ of the manager's reps have each landed at
-//                    least one sale this quarter at the full company +
-//                    workshop rate, 15%+10%=25%) -> 5%
+//   Team Excellence (team's combined delegates this quarter >= 40) -> 5%
 //
-// Below 2 active reps, there's no override at all (not even the 2%
-// floor) — the whole point of Team Lead is recognising the step-up
-// into actually managing a team.
+// The old extra route to Team Excellence ("3+ reps each at their own 25%
+// ceiling") was removed with the tiered rep rates: a flat 20% rep can no
+// longer reach a 25% ceiling, so that route could never fire.
 //
-// "Rolling quarter" is implemented as the calendar quarter the sale
-// falls in (Jan-Mar / Apr-Jun / Jul-Sep / Oct-Dec), not a trailing
-// 90-day window — simpler to reason about and to show a manager
-// ("this quarter's number"). Flag to revisit if a true trailing window
-// was actually intended.
-//
-// The Team Excellence "3+ reps at their own ceiling" path deliberately
-// checks each rep's 25% (company tier + workshop bonus, both fully
-// within the rep's own control at the moment of sale) rather than the
-// eventual 30% that includes the minimum-fill bonus — that bonus is a
-// cohort-level outcome only known later (see Layer (c) above), and
-// waiting for it here would mean either delaying every manager's
-// override determination until cohorts close, or clawing back an
-// already-paid override, both of which the rep-side design already
-// deliberately avoids. A rep who's hit their 25% ceiling on a sale has
-// done everything within their own control; the min-fill bonus on top
-// is the same team-outcome bonus every rep in the cohort shares.
-//
-// Like the rep's own workshop bonus, this is evaluated incrementally
-// at time of sale using the team's cumulative state as of that moment
-// — no retroactive recalculation, no clawbacks. Team volume climbing
-// over the course of a quarter means a manager's override rate on
-// their team's sales can only go up as the quarter progresses, never
-// down.
+// Below 2 active reps there is no override at all. "Rolling quarter" is
+// the calendar quarter the sale falls in. Evaluated incrementally at time
+// of sale — no retroactive recalculation, no clawbacks.
 
-const COMPANY_TIERS = [
-  { min: 1, max: 5, rate: 0.05 },
-  { min: 6, max: 9, rate: 0.10 },
-  { min: 10, max: 999999, rate: 0.15 },
-];
+const HOUSE_CODE = 'ISM';
+const REP_COMMISSION_RATE = 0.20;
+const ISM_COMMISSION_RATE = 0.30;
+const COMMISSION_SCHEME = 'flat-v2';
 
-const WORKSHOP_BONUS_TIERS = [
-  { min: 0, max: 5, rate: 0 },
-  { min: 6, max: 11, rate: 0.03 },
-  { min: 12, max: 17, rate: 0.06 },
-  { min: 18, max: 999999, rate: 0.10 },
-];
+// Only used by release-commission-payouts.js for records written under the
+// old scheme (no rateScheme field).
+const LEGACY_MINIMUM_FILL_BONUS_RATE = 0.05;
 
-const MINIMUM_FILL_BONUS_RATE = 0.05;
-
-const REP_OWN_CEILING_RATE = 0.15 + 0.10; // 25% — top company tier + top workshop bonus, the part fully within a rep's own control at time of sale
 const MANAGER_MIN_ACTIVE_REPS = 2;
 const MANAGER_TEAM_BUILDER_THRESHOLD = 25;
 const MANAGER_TEAM_EXCELLENCE_VOLUME_THRESHOLD = 40;
-const MANAGER_TEAM_EXCELLENCE_ELITE_REP_COUNT = 3;
 const MANAGER_OVERRIDE_RATES = {
   none: 0,
   teamLead: 0.02,
   teamBuilder: 0.035,
   teamExcellence: 0.05,
 };
+
+function commissionRateFor(repCode) {
+  return repCode === HOUSE_CODE ? ISM_COMMISSION_RATE : REP_COMMISSION_RATE;
+}
 
 // ============================================================
 // Account Ownership (expansion sales)
@@ -125,20 +82,15 @@ const MANAGER_OVERRIDE_RATES = {
 // company's Account Owner for 12 months from that sale. The payoff:
 // if a LATER booking from the same company comes in under ISM (house
 // default) or SELF_CREDIT — i.e. no other rep's code involved — the
-// owner earns the company-tier rate (5/10/15%, seat-count-based, NO
-// workshop-bonus or minimum-fill layer) on that booking.
+// owner earns the flat rep rate (20%) on that booking.
 //
 // Deliberately does NOT fire, and never competes, when a DIFFERENT
 // rep's code is used on a later booking — that rep just earns their
-// own commission normally, no split, no arbitration. The owner is
-// only ever paid in the exact case where otherwise nobody would be —
-// a direct/self-credit booking — which is what makes this a pure
-// incentive to nurture the account rather than a source of channel
-// conflict between reps.
+// own commission normally, no split, no arbitration. On an ISM-coded
+// booking the owner is paid INSTEAD of ISM (ISM earns nothing on it).
 //
 // Company-name matching starts deliberately simple: lowercase, trim,
-// collapse internal whitespace. No fuzzy matching yet — revisit only
-// if reps report real false misses ("Acme Sdn Bhd" vs "ACME").
+// collapse internal whitespace. No fuzzy matching yet.
 const ACCOUNT_OWNERSHIP_WINDOW_DAYS = 365;
 
 function normalizeCompanyName(name) {
@@ -147,11 +99,19 @@ function normalizeCompanyName(name) {
   return normalized || null;
 }
 
+// Returns the active owner record for a company, or null.
+async function getActiveAccountOwner(store, companyName, now) {
+  const normalized = normalizeCompanyName(companyName);
+  if (!normalized) return null;
+  const existing = await store.get(`company-owner:${normalized}`, { type: 'json' });
+  if (existing && new Date(existing.expiresAt) > now) return existing;
+  return null;
+}
+
 // Called on every paid booking, regardless of whether it's a rep sale,
 // ISM, or SELF_CREDIT — the two branches below are mutually exclusive
 // per booking (a booking either CLAIMS ownership or PAYS an existing
-// owner; it can never do both, since a rep-coded booking and an
-// ISM/SELF_CREDIT booking are different bookings by definition).
+// owner; it can never do both).
 async function checkAndRecordAccountOwnership({
   bookingId, cohortId, repCode, companyName, seatCount, revenue, createdAt
 }) {
@@ -162,17 +122,16 @@ async function checkAndRecordAccountOwnership({
 
   const store = getStore('bookings');
   const ownerKey = `company-owner:${normalized}`;
-  const existing = await store.get(ownerKey, { type: 'json' });
   const now = new Date(createdAt || Date.now());
-  const existingActive = existing && new Date(existing.expiresAt) > now;
+  const existing = await getActiveAccountOwner(store, companyName, now);
 
-  const isRepSale = repCode && repCode !== 'ISM' && repCode !== 'SELF_CREDIT';
+  const isRepSale = repCode && repCode !== HOUSE_CODE && repCode !== 'SELF_CREDIT';
 
   if (isRepSale) {
     // Claim ownership only if nobody holds an active claim already — first
     // claimer keeps it until expiry, including against the same rep
     // re-selling (a no-op, not an extension of the window).
-    if (!existingActive) {
+    if (!existing) {
       const expiresAt = new Date(now.getTime() + ACCOUNT_OWNERSHIP_WINDOW_DAYS * 24 * 60 * 60 * 1000);
       await store.setJSON(ownerKey, {
         ownerCode: repCode,
@@ -188,14 +147,14 @@ async function checkAndRecordAccountOwnership({
   }
 
   // ISM / SELF_CREDIT booking — pay the active owner, if any.
-  if (!existingActive) return result;
+  if (!existing) return result;
 
   const cohort = getCohort(cohortId);
   const phase = salePhase(cohort, now);
   if (phase !== 'early-bird' && phase !== 'final-call') return result;
 
-  const companyRate = companyTierRate(seatCount);
-  const amount = Math.round(revenue * companyRate);
+  const rate = REP_COMMISSION_RATE;
+  const amount = Math.round(revenue * rate);
 
   const record = {
     bookingId,
@@ -205,10 +164,8 @@ async function checkAndRecordAccountOwnership({
     seatCount,
     revenue,
     salePhaseAtSale: phase,
-    companyTierRate: companyRate,
-    workshopBonusRate: 0,
-    minimumFillBonusRate: 0,
-    totalRate: companyRate,
+    rateScheme: COMMISSION_SCHEME,
+    totalRate: rate,
     commissionAmount: amount,
     payoutStatus: 'pending',
     recordType: 'ownership-override',
@@ -225,21 +182,10 @@ async function checkAndRecordAccountOwnership({
   return result;
 }
 
-function companyTierRate(delegateCount) {
-  const tier = COMPANY_TIERS.find((t) => delegateCount >= t.min && delegateCount <= t.max);
-  return tier ? tier.rate : 0;
-}
-
-function workshopBonusRate(cumulativeInCohort) {
-  const tier = WORKSHOP_BONUS_TIERS.find((t) => cumulativeInCohort >= t.min && cumulativeInCohort <= t.max);
-  return tier ? tier.rate : 0;
-}
-
 // Computes and records commission for a booking at the moment it's paid
-// (called from stripe-webhook.js). It runs on seat count and revenue
-// alone, so it can fire immediately at payment — no delegate-eligibility
-// data needed. The minimum-fill bonus is deliberately NOT included here;
-// see release-commission-payouts.js for that.
+// (called from stripe-webhook.js). It runs on revenue alone, so it can
+// fire immediately at payment. Payout is gated later by
+// release-commission-payouts.js (cohort must reach its minimum).
 async function calculateAndRecordCommission({
   bookingId, cohortId, repCode, companyName, seatCount, revenue, createdAt
 }) {
@@ -249,21 +195,20 @@ async function calculateAndRecordCommission({
     eligible: false,
     reason: null,
     seatCount,
-    companyTierRate: 0,
-    workshopBonusRate: 0,
     totalRate: 0,
     commissionAmount: 0,
     repCumulativeInCohortAfter: null
   };
 
-  // No rep attributed (house default / self-credit path) — not a commission case.
-  if (!repCode || repCode === 'ISM' || repCode === 'SELF_CREDIT') {
+  // No code at all, or the Booking Contact chose an account credit — not a commission case.
+  if (!repCode || repCode === 'SELF_CREDIT') {
     result.reason = repCode === 'SELF_CREDIT'
       ? 'Booking contact chose an account credit instead of rep commission'
       : 'No sales rep attributed to this booking';
     return result;
   }
 
+  const isHouse = repCode === HOUSE_CODE;
   const cohort = getCohort(cohortId);
   const saleDate = new Date(createdAt);
   const phase = salePhase(cohort, saleDate);
@@ -273,23 +218,28 @@ async function calculateAndRecordCommission({
     return result;
   }
 
-  // Workshop bonus: this rep's cumulative delegate count in THIS cohort specifically.
-  const ledgerKey = `rep-cohort-count:${repCode}:${cohortId}`;
-  const priorRaw = await store.get(ledgerKey);
-  const prior = priorRaw ? parseInt(priorRaw, 10) : 0;
-  const after = prior + seatCount;
-  await store.set(ledgerKey, String(after));
-  result.repCumulativeInCohortAfter = after;
+  if (isHouse) {
+    // An active Account Owner is paid 20% on this booking instead of ISM.
+    const owner = await getActiveAccountOwner(store, companyName, saleDate);
+    if (owner) {
+      result.reason = `Company has an active Account Owner (${owner.ownerCode}) — the owner is paid on this booking instead of ISM`;
+      return result;
+    }
+  } else {
+    // Per-rep delegate ledger for the public leaderboard (reps only, not ISM).
+    const ledgerKey = `rep-cohort-count:${repCode}:${cohortId}`;
+    const priorRaw = await store.get(ledgerKey);
+    const prior = priorRaw ? parseInt(priorRaw, 10) : 0;
+    const after = prior + seatCount;
+    await store.set(ledgerKey, String(after));
+    result.repCumulativeInCohortAfter = after;
+  }
 
-  const companyRate = companyTierRate(seatCount);
-  const bonusRate = workshopBonusRate(after);
-  const totalRate = companyRate + bonusRate;
-  const amount = Math.round(revenue * totalRate);
+  const rate = commissionRateFor(repCode);
+  const amount = Math.round(revenue * rate);
 
   result.eligible = true;
-  result.companyTierRate = companyRate;
-  result.workshopBonusRate = bonusRate;
-  result.totalRate = totalRate;
+  result.totalRate = rate;
   result.commissionAmount = amount;
 
   const record = {
@@ -300,21 +250,17 @@ async function calculateAndRecordCommission({
     seatCount,
     revenue,
     salePhaseAtSale: phase,
-    companyTierRate: companyRate,
-    workshopBonusRate: bonusRate,
-    minimumFillBonusRate: 0,
-    totalRate,
+    rateScheme: COMMISSION_SCHEME,
+    totalRate: rate,
     commissionAmount: amount,
     payoutStatus: 'pending',
-    repCumulativeInCohortAfter: after,
+    repCumulativeInCohortAfter: result.repCumulativeInCohortAfter,
     computedAt: new Date().toISOString()
   };
   await store.setJSON(`commission:${bookingId}`, record);
   // Secondary index for the sales report: lets it list one rep's
   // commissions by prefix instead of scanning every booking in the system.
   await store.setJSON(`commission-by-rep:${repCode}:${record.computedAt}:${bookingId}`, record);
-
-  result.repOwnCeilingReached = totalRate >= REP_OWN_CEILING_RATE;
 
   return result;
 }
@@ -326,17 +272,13 @@ function quarterKey(date) {
 
 // Sums, for every rep on a given manager's team, that rep's delegate
 // count from commission records computed within the given quarter —
-// this is the "team's combined delegates this quarter" figure the
-// Team Builder / Team Excellence tiers key off. Also returns how many
-// distinct reps on the team have hit their own 25% ceiling (company +
-// workshop bonus) on at least one sale in the quarter, for the
-// alternate Team Excellence path.
+// the "team's combined delegates this quarter" figure the Team Builder /
+// Team Excellence tiers key off.
 async function getTeamQuarterStats(store, managerCode, quarter) {
   const { blobs } = await store.list({ prefix: `manager-team:${managerCode}:` });
   const repCodes = blobs.map((b) => b.key.split(':')[2]).filter(Boolean);
 
   let teamVolume = 0;
-  const elitesThisQuarter = new Set();
 
   for (const repCode of repCodes) {
     const { blobs: repCommissions } = await store.list({ prefix: `commission-by-rep:${repCode}:` });
@@ -345,20 +287,16 @@ async function getTeamQuarterStats(store, managerCode, quarter) {
       if (!record || !record.computedAt) continue;
       if (record.recordType === 'ownership-override') continue; // not this rep's own selling volume
       if (quarterKey(new Date(record.computedAt)) !== quarter) continue;
-
       teamVolume += record.seatCount || 0;
-      if ((record.totalRate || 0) >= REP_OWN_CEILING_RATE) {
-        elitesThisQuarter.add(repCode);
-      }
     }
   }
 
-  return { repCodes, teamVolume, eliteRepCount: elitesThisQuarter.size };
+  return { repCodes, teamVolume };
 }
 
-function managerOverrideTierForStats({ activeRepCount, teamVolume, eliteRepCount }) {
+function managerOverrideTierForStats({ activeRepCount, teamVolume }) {
   if (activeRepCount < MANAGER_MIN_ACTIVE_REPS) return { tier: 'none', rate: MANAGER_OVERRIDE_RATES.none };
-  if (teamVolume >= MANAGER_TEAM_EXCELLENCE_VOLUME_THRESHOLD || eliteRepCount >= MANAGER_TEAM_EXCELLENCE_ELITE_REP_COUNT) {
+  if (teamVolume >= MANAGER_TEAM_EXCELLENCE_VOLUME_THRESHOLD) {
     return { tier: 'teamExcellence', rate: MANAGER_OVERRIDE_RATES.teamExcellence };
   }
   if (teamVolume >= MANAGER_TEAM_BUILDER_THRESHOLD) {
@@ -378,7 +316,7 @@ async function calculateAndRecordManagerOverride({
 }) {
   const result = { eligible: false, reason: null, managerCode: null, overrideTier: 'none', overrideRate: 0, overrideAmount: 0 };
 
-  if (!repCode || repCode === 'ISM' || repCode === 'SELF_CREDIT') {
+  if (!repCode || repCode === HOUSE_CODE || repCode === 'SELF_CREDIT') {
     result.reason = 'No sales rep attributed to this booking';
     return result;
   }
@@ -409,15 +347,14 @@ async function calculateAndRecordManagerOverride({
   const activeRepCount = teamBlobs.length;
 
   const quarter = quarterKey(saleDate);
-  const { teamVolume, eliteRepCount } = await getTeamQuarterStats(store, managerCode, quarter);
+  const { teamVolume } = await getTeamQuarterStats(store, managerCode, quarter);
 
-  const { tier, rate } = managerOverrideTierForStats({ activeRepCount, teamVolume, eliteRepCount });
+  const { tier, rate } = managerOverrideTierForStats({ activeRepCount, teamVolume });
 
   result.managerCode = managerCode;
   result.overrideTier = tier;
   result.overrideRate = rate;
   result.teamVolumeThisQuarter = teamVolume;
-  result.eliteRepCountThisQuarter = eliteRepCount;
   result.activeRepCount = activeRepCount;
 
   if (rate <= 0) {
@@ -448,7 +385,6 @@ async function calculateAndRecordManagerOverride({
     totalRate: rate,
     commissionAmount: amount,
     teamVolumeThisQuarter: teamVolume,
-    eliteRepCountThisQuarter: eliteRepCount,
     activeRepCount,
     payoutStatus: 'pending',
     recordType: 'manager-override',
@@ -462,8 +398,9 @@ async function calculateAndRecordManagerOverride({
 
 module.exports = {
   calculateAndRecordCommission, checkAndRecordAccountOwnership, calculateAndRecordManagerOverride,
-  normalizeCompanyName, companyTierRate, workshopBonusRate, quarterKey, managerOverrideTierForStats,
-  COMPANY_TIERS, WORKSHOP_BONUS_TIERS, MINIMUM_FILL_BONUS_RATE, ACCOUNT_OWNERSHIP_WINDOW_DAYS,
-  REP_OWN_CEILING_RATE, MANAGER_MIN_ACTIVE_REPS, MANAGER_TEAM_BUILDER_THRESHOLD,
-  MANAGER_TEAM_EXCELLENCE_VOLUME_THRESHOLD, MANAGER_TEAM_EXCELLENCE_ELITE_REP_COUNT, MANAGER_OVERRIDE_RATES
+  normalizeCompanyName, commissionRateFor, quarterKey, managerOverrideTierForStats,
+  HOUSE_CODE, REP_COMMISSION_RATE, ISM_COMMISSION_RATE, COMMISSION_SCHEME,
+  LEGACY_MINIMUM_FILL_BONUS_RATE, ACCOUNT_OWNERSHIP_WINDOW_DAYS,
+  MANAGER_MIN_ACTIVE_REPS, MANAGER_TEAM_BUILDER_THRESHOLD,
+  MANAGER_TEAM_EXCELLENCE_VOLUME_THRESHOLD, MANAGER_OVERRIDE_RATES
 };
